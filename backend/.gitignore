@@ -1,4 +1,5 @@
 .ipynb_checkpoints
+__pycache__
 knn_ticker.npy
 local_snapshot_us_equity
 local_us_equity_news

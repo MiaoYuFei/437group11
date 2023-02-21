@@ -1,10 +1,21 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import axios from "axios";
+</script>
 <script lang="ts">
 export default {
   data() {
     return {};
   },
-  mounted() {},
+  mounted() {
+    axios
+      .get("http://localhost:9000/test")
+      .then((response: { data: any }) => {
+        console.log(response.data);
+      })
+      .catch((reason) => {
+        console.log(reason);
+      });
+  },
 };
 </script>
 <template>

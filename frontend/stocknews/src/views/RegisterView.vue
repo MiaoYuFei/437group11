@@ -8,6 +8,6 @@ export default {
 };
 </script>
 <template>
-  <div>Home page for stock news</div>
+  <div>Register page for stock news</div>
 </template>
 <style scoped></style>

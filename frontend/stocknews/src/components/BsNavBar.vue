@@ -20,7 +20,10 @@ export default {
 };
 </script>
 <template>
-  <nav class="navbar navbar-expand-lg bg-light" aria-label="Navigation">
+  <nav
+    class="navbar navbar-expand-lg navbar-dark bg-dark"
+    aria-label="Navigation"
+  >
     <div class="container-fluid">
       <a class="navbar-brand d-flex align-items-center gap-1" href="#">
         <img
@@ -63,7 +66,7 @@ export default {
             >
               Dropdown
             </a>
-            <ul class="dropdown-menu">
+            <ul class="dropdown-menu dropdown-menu-dark">
               <li>
                 <RouterLink class="dropdown-item" to="/">
                   <span>Action</span>

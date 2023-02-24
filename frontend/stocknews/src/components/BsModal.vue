@@ -1,7 +1,6 @@
-<script setup lang="ts">
-import { Modal } from "bootstrap";
-</script>
 <script lang="ts">
+import { Modal } from "bootstrap";
+
 let domObj: Element | null = null;
 let bsObj: Modal | null = null;
 
@@ -22,18 +21,18 @@ export default {
     },
   },
   mounted: function () {
-    domObj = this.$refs.modalContainer as Element;
+    domObj = this.$refs.root as Element;
     bsObj = new Modal(domObj, this.options);
-    const modalEventHandler = (event: Modal.Event) => {
+    const eventHandler = (event: Event) => {
       this.$emit(event.type.substring(0, event.type.indexOf(".")));
     };
-    domObj.addEventListener("hide.bs.modal", modalEventHandler);
-    domObj.addEventListener("hidden.bs.modal", modalEventHandler);
-    domObj.addEventListener("hidePrevented.bs.modal", modalEventHandler);
-    domObj.addEventListener("show.bs.modal", modalEventHandler);
-    domObj.addEventListener("shown.bs.modal", modalEventHandler);
+    domObj.addEventListener("hide.bs.modal", eventHandler);
+    domObj.addEventListener("hidden.bs.modal", eventHandler);
+    domObj.addEventListener("hidePrevented.bs.modal", eventHandler);
+    domObj.addEventListener("show.bs.modal", eventHandler);
+    domObj.addEventListener("shown.bs.modal", eventHandler);
     new ResizeObserver(() => bsObj?.handleUpdate()).observe(
-      this.$refs.modalBody as Element
+      this.$refs.slot as Element
     );
   },
   expose: ["show", "hide"],
@@ -45,7 +44,7 @@ export default {
     tabindex="-1"
     aria-hidden="true"
     :aria-label="title"
-    ref="modalContainer"
+    ref="root"
   >
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content">
@@ -62,7 +61,7 @@ export default {
           ></button>
         </div>
         <div class="modal-body">
-          <slot ref="modalBody"></slot>
+          <slot ref="slot"></slot>
         </div>
         <div class="modal-footer">
           <button

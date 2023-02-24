@@ -1,8 +1,7 @@
 from uuid import uuid4
 from entity.user import *
 from firebase import *
-from flask import Flask
-from flask import request
+from flask import Flask, jsonify, make_response, request
 
 app = Flask("stocknews")
 fb = firebase()
@@ -14,16 +13,21 @@ def home():
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    username = request.form["username"]
-    password = request.form["password"]
-    user = get_user_by_username(db, username)
-    if user == None:
-        return "User doesn't exist!"
-    result = authenticate_user(db, user.id, password)
-    if result:
-        return "Congratulations! Login successful!"
-    else:
-        return "Wrong password!!"
+    result = { 
+        "code": 200,
+        "data": {}
+    }
+    return make_response(jsonify(result), 200,)
+    # username = request.form["username"]
+    # password = request.form["password"]
+    # user = get_user_by_username(db, username)
+    # if user == None:
+    #     return "User doesn't exist!"
+    # result = authenticate_user(db, user.id, password)
+    # if result:
+    #     return "Congratulations! Login successful!"
+    # else:
+    #     return "Wrong password!!"
 
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -43,4 +47,4 @@ def register():
     return "User registration successful!"
 
 if __name__ == "__main__":
-    app.run(port=9001)
+    app.run(port=9000)

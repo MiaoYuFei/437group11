@@ -6,16 +6,7 @@ export default {
   data() {
     return {};
   },
-  mounted() {
-    axios
-      .get("http://localhost:9000/test")
-      .then((response: { data: any }) => {
-        console.log(response.data);
-      })
-      .catch((reason) => {
-        console.log(reason);
-      });
-  },
+  mounted() {},
 };
 </script>
 <template>

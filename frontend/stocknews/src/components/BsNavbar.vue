@@ -1,4 +1,6 @@
 <script lang="ts">
+import { RouterLink } from "vue-router";
+
 export default {
   data: () => {
     return {
@@ -13,6 +15,7 @@ export default {
       window.open("/search?q=" + encodeURIComponent(this.searchText), "_blank");
     },
   },
+  components: { RouterLink },
 };
 </script>
 <template>

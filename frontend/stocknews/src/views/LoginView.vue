@@ -24,10 +24,27 @@ export default {
       if (method != "get" && method != "post") {
         return false;
       }
+      const apiData = {
+        username: form.find("input[name='username']").val(),
+        password: form.find("input[name='password']").val(),
+      };
+      let api;
+      if (method === "get") {
+        let searchParam = "";
+        if (action.substring(action.indexOf("/")).indexOf("?") < 0) {
+          searchParam += "?" + $.param(apiData);
+        } else {
+          searchParam += "&" + $.param(apiData);
+        }
+        api = axios.get(action + searchParam);
+      } else if (method === "post") {
+        api = axios.post(action, apiData);
+      } else {
+        return false;
+      }
       alertElement.hide();
       formControls.addClass("disabled").attr("disabled", "disabled");
       loginButtonElement.setLoading(true);
-      const api = method === "get" ? axios.get(action) : axios.post(action);
       api
         .then((response) => {
           const code = response.data.code;
@@ -52,14 +69,19 @@ export default {
         });
     },
     onLoginAlertClosed: function (target: Element) {
-      $((target as any).$el)
+      $(target)
         .parentsUntil("form")
         .parent()
         .find("input:first")
         .trigger("focus");
     },
   },
-  mounted() {},
+  mounted() {
+    $(this.$refs.root as Element)
+      .find("form:first")
+      .find("input:first")
+      .trigger("focus");
+  },
   components: {
     BsAlert,
     BsButton,
@@ -67,7 +89,7 @@ export default {
 };
 </script>
 <template>
-  <div>
+  <div ref="root">
     <div
       class="container d-flex flex-column justify-content-center align-items-center h-100"
     >
@@ -77,7 +99,7 @@ export default {
       >
         <div class="card-body p-4">
           <form action="/api/login" method="post" @submit.prevent="onLogin">
-            <h3 class="card-title user-select-none mb-3">Log In</h3>
+            <h3 class="card-title mb-3">Log In</h3>
             <div class="input-group mb-3">
               <span class="input-group-text">@</span>
               <div class="form-floating">
@@ -125,9 +147,13 @@ export default {
               ></BsAlert>
             </div>
             <div>
-              <a class="text-decoration-none user-select-none" href="#"
-                >Forget password?</a
-              >
+              <a href="#">Forgot password?</a>
+            </div>
+            <div>
+              Don&apos;t have an account?
+              <RouterLink to="/register">
+                <span>Register here.</span>
+              </RouterLink>
             </div>
           </form>
         </div>

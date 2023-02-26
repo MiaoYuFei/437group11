@@ -5,18 +5,9 @@ let domObj: Element | null = null;
 
 export default {
   props: {
+    loading: { type: Boolean, default: false },
     bgColor: { type: String, default: "dark" },
     textColor: { type: String, default: "light" },
-  },
-  data: function () {
-    return {
-      loading: false,
-    };
-  },
-  methods: {
-    setLoading: function (isLoading: boolean) {
-      this.loading = isLoading;
-    },
   },
   mounted: function () {
     domObj = this.$refs.root as Element;
@@ -24,7 +15,6 @@ export default {
     jqObj.addClass("btn-" + this.bgColor);
     jqObj.find(".spinner-border").addClass("text-" + this.textColor);
   },
-  expose: ["setLoading"],
 };
 </script>
 <template>

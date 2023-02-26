@@ -1,5 +1,6 @@
 <script lang="ts">
 import { RouterLink } from "vue-router";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 export default {
   data: () => {
@@ -15,7 +16,7 @@ export default {
       window.open("/search?q=" + encodeURIComponent(this.searchText), "_blank");
     },
   },
-  components: { RouterLink },
+  components: { RouterLink, FontAwesomeIcon },
 };
 </script>
 <template>
@@ -24,7 +25,7 @@ export default {
     aria-label="Navigation"
   >
     <div class="container-fluid">
-      <a class="navbar-brand d-flex align-items-center gap-1" href="#">
+      <RouterLink class="navbar-brand d-flex align-items-center gap-1" to="/">
         <img
           src="/src/assets/vue.svg"
           alt="Logo"
@@ -33,7 +34,7 @@ export default {
           class="d-inline-block align-text-top"
         />
         Stock News
-      </a>
+      </RouterLink>
       <button
         class="navbar-toggler"
         type="button"
@@ -97,7 +98,7 @@ export default {
             v-model="searchText"
           />
           <button class="btn btn-outline-success" type="submit">
-            <font-awesome-icon icon="fa-magnifying-glass" class="fs-5" />
+            <FontAwesomeIcon icon="fa-magnifying-glass" class="fs-5" />
           </button>
         </form>
         <ul class="navbar-nav mb-2 mb-lg-0">

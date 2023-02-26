@@ -1,95 +1,63 @@
 <script lang="ts">
-import $ from "jquery";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import BsAlert from "@/components/BsAlert.vue";
 import BsButton from "@/components/BsButton.vue";
-import axios from "axios";
+import { disableForm, enableForm, focusForm, handleApi } from "@/utilities";
 
 export default {
   data() {
     return {
-      loginAlertMessage: "unknown error",
+      loading: false,
+      formAlertMessage: "unknown error",
     };
   },
-  methods: {
-    onLogin: function (event: Event) {
-      const alertElement = this.$refs.loginAlert as typeof BsAlert;
-      const loginButtonElement = this.$refs.loginButton as typeof BsButton;
-      const form = $(event.target as Element);
-      const formControls = form.find("input, button");
-      const action = form.attr("action");
-      if (action === undefined) {
-        return false;
-      }
-      const method = form.attr("method")?.toLowerCase() || "get";
-      if (method != "get" && method != "post") {
-        return false;
-      }
-      const apiData = {
-        username: form.find("input[name='username']").val(),
-        password: form.find("input[name='password']").val(),
-      };
-      let api;
-      if (method === "get") {
-        let searchParam = "";
-        if (action.substring(action.indexOf("/")).indexOf("?") < 0) {
-          searchParam += "?" + $.param(apiData);
-        } else {
-          searchParam += "&" + $.param(apiData);
-        }
-        api = axios.get(action + searchParam);
-      } else if (method === "post") {
-        api = axios.post(action, apiData);
+  watch: {
+    loading(newValue) {
+      const formAlert = this.$refs.formAlert as typeof BsAlert;
+      if (newValue) {
+        formAlert.hide();
+        disableForm(this.$refs.form);
       } else {
-        return false;
+        formAlert.show();
+        enableForm(this.$refs.form);
       }
-      alertElement.hide();
-      formControls.addClass("disabled").attr("disabled", "disabled");
-      loginButtonElement.setLoading(true);
-      api
-        .then((response) => {
-          const code = response.data.code;
-          const data = response.data.data;
-          formControls.removeClass("disabled").removeAttr("disabled");
-          loginButtonElement.setLoading(false);
-          if (parseInt(code) === 200) {
+    },
+  },
+  methods: {
+    onFormSubmit: function () {
+      this.loading = true;
+      handleApi(this.$refs.form, ["username", "password"]).then(
+        (response) => {
+          if (parseInt(response.data.code) === 200) {
             window.location.href = "/";
           } else {
-            this.loginAlertMessage =
-              "(" + code.toString() + ") " + data.message;
-            alertElement.show();
+            this.formAlertMessage = response.data.data.message;
+            this.loading = false;
           }
-        })
-        .catch((error) => {
-          console.log(error);
-          this.loginAlertMessage = "(" + error.code + ") " + error.message;
-          alertElement.show(() => {
-            formControls.removeClass("disabled").removeAttr("disabled");
-            loginButtonElement.setLoading(false);
-          });
-        });
+        },
+        (error) => {
+          this.formAlertMessage = error.message;
+          this.loading = false;
+        }
+      );
+      return true;
     },
-    onLoginAlertClosed: function (target: Element) {
-      $(target)
-        .parentsUntil("form")
-        .parent()
-        .find("input:first")
-        .trigger("focus");
+    onFormAlertClosed: function () {
+      focusForm(this.$refs.form);
     },
   },
   mounted() {
-    $(this.$refs.root as Element)
-      .find("form:first")
-      .find("input:first")
-      .trigger("focus");
+    focusForm(this.$refs.form);
   },
   components: {
+    FontAwesomeIcon,
     BsAlert,
     BsButton,
   },
 };
 </script>
 <template>
-  <div ref="root">
+  <div>
     <div
       class="container d-flex flex-column justify-content-center align-items-center h-100"
     >
@@ -98,8 +66,15 @@ export default {
         style="box-shadow: 0.2rem 0.2rem 0.1rem #eee"
       >
         <div class="card-body p-4">
-          <form action="/api/login" method="post" @submit.prevent="onLogin">
-            <h3 class="card-title mb-3">Log In</h3>
+          <form
+            action="/api/login"
+            method="post"
+            @submit.prevent="onFormSubmit"
+            ref="form"
+          >
+            <h3 class="card-title mb-4">
+              <FontAwesomeIcon icon="fa-user" class="me-3" />Log In
+            </h3>
             <div class="input-group mb-3">
               <span class="input-group-text">@</span>
               <div class="form-floating">
@@ -130,9 +105,10 @@ export default {
               <BsButton
                 type="submit"
                 class="btn-lg btn-block me-3"
+                :loading="loading"
                 bgColor="dark"
                 textColor="light"
-                ref="loginButton"
+                ref="formSubmit"
               >
                 Log In
               </BsButton>
@@ -140,10 +116,10 @@ export default {
             <div>
               <BsAlert
                 class="mb-3"
-                :message="loginAlertMessage"
+                :message="formAlertMessage"
                 bgColor="warning"
-                @closed="onLoginAlertClosed"
-                ref="loginAlert"
+                @closed="onFormAlertClosed"
+                ref="formAlert"
               ></BsAlert>
             </div>
             <div>

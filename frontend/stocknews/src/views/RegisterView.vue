@@ -238,8 +238,8 @@ export default {
             </div>
             <div>
               Already have an account?
-              <RouterLink to="/login">
-                <span>Log in here.</span>
+              <RouterLink to="/signin">
+                <span>Sign in here.</span>
               </RouterLink>
             </div>
           </form>

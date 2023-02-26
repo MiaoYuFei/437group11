@@ -103,8 +103,8 @@ export default {
         </form>
         <ul class="navbar-nav mb-2 mb-lg-0">
           <li class="nav-item">
-            <RouterLink class="nav-link" to="/login">
-              <span>Log in</span>
+            <RouterLink class="nav-link" to="/signin">
+              <span>Sign in</span>
             </RouterLink>
           </li>
           <li class="nav-item">

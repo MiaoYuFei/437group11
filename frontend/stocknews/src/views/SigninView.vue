@@ -67,13 +67,13 @@ export default {
       >
         <div class="card-body p-4">
           <form
-            action="/api/login"
+            action="/api/signin"
             method="post"
             @submit.prevent="onFormSubmit"
             ref="form"
           >
             <h3 class="card-title mb-4">
-              <FontAwesomeIcon icon="fa-user" class="me-3" />Log In
+              <FontAwesomeIcon icon="fa-user" class="me-3" />Sign In
             </h3>
             <div class="input-group mb-3">
               <span class="input-group-text">@</span>
@@ -110,7 +110,7 @@ export default {
                 textColor="light"
                 ref="formSubmit"
               >
-                Log In
+                Sign In
               </BsButton>
             </div>
             <div>

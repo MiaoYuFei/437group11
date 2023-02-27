@@ -82,4 +82,4 @@ def signout():
     return make_response(jsonify(result), 200)
 
 if __name__ == "__main__":
-    app.run(port=9000)
+    app.run(host="::", port=8080)

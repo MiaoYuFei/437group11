@@ -4,6 +4,8 @@
 
 Vite, Vue 3, TypeScript
 
+- `cd frontend/stocknews`
+
 - Install dependency packages: `npm install`
 
 - Run a development server: `npm run dev`
@@ -13,5 +15,9 @@ Vite, Vue 3, TypeScript
 ## Backend
 
 Flask, Firebase
+
+- `cd backend`
+
+- Install dependency packages: `pip install -r requirements.txt`
 
 - Run backend server: `python main.py`

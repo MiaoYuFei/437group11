@@ -1,4 +1,5 @@
 import $ from "jquery";
+import qs from "qs";
 import axios, { type AxiosResponse } from "axios";
 
 function handleApi(
@@ -13,18 +14,24 @@ function handleApi(
   for (const field of fields) {
     apiDdata[field] = jqObj.find("input[name=" + field + "]").val() as string;
   }
-  let api: Promise<AxiosResponse<any, any>>;
   if (method === "get") {
     const search =
       (action.substring(action.indexOf("/")).indexOf("?") < 0 ? "?" : "&") +
       $.param(apiDdata);
-    api = axios.get(action + search);
+    return axios({
+      method: "get",
+      url: action + search,
+    });
   } else if (method === "post") {
-    api = axios.post(action, apiDdata);
+    return axios({
+      method: "post",
+      url: action,
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      data: qs.stringify(apiDdata),
+    });
   } else {
     throw new Error("api method not supported: " + method);
   }
-  return api;
 }
 
 function enableForm(form: any) {

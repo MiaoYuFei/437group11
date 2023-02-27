@@ -1,5 +1,4 @@
 <script lang="ts">
-import $ from "jquery";
 import { RouterLink } from "vue-router";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { handleApi } from "@/utilities";
@@ -27,6 +26,13 @@ export default {
           this.signedIn = false;
         }
       );
+    },
+    onUserSignout: function () {
+      handleApi(this.$refs.form, []).then(() => {
+        this.username = "";
+        this.signedIn = false;
+        window.location.href = "/";
+      });
     },
     search_click: function () {
       if (this.searchText === "") {
@@ -168,15 +174,23 @@ export default {
               </a>
               <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
                 <li>
-                  <RouterLink class="dropdown-item" to="/">
+                  <RouterLink class="dropdown-item" to="/profile">
                     <span>Profile</span>
                   </RouterLink>
                 </li>
                 <li><hr class="dropdown-divider" /></li>
                 <li>
-                  <RouterLink class="dropdown-item" to="/">
-                    <span>Sign out</span>
-                  </RouterLink>
+                  <form
+                    action="/api/user/signout"
+                    method="post"
+                    @submit.prevent="onUserSignout"
+                  >
+                    <input
+                      class="dropdown-item"
+                      type="submit"
+                      value="Sign out"
+                    />
+                  </form>
                 </li>
               </ul>
             </li>

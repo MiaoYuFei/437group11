@@ -59,7 +59,7 @@ export default {
           if (parseInt(response.data.code) === 200) {
             window.location.href = "/";
           } else {
-            this.formAlertMessage = response.data.data.message;
+            this.formAlertMessage = response.data.data.reason;
             this.loading = false;
           }
         },

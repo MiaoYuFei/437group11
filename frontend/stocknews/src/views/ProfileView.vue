@@ -7,6 +7,9 @@ export default {
   data() {
     return {};
   },
+  created() {
+    document.title = "Profile - " + (this as any).$projectName;
+  },
   mounted() {},
 };
 </script>

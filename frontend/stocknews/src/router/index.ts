@@ -1,8 +1,10 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HomeViewVue from "@/views/HomeView.vue";
-import RegisterViewVue from "@/views/RegisterView.vue";
-import LoginViewVue from "@/views/LoginView.vue";
-import ProfileViewVue from "@/views/ProfileView.vue";
+import HomeView from "@/views/HomeView.vue";
+import RegisterView from "@/views/RegisterView.vue";
+import SigninView from "@/views/SigninView.vue";
+import ProfileView from "@/views/ProfileView.vue";
+import SearchView from "@/views/SearchView.vue";
+import TickerView from "@/views/TickerView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,22 +12,32 @@ const router = createRouter({
     {
       path: "/",
       name: "home",
-      component: HomeViewVue,
+      component: HomeView,
     },
     {
-      path: "/login",
-      name: "login",
-      component: LoginViewVue,
+      path: "/signin",
+      name: "signin",
+      component: SigninView,
     },
     {
       path: "/register",
       name: "register",
-      component: RegisterViewVue,
+      component: RegisterView,
     },
     {
       path: "/profile",
       name: "profile",
-      component: ProfileViewVue,
+      component: ProfileView,
+    },
+    {
+      path: "/search",
+      name: "search",
+      component: SearchView,
+    },
+    {
+      path: "/ticker",
+      name: "ticker",
+      component: TickerView,
     },
   ],
 });

@@ -126,9 +126,9 @@ export default {
               <a href="#">Forgot password?</a>
             </div>
             <div>
-              Don&apos;t have an account?
+              Don&apos;t have a stocknews account?
               <RouterLink to="/register">
-                <span>Register here.</span>
+                <span>Get one now.</span>
               </RouterLink>
             </div>
           </form>

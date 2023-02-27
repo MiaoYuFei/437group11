@@ -237,7 +237,7 @@ export default {
               ></BsAlert>
             </div>
             <div>
-              Already have an account?
+              Already have a stocknews account?
               <RouterLink to="/signin">
                 <span>Sign in here.</span>
               </RouterLink>

@@ -1,20 +1,42 @@
 <script lang="ts">
+import $ from "jquery";
 import { RouterLink } from "vue-router";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { handleApi } from "@/utilities";
 
 export default {
   data: () => {
     return {
+      username: "",
+      signedIn: false,
       searchText: "",
     };
   },
   methods: {
+    onUserStatus: function () {
+      handleApi(this.$refs.form, []).then(
+        (response) => {
+          if (parseInt(response.data.code) === 200) {
+            this.username = response.data.username;
+            this.signedIn = true;
+          } else {
+            this.signedIn = false;
+          }
+        },
+        () => {
+          this.signedIn = false;
+        }
+      );
+    },
     search_click: function () {
       if (this.searchText === "") {
         return false;
       }
       window.open("/search?q=" + encodeURIComponent(this.searchText), "_blank");
     },
+  },
+  mounted() {
+    this.onUserStatus();
   },
   components: { RouterLink, FontAwesomeIcon },
 };
@@ -113,20 +135,59 @@ export default {
             <FontAwesomeIcon icon="fa-magnifying-glass" class="fs-5" />
           </button>
         </form>
-        <ul class="navbar-nav mb-2 mb-lg-0">
-          <li class="nav-item">
-            <RouterLink class="nav-link" to="/signin">
-              <span>Sign in</span>
-            </RouterLink>
-          </li>
-          <li class="nav-item">
-            <RouterLink class="nav-link" to="/register">
-              <span>Register</span>
-            </RouterLink>
-          </li>
-        </ul>
+        <div>
+          <form
+            class="d-none"
+            action="/api/user/status"
+            method="post"
+            @submit.prevent="onUserStatus"
+            ref="form"
+          ></form>
+          <ul v-if="!signedIn" class="navbar-nav mb-2 mb-lg-0">
+            <li class="nav-item">
+              <RouterLink class="nav-link" to="/signin">
+                <span>Sign in</span>
+              </RouterLink>
+            </li>
+            <li class="nav-item">
+              <RouterLink class="nav-link" to="/register">
+                <span>Register</span>
+              </RouterLink>
+            </li>
+          </ul>
+          <ul v-if="signedIn" class="navbar-nav mb-2 mb-lg-0">
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                {{ username }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                <li>
+                  <RouterLink class="dropdown-item" to="/">
+                    <span>Profile</span>
+                  </RouterLink>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <RouterLink class="dropdown-item" to="/">
+                    <span>Sign out</span>
+                  </RouterLink>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </nav>
 </template>
-<style scoped></style>
+<style scoped>
+.dropdown-menu-dark .dropdown-divider {
+  border-top: 1px solid rgba(var(--bs-secondary-rgb), 0.675);
+}
+</style>

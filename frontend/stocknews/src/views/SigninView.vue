@@ -58,14 +58,17 @@ export default {
 </script>
 <template>
   <div>
-    <div class="container d-flex flex-column align-items-center">
+    <div
+      class="container d-flex flex-column align-items-center justify-content-center"
+      style="min-height: 100%"
+    >
       <div
         class="card col-12 col-md-10 col-lg-8 col-xl-6 col-xxl-4"
         style="box-shadow: 0.2rem 0.2rem 0.1rem #eee"
       >
         <div class="card-body p-4">
           <form
-            action="/api/signin"
+            action="/api/user/signin"
             method="post"
             @submit.prevent="onFormSubmit"
             ref="form"

@@ -1,5 +1,4 @@
 <script lang="ts">
-import axios from "axios";
 import { RouterLink } from "vue-router";
 export default {
   data() {
@@ -45,6 +44,9 @@ export default {
         minute: "2-digit",
       });
     },
+  },
+  created() {
+    document.title = "Home - " + (this as any).$projectName;
   },
   mounted() {
     this.news_list = JSON.parse(this.news_string);

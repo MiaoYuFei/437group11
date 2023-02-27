@@ -31,7 +31,7 @@ export default {
       handleApi(this.$refs.formSignout, []).then(() => {
         this.username = "";
         this.signedIn = false;
-        window.location.href = "/";
+        this.$router.push("/");
       });
     },
     search_click: function () {
@@ -43,6 +43,11 @@ export default {
   },
   mounted() {
     this.onUserStatus();
+  },
+  watch: {
+    $route() {
+      this.onUserStatus();
+    },
   },
   components: { RouterLink, FontAwesomeIcon },
 };

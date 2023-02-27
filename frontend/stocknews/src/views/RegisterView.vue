@@ -57,7 +57,7 @@ export default {
       }).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
-            window.location.href = "/signin";
+            this.$router.push("/signin");
           } else {
             this.formAlertMessage = response.data.data.reason;
             this.loading = false;
@@ -94,6 +94,9 @@ export default {
         this.termsChecked = true;
       }
     },
+  },
+  created() {
+    document.title = "Register - " + (this as any).$projectName;
   },
   mounted() {
     const form = $(this.$refs.form as Element);

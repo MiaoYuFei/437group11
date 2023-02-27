@@ -3,6 +3,9 @@ export default {
   data() {
     return {};
   },
+  created() {
+    document.title = "Ticker - " + (this as any).$projectName;
+  },
   mounted() {},
 };
 </script>

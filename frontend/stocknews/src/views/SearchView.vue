@@ -3,6 +3,9 @@ export default {
   data() {
     return {};
   },
+  created() {
+    document.title = "Search - " + (this as any).$projectName;
+  },
   mounted() {},
 };
 </script>

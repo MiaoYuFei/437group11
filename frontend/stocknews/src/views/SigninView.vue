@@ -29,7 +29,7 @@ export default {
       handleApi(this.$refs.form, ["username", "password"]).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
-            window.location.href = "/";
+            this.$router.push("/");
           } else {
             this.formAlertMessage = response.data.data.reason;
             this.loading = false;
@@ -45,6 +45,9 @@ export default {
     onFormAlertClosed: function () {
       focusForm(this.$refs.form);
     },
+  },
+  created() {
+    document.title = "Sign in - " + (this as any).$projectName;
   },
   mounted() {
     focusForm(this.$refs.form);

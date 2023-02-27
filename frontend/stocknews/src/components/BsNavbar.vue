@@ -94,19 +94,65 @@ export default {
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
-              Category 1
+              Industries
             </a>
             <ul class="dropdown-menu dropdown-menu-dark">
               <li>
                 <RouterLink class="dropdown-item" to="/">
-                  <span>Type 1</span>
+                  <span>Agriculture</span>
                 </RouterLink>
               </li>
               <li>
                 <RouterLink class="dropdown-item" to="/">
-                  <span>Type 2</span>
+                  <span>Mining</span>
                 </RouterLink>
               </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Construction</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Manufacturing</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Manufacturing</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Transportation</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Wholesale Trade</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Retail Trade</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Finance, Insurance, Real, Estate</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Services</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Public Administration</span>
+                </RouterLink>
+              </li>
+
             </ul>
           </li>
           <li class="nav-item dropdown">

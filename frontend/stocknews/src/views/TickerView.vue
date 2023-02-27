@@ -10,6 +10,6 @@ export default {
 };
 </script>
 <template>
-  <div>Ticker information:</div>
+  <div>Ticker information for {{ $route.query.q }}:</div>
 </template>
 <style scoped></style>

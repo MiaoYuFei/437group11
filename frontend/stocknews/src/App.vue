@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { RouterView } from "vue-router";
-import BsNavbarVue from "@/components/BsNavbar.vue";
+import BsNavbar from "@/components/BsNavbar.vue";
 </script>
 
 <template>
-  <BsNavbarVue />
+  <BsNavbar />
   <div class="d-flex flex-row flex-fill" style="min-height: 0">
     <RouterView
       class="flex-fill"
@@ -17,5 +17,3 @@ import BsNavbarVue from "@/components/BsNavbar.vue";
     </div>
   </div>
 </template>
-
-<style scoped></style>

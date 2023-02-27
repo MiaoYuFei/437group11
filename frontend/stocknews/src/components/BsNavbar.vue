@@ -152,30 +152,6 @@ export default {
                   <span>Public Administration</span>
                 </RouterLink>
               </li>
-
-            </ul>
-          </li>
-          <li class="nav-item dropdown">
-            <a
-              class="nav-link dropdown-toggle"
-              href="#"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              Category 1
-            </a>
-            <ul class="dropdown-menu dropdown-menu-dark">
-              <li>
-                <RouterLink class="dropdown-item" to="/">
-                  <span>Type 1</span>
-                </RouterLink>
-              </li>
-              <li>
-                <RouterLink class="dropdown-item" to="/">
-                  <span>Type 2</span>
-                </RouterLink>
-              </li>
             </ul>
           </li>
         </ul>

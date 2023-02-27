@@ -13,10 +13,10 @@ export default {
   },
   methods: {
     onUserStatus: function () {
-      handleApi(this.$refs.form, []).then(
+      handleApi(this.$refs.formStatus, []).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
-            this.username = response.data.username;
+            this.username = response.data.data.username;
             this.signedIn = true;
           } else {
             this.signedIn = false;
@@ -28,7 +28,7 @@ export default {
       );
     },
     onUserSignout: function () {
-      handleApi(this.$refs.form, []).then(() => {
+      handleApi(this.$refs.formSignout, []).then(() => {
         this.username = "";
         this.signedIn = false;
         window.location.href = "/";
@@ -147,7 +147,7 @@ export default {
             action="/api/user/status"
             method="post"
             @submit.prevent="onUserStatus"
-            ref="form"
+            ref="formStatus"
           ></form>
           <ul v-if="!signedIn" class="navbar-nav mb-2 mb-lg-0">
             <li class="nav-item">
@@ -184,6 +184,7 @@ export default {
                     action="/api/user/signout"
                     method="post"
                     @submit.prevent="onUserSignout"
+                    ref="formSignout"
                   >
                     <input
                       class="dropdown-item"

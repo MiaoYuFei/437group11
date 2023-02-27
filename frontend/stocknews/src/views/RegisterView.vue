@@ -57,7 +57,7 @@ export default {
       }).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
-            window.location.href = "/";
+            window.location.href = "/signin";
           } else {
             this.formAlertMessage = response.data.data.reason;
             this.loading = false;

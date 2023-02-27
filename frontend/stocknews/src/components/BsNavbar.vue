@@ -53,8 +53,28 @@ export default {
               <span>Home</span>
             </RouterLink>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Link</a>
+          <li class="nav-item dropdown">
+            <a
+              class="nav-link dropdown-toggle"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              Category 1
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark">
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Type 1</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Type 2</span>
+                </RouterLink>
+              </li>
+            </ul>
           </li>
           <li class="nav-item dropdown">
             <a
@@ -64,31 +84,23 @@ export default {
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
-              Dropdown
+              Category 1
             </a>
             <ul class="dropdown-menu dropdown-menu-dark">
               <li>
                 <RouterLink class="dropdown-item" to="/">
-                  <span>Action</span>
+                  <span>Type 1</span>
                 </RouterLink>
               </li>
               <li>
                 <RouterLink class="dropdown-item" to="/">
-                  <span>Another action</span>
-                </RouterLink>
-              </li>
-              <li>
-                <hr class="dropdown-divider" />
-              </li>
-              <li>
-                <RouterLink class="dropdown-item" to="/">
-                  <span>Something else here</span>
+                  <span>Type 2</span>
                 </RouterLink>
               </li>
             </ul>
           </li>
         </ul>
-        <form class="d-flex" role="search" @submit.prevent="search_click">
+        <form class="d-flex me-2" role="search" @submit.prevent="search_click">
           <input
             class="form-control me-2"
             type="search"

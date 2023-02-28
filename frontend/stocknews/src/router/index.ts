@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from "vue-router";
+import FeedView from "@/views/FeedView.vue";
 import HomeView from "@/views/HomeView.vue";
 import RegisterView from "@/views/RegisterView.vue";
 import SigninView from "@/views/SigninView.vue";
 import ProfileView from "@/views/ProfileView.vue";
 import SearchView from "@/views/SearchView.vue";
 import TickerView from "@/views/TickerView.vue";
+import VerifyEmailView from "@/views/VerifyEmailView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,9 +27,19 @@ const router = createRouter({
       component: RegisterView,
     },
     {
+      path: "/verifyemail",
+      name: "verifyemail",
+      component: VerifyEmailView,
+    },
+    {
       path: "/profile",
       name: "profile",
       component: ProfileView,
+    },
+    {
+      path: "/feed",
+      name: "feed",
+      component: FeedView,
     },
     {
       path: "/search",

@@ -6,7 +6,7 @@ import { handleApi } from "@/utilities";
 export default {
   data: () => {
     return {
-      username: "",
+      email: "",
       signedIn: false,
       searchText: "",
     };
@@ -16,7 +16,7 @@ export default {
       handleApi(this.$refs.formStatus, []).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
-            this.username = response.data.data.username;
+            this.email = response.data.data.email;
             this.signedIn = true;
           } else {
             this.signedIn = false;
@@ -29,7 +29,7 @@ export default {
     },
     onUserSignout: function () {
       handleApi(this.$refs.formSignout, []).then(() => {
-        this.username = "";
+        this.email = "";
         this.signedIn = false;
         this.$router.push("/");
       });
@@ -84,6 +84,11 @@ export default {
           <li class="nav-item">
             <RouterLink class="nav-link" to="/">
               <span>Home</span>
+            </RouterLink>
+          </li>
+          <li v-if="signedIn" class="nav-item">
+            <RouterLink class="nav-link" to="/feed">
+              <span>My Feeds</span>
             </RouterLink>
           </li>
           <li class="nav-item dropdown">
@@ -197,7 +202,7 @@ export default {
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
-                {{ username }}
+                {{ email }}
               </a>
               <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
                 <li>

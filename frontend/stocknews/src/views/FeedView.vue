@@ -46,7 +46,7 @@ export default {
     },
   },
   created() {
-    document.title = "Home - " + (this as any).$projectName;
+    document.title = "Feed - " + (this as any).$projectName;
   },
   mounted() {
     this.news_list = JSON.parse(this.news_string);
@@ -59,6 +59,7 @@ export default {
 <template>
   <div>
     <div class="container">
+      <span class="mb-3">Selected news for you:</span>
       <ul class="list-group">
         <li
           class="list-group-item"

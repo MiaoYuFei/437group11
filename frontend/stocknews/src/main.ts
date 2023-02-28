@@ -17,11 +17,19 @@ app.config.globalProperties.$projectName = "Stock news";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
   faCircleExclamation,
+  faEnvelope,
   faHome,
   faMagnifyingGlass,
   faUser,
   faUserPlus,
 } from "@fortawesome/free-solid-svg-icons";
-library.add(faCircleExclamation, faHome, faMagnifyingGlass, faUser, faUserPlus);
+library.add(
+  faCircleExclamation,
+  faEnvelope,
+  faHome,
+  faMagnifyingGlass,
+  faUser,
+  faUserPlus
+);
 
 app.mount("#app");

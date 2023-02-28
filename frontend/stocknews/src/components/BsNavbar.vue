@@ -109,7 +109,7 @@ export default {
             >
               Industries
             </a>
-            <ul class="dropdown-menu dropdown-menu-dark">
+            <ul class="dropdown-menu dropdown-menu-dark" style="margin: 0">
               <li>
                 <RouterLink class="dropdown-item" to="/">
                   <span>Agriculture</span>
@@ -205,7 +205,10 @@ export default {
               >
                 {{ email }}
               </a>
-              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+              <ul
+                class="dropdown-menu dropdown-menu-end dropdown-menu-dark"
+                style="margin: 0"
+              >
                 <li>
                   <RouterLink class="dropdown-item" to="/profile">
                     <span>Profile</span>

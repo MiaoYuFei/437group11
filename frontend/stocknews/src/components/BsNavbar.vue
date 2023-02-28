@@ -87,7 +87,7 @@ export default {
             </RouterLink>
           </li>
           <li v-if="signedIn" class="nav-item">
-            <RouterLink class="nav-link" to="/feed">
+            <RouterLink class="nav-link" to="/myfeeds">
               <span>My Feeds</span>
             </RouterLink>
           </li>

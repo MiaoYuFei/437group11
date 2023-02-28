@@ -2,7 +2,7 @@
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import BsAlert from "@/components/BsAlert.vue";
 import BsButton from "@/components/BsButton.vue";
-import { disableForm, enableForm, handleApi } from "@/utilities";
+import { disableForm, enableForm, getFormData, handleApi } from "@/utilities";
 
 export default {
   data() {
@@ -26,7 +26,7 @@ export default {
   methods: {
     onFormSubmit: function () {
       this.loading = true;
-      handleApi(this.$refs.form, []).then(
+      handleApi("post", "/api/user/verifyemail", []).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
             (this.$refs.form as any).reset();
@@ -84,12 +84,7 @@ export default {
               email address.</span
             >
           </div>
-          <form
-            action="/api/user/verifyemail"
-            method="post"
-            @submit.prevent="onFormSubmit"
-            ref="form"
-          >
+          <form @submit.prevent="onFormSubmit" ref="form">
             <div class="mb-3">
               <BsButton
                 type="submit"

@@ -4,7 +4,13 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { VueRecaptcha } from "vue-recaptcha";
 import BsAlert from "@/components/BsAlert.vue";
 import BsButton from "@/components/BsButton.vue";
-import { disableForm, enableForm, focusForm, handleApi } from "@/utilities";
+import {
+  disableForm,
+  enableForm,
+  focusForm,
+  getFormData,
+  handleApi,
+} from "@/utilities";
 
 export default {
   data() {
@@ -52,9 +58,9 @@ export default {
       this.recaptchaChecked = true;
       this.recaptchaResponse = "";
       this.loading = true;
-      handleApi(this.$refs.form, ["email", "password"], {
-        recaptch: lastRecaptchaResponse,
-      }).then(
+      const apiData = getFormData(this.$refs.form, ["email", "password"]);
+      apiData["recaptch"] = lastRecaptchaResponse;
+      handleApi("post", "/api/user/register", apiData).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
             (this.$refs.form as any).reset();
@@ -127,12 +133,7 @@ export default {
         style="box-shadow: 0.2rem 0.2rem 0.1rem #eee"
       >
         <div class="card-body p-4">
-          <form
-            action="/api/user/register"
-            method="post"
-            @submit.prevent="onFormSubmit"
-            ref="form"
-          >
+          <form @submit.prevent="onFormSubmit" ref="form">
             <h3 class="card-title mb-4">
               <FontAwesomeIcon icon="fa-user-plus" class="me-3" />Register
             </h3>

@@ -2,7 +2,13 @@
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import BsAlert from "@/components/BsAlert.vue";
 import BsButton from "@/components/BsButton.vue";
-import { disableForm, enableForm, focusForm, handleApi } from "@/utilities";
+import {
+  disableForm,
+  enableForm,
+  focusForm,
+  getFormData,
+  handleApi,
+} from "@/utilities";
 
 export default {
   data() {
@@ -26,7 +32,8 @@ export default {
   methods: {
     onFormSubmit: function () {
       this.loading = true;
-      handleApi(this.$refs.form, ["email", "password"]).then(
+      const apiData = getFormData(this.$refs.form, ["email", "password"]);
+      handleApi("post", "/api/user/signin", apiData).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
             (this.$refs.form as any).reset();
@@ -74,12 +81,7 @@ export default {
         style="box-shadow: 0.2rem 0.2rem 0.1rem #eee"
       >
         <div class="card-body p-4">
-          <form
-            action="/api/user/signin"
-            method="post"
-            @submit.prevent="onFormSubmit"
-            ref="form"
-          >
+          <form @submit.prevent="onFormSubmit" ref="form">
             <h3 class="card-title mb-4">
               <FontAwesomeIcon icon="fa-user" class="me-3" />Sign In
             </h3>

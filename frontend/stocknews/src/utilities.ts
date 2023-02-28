@@ -2,22 +2,24 @@ import $ from "jquery";
 import qs from "qs";
 import axios, { type AxiosResponse } from "axios";
 
+function getFormData(form: any, fields: string[]): { [key: string]: string } {
+  const data: { [key: string]: string } = {};
+  const jqObj = $(form as Element);
+  for (const field of fields) {
+    data[field] = jqObj.find("input[name=" + field + "]").val() as string;
+  }
+  return data;
+}
+
 function handleApi(
-  form: any,
-  fields: string[],
+  method: string,
+  action: string,
   data: any | undefined = undefined
 ): Promise<AxiosResponse<any, any>> {
-  const jqObj = $(form as Element);
-  const method = jqObj.attr("method")?.toLowerCase() || "get";
-  const action = jqObj.attr("action") as string;
-  const apiDdata: { [key: string]: string } = data != undefined ? data : {};
-  for (const field of fields) {
-    apiDdata[field] = jqObj.find("input[name=" + field + "]").val() as string;
-  }
   if (method === "get") {
     const search =
       (action.substring(action.indexOf("/")).indexOf("?") < 0 ? "?" : "&") +
-      $.param(apiDdata);
+      $.param(data);
     return axios({
       method: "get",
       url: action + search,
@@ -27,7 +29,7 @@ function handleApi(
       method: "post",
       url: action,
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      data: qs.stringify(apiDdata),
+      data: qs.stringify(data),
     });
   } else {
     throw new Error("api method not supported: " + method);
@@ -54,4 +56,4 @@ function focusForm(form: any) {
     .trigger("focus");
 }
 
-export { handleApi, enableForm, disableForm, focusForm };
+export { getFormData, handleApi, enableForm, disableForm, focusForm };

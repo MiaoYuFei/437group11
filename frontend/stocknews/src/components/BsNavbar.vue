@@ -13,7 +13,7 @@ export default {
   },
   methods: {
     onUserStatus: function () {
-      handleApi(this.$refs.formStatus, []).then(
+      handleApi("post", "/api/user/status", []).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
             this.email = response.data.data.email;
@@ -28,7 +28,7 @@ export default {
       );
     },
     onUserSignout: function () {
-      handleApi(this.$refs.formSignout, []).then(() => {
+      handleApi("post", "/api/user/signout", []).then(() => {
         this.email = "";
         this.signedIn = false;
         this.$router.push("/");
@@ -174,13 +174,6 @@ export default {
           </button>
         </form>
         <div>
-          <form
-            class="d-none"
-            action="/api/user/status"
-            method="post"
-            @submit.prevent="onUserStatus"
-            ref="formStatus"
-          ></form>
           <ul v-if="!signedIn" class="navbar-nav mb-2 mb-lg-0">
             <li class="nav-item">
               <RouterLink class="nav-link" to="/signin">
@@ -212,18 +205,9 @@ export default {
                 </li>
                 <li><hr class="dropdown-divider" /></li>
                 <li>
-                  <form
-                    action="/api/user/signout"
-                    method="post"
-                    @submit.prevent="onUserSignout"
-                    ref="formSignout"
-                  >
-                    <input
-                      class="dropdown-item"
-                      type="submit"
-                      value="Sign out"
-                    />
-                  </form>
+                  <button class="dropdown-item" @click="onUserSignout">
+                    Sign out
+                  </button>
                 </li>
               </ul>
             </li>

@@ -2,7 +2,7 @@
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import BsAlert from "@/components/BsAlert.vue";
 import BsButton from "@/components/BsButton.vue";
-import { disableForm, enableForm, getFormData, handleApi } from "@/utilities";
+import { disableForm, enableForm, handleApi } from "@/utilities";
 
 export default {
   data() {

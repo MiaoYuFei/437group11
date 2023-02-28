@@ -46,7 +46,7 @@ export default {
       return true;
     },
     onProceed: function () {
-      this.$router.push("/feed");
+      this.$router.push("/myfeeds");
     },
   },
   created() {

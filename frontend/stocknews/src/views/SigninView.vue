@@ -38,7 +38,7 @@ export default {
           if (parseInt(response.data.code) === 200) {
             (this.$refs.form as any).reset();
             this.loading = false;
-            this.$router.push("/");
+            this.$router.push("/myfeeds");
           } else {
             this.formAlertMessage = response.data.data.reason;
             this.loading = false;

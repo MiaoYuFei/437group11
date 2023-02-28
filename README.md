@@ -4,6 +4,8 @@
 
 Vite, Vue 3, TypeScript
 
+Node.js: v16 and v18 work so far, v19 not supported
+
 - `cd frontend/stocknews`
 
 - Install dependency packages: `npm install`
@@ -14,7 +16,9 @@ Vite, Vue 3, TypeScript
 
 ## Backend
 
-Flask, Firebase
+Flask, Firebase, Python
+
+Python: v3+ required, v3.10 recommended, v3.11 not supported
 
 - `cd backend`
 

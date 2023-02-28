@@ -4,6 +4,7 @@ import MyFeedsView from "@/views/MyFeedsView.vue";
 import RegisterView from "@/views/RegisterView.vue";
 import SigninView from "@/views/SigninView.vue";
 import ProfileView from "@/views/ProfileView.vue";
+import ResetPasswordView from "@/views/ResetPasswordView.vue";
 import SearchView from "@/views/SearchView.vue";
 import TickerView from "@/views/TickerView.vue";
 import VerifyEmailView from "@/views/VerifyEmailView.vue";
@@ -30,6 +31,11 @@ const router = createRouter({
       path: "/verifyemail",
       name: "verifyemail",
       component: VerifyEmailView,
+    },
+    {
+      path: "/resetpassword",
+      name: "resetpassword",
+      component: ResetPasswordView,
     },
     {
       path: "/profile",

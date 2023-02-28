@@ -50,7 +50,7 @@ export default {
     },
   },
   created() {
-    document.title = "Email Verification - " + (this as any).$projectName;
+    document.title = "Email verification - " + (this as any).$projectName;
   },
   mounted() {
     (this.$refs.form as any).reset();

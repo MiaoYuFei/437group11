@@ -19,6 +19,7 @@ import {
   faCircleExclamation,
   faEnvelope,
   faHome,
+  faLock,
   faMagnifyingGlass,
   faUser,
   faUserPlus,
@@ -27,6 +28,7 @@ library.add(
   faCircleExclamation,
   faEnvelope,
   faHome,
+  faLock,
   faMagnifyingGlass,
   faUser,
   faUserPlus

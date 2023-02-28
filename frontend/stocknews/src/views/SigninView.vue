@@ -29,6 +29,8 @@ export default {
       handleApi(this.$refs.form, ["username", "password"]).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
+            (this.$refs.form as any).reset();
+            this.loading = false;
             this.$router.push("/");
           } else {
             this.formAlertMessage = response.data.data.reason;

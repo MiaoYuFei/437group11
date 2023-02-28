@@ -71,6 +71,7 @@ def status():
         result["code"] = 200
         result["data"]["id"] = user.id
         result["data"]["username"] = user.username
+        result["data"]["email"] = user.email
     else:
         result["code"] = 403
     return make_response(jsonify(result), 200)

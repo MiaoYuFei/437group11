@@ -56,4 +56,21 @@ function focusForm(form: any) {
     .trigger("focus");
 }
 
-export { getFormData, handleApi, enableForm, disableForm, focusForm };
+function parseDatetime(datetimeString: string) {
+  return new Date(datetimeString).toLocaleString([], {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export {
+  getFormData,
+  handleApi,
+  enableForm,
+  disableForm,
+  focusForm,
+  parseDatetime,
+};

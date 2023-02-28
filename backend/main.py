@@ -2,7 +2,7 @@
 
 from flask import Flask, jsonify, make_response, request, session
 from flask_session import Session
-
+import json
 import pyrebase
 
 firebaseConfig = {
@@ -29,20 +29,20 @@ def signin():
     email = request.form["email"]
     password = request.form["password"]
     result = {
-        "code": 500,
+        "code": "500",
         "data": {}
     }
 
     try:
         user = auth.sign_in_with_email_and_password(email, password)
     except Exception:
-        result["code"] = 403
+        result["code"] = "403"
         result["data"]["reason"] = "Invalid credentials."
         return make_response(jsonify(result), 200)
 
     session["user"] = user["idToken"]
 
-    result["code"] = 200
+    result["code"] = "200"
     return make_response(jsonify(result), 200)
 
 @app.route("/api/user/register", methods=["POST"])
@@ -50,26 +50,31 @@ def register():
     email = request.form["email"]
     password = request.form["password"]
     result = {
-        "code": 500,
+        "code": "500",
         "data": {}
     }
 
     try:
         user = auth.create_user_with_email_and_password(email, password)  
-    except Exception:
-        result["code"] = 403
-        result["data"]["reason"] = "Access denied."
+    except Exception as ex:
+        ex_json = json.loads(ex.strerror)
+        if ex_json["error"]["message"] == "EMAIL_EXISTS":
+            result["code"] = "403"
+            result["data"]["reason"] = "This email has already registered."
+        else:
+            result["code"] = "403"
+            result["data"]["reason"] = "Access denied."
         return make_response(jsonify(result), 200)
 
     session["user"] = user["idToken"]
 
-    result["code"] = 200
+    result["code"] = "200"
     return make_response(jsonify(result), 200)
 
 @app.route("/api/user/status", methods=["POST"])
 def status():
     result = { 
-        "code": 500,
+        "code": "500",
         "data": {}
     }
 
@@ -77,24 +82,24 @@ def status():
         try:
             user_info = auth.get_account_info(session["user"])
         except:
-            result["code"] = 500
+            result["code"] = "500"
             result["data"]["reason"] = "Service unavailable."
             return make_response(jsonify(result), 200)
 
-        result["code"] = 200
+        result["code"] = "200"
         result["data"]["userid"] = user_info["users"][0]["localId"]
         result["data"]["email"] = user_info["users"][0]["email"]
-        result["data"]["emailVerified"] = user_info["users"][0]["emailVerified"]
+        result["data"]["emailVerified"] = "true" if user_info["users"][0]["emailVerified"] else "false"
         return make_response(jsonify(result), 200)
     else:
-        result["code"] = 403
+        result["code"] = "403"
         result["data"]["reason"] = "Access denied."
         return make_response(jsonify(result), 200)
 
 @app.route("/api/user/verifyemail", methods=["POST"])
 def verifyEmail():
     result = { 
-        "code": 500,
+        "code": "500",
         "data": {}
     }
 
@@ -102,7 +107,7 @@ def verifyEmail():
         try:
             user_info = auth.get_account_info(session["user"])
         except Exception:
-            result["code"] = 500
+            result["code"] = "500"
             result["data"]["reason"] = "Service unavailable."
             return make_response(jsonify(result), 200)
 
@@ -110,26 +115,26 @@ def verifyEmail():
             try:
                 auth.send_email_verification(session["user"])
             except Exception as ex:
-                result["code"] = 403
+                result["code"] = "403"
                 result["data"]["reason"] = "Access denied."
                 return make_response(jsonify(result), 200)
 
-            result["code"] = 200
+            result["code"] = "200"
             return make_response(jsonify(result), 200)
         else:
-            result["code"] = 403
+            result["code"] = "403"
             result["data"]["reason"] = "Email already verified."
             return make_response(jsonify(result), 200)
 
     else:
-        result["code"] = 403
+        result["code"] = "403"
         result["data"]["reason"] = "Access denied."
     return make_response(jsonify(result), 200)
 
 @app.route("/api/user/signout", methods=["POST"])
 def signout():
     result = { 
-        "code": 200,
+        "code": "200",
         "data": {}
     }
 

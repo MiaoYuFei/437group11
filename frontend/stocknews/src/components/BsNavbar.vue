@@ -8,6 +8,7 @@ export default {
     return {
       email: "",
       signedIn: false,
+      emailVerified: false,
       searchText: "",
     };
   },
@@ -18,12 +19,19 @@ export default {
           if (parseInt(response.data.code) === 200) {
             this.email = response.data.data.email;
             this.signedIn = true;
+            this.emailVerified =
+              (response.data.data.emailVerified as string).toLowerCase() ===
+              "true"
+                ? true
+                : false;
           } else {
             this.signedIn = false;
+            this.emailVerified = false;
           }
         },
         () => {
           this.signedIn = false;
+          this.emailVerified = false;
         }
       );
     },

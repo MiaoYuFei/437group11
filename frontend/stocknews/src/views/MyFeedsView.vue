@@ -1,4 +1,5 @@
 <script lang="ts">
+import { handleApi, parseDatetime } from "@/utilities";
 import { RouterLink } from "vue-router";
 export default {
   data() {
@@ -32,23 +33,46 @@ export default {
           tickers: [String],
         },
       ],
+      email: "",
+      signedIn: false,
+      emailVerified: false,
     };
   },
   methods: {
-    parseDatetime(datetimeString: string) {
-      return new Date(datetimeString).toLocaleString([], {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+    parseDatetime,
+    onUserStatus: function () {
+      handleApi("post", "/api/user/status", []).then(
+        (response) => {
+          if (parseInt(response.data.code) === 200) {
+            this.email = response.data.data.email;
+            this.signedIn = true;
+            this.emailVerified =
+              (response.data.data.emailVerified as string).toLowerCase() ===
+              "true"
+                ? true
+                : false;
+            if (!this.emailVerified) {
+              this.$router.push("/verifyemail");
+            }
+          } else {
+            this.signedIn = false;
+            this.emailVerified = false;
+            this.$router.push("/signin");
+          }
+        },
+        () => {
+          this.signedIn = false;
+          this.emailVerified = false;
+          this.$router.push("/signin");
+        }
+      );
     },
   },
   created() {
     document.title = "My Feeds - " + (this as any).$projectName;
   },
   mounted() {
+    this.onUserStatus();
     this.news_list = JSON.parse(this.news_string);
   },
   components: {
@@ -57,7 +81,7 @@ export default {
 };
 </script>
 <template>
-  <div>
+  <div v-if="emailVerified">
     <span class="fw-bold">Selected news for you:</span>
     <div class="container">
       <ul class="list-group">

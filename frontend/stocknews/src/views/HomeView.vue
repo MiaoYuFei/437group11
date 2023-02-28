@@ -1,4 +1,5 @@
 <script lang="ts">
+import { parseDatetime } from "@/utilities";
 import { RouterLink } from "vue-router";
 export default {
   data() {
@@ -35,15 +36,7 @@ export default {
     };
   },
   methods: {
-    parseDatetime(datetimeString: string) {
-      return new Date(datetimeString).toLocaleString([], {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    },
+    parseDatetime,
   },
   created() {
     document.title = "Home - " + (this as any).$projectName;

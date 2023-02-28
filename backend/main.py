@@ -84,4 +84,4 @@ def signout():
     return make_response(jsonify(result), 200)
 
 if __name__ == "__main__":
-    app.run(port=8081)
+    app.run(port=8081, use_reloader=True)

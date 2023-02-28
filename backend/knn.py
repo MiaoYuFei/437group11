@@ -7,12 +7,13 @@
 # api_keys = api.poly_dict["api_key"]
 # url_factory = poly_url.PolyUrlFactory(api_keys)
 # url = url_factory.ReferenceData.news(url_factory, ticker)
+# print(url)
 # df = poly_helper.get_data_from_single_url(url)
 import pandas as pd
 df = pd.read_json("test.json")
-# df.iloc[:5].to_json("test.json")
+# df.iloc[:6].to_json("test.json")
 
-for i in range(3):
+for i in range(50):
     row = df.iloc[i]
     item = {
         "article": {

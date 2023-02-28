@@ -52,6 +52,8 @@ export default {
     document.title = "Sign in - " + (this as any).$projectName;
   },
   mounted() {
+    (this.$refs.form as any).reset();
+    this.loading = false;
     focusForm(this.$refs.form);
   },
   components: {

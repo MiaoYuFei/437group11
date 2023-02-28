@@ -101,8 +101,9 @@ export default {
     document.title = "Register - " + (this as any).$projectName;
   },
   mounted() {
-    const form = $(this.$refs.form as Element);
-    form
+    (this.$refs.form as any).reset();
+    this.loading = false;
+    $(this.$refs.form as Element)
       .find("input")
       .on("change keydown keyup keypress paste", this.onFormChange);
     focusForm(this.$refs.form);

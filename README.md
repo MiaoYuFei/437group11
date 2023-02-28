@@ -134,6 +134,8 @@ Input:
 
 i.e. sign in or register, which will submit email and password.
 
+You need a `<form>` element in the html.
+
 `import { getFormData } from "@/utilities";`
 
 `getFormData` will retrieve the data specified from the form.
@@ -150,6 +152,8 @@ You need to apply `name="email"` and `name="password"` on the corresponding `<in
 
 i.e. when registering, also add recaptcha response to the data.
 
+You need a `<form>` element in the html.
+
 `const apiData = getFormData(this.$refs.form, ["email", "password"]);`
 
 After you got the data from the form, also apply your additional data to apiData:
@@ -163,6 +167,8 @@ then call the `handleApi` as normal.
 ### Case 3: No need to submit form data to api
 
 i.e. sign out the user, refresh the user status.
+
+You don't need a `<form>` element in the html.
 
 Just call the `handleApi` with `[]`
 

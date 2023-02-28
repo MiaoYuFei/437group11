@@ -4,7 +4,13 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { VueRecaptcha } from "vue-recaptcha";
 import BsAlert from "@/components/BsAlert.vue";
 import BsButton from "@/components/BsButton.vue";
-import { disableForm, enableForm, focusForm, handleApi } from "@/utilities";
+import {
+  disableForm,
+  enableForm,
+  focusForm,
+  getFormData,
+  handleApi,
+} from "@/utilities";
 
 export default {
   data() {
@@ -52,12 +58,14 @@ export default {
       this.recaptchaChecked = true;
       this.recaptchaResponse = "";
       this.loading = true;
-      handleApi(this.$refs.form, ["username", "password", "email"], {
-        recaptch: lastRecaptchaResponse,
-      }).then(
+      const apiData = getFormData(this.$refs.form, ["email", "password"]);
+      apiData["recaptch"] = lastRecaptchaResponse;
+      handleApi("post", "/api/user/register", apiData).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
-            this.$router.push("/signin");
+            (this.$refs.form as any).reset();
+            this.loading = false;
+            this.$router.push("/verifyEmail");
           } else {
             this.formAlertMessage = response.data.data.reason;
             this.loading = false;
@@ -99,8 +107,9 @@ export default {
     document.title = "Register - " + (this as any).$projectName;
   },
   mounted() {
-    const form = $(this.$refs.form as Element);
-    form
+    (this.$refs.form as any).reset();
+    this.loading = false;
+    $(this.$refs.form as Element)
       .find("input")
       .on("change keydown keyup keypress paste", this.onFormChange);
     focusForm(this.$refs.form);
@@ -120,33 +129,24 @@ export default {
       style="min-height: 100%"
     >
       <div
-        class="card col-12 col-md-10 col-lg-8 col-xl-6 col-xxl-4"
+        class="card col-12 col-md-10 col-lg-8 col-xl-6 col-xxl-5"
         style="box-shadow: 0.2rem 0.2rem 0.1rem #eee"
       >
         <div class="card-body p-4">
-          <form
-            action="/api/user/register"
-            method="post"
-            @submit.prevent="onFormSubmit"
-            ref="form"
-          >
+          <form @submit.prevent="onFormSubmit" ref="form">
             <h3 class="card-title mb-4">
               <FontAwesomeIcon icon="fa-user-plus" class="me-3" />Register
             </h3>
-            <div class="input-group mb-3">
-              <span class="input-group-text">@</span>
-              <div class="form-floating">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="inputUsername"
-                  name="username"
-                  placeholder="Username"
-                  required
-                  autofocus
-                />
-                <label for="inputUsername">Username</label>
-              </div>
+            <div class="form-floating mb-3">
+              <input
+                type="email"
+                class="form-control"
+                id="inputEmail"
+                name="email"
+                placeholder="Email"
+                required
+              />
+              <label for="inputEmail">Email</label>
             </div>
             <div class="form-floating mb-3">
               <input
@@ -174,17 +174,6 @@ export default {
               <span v-if="!passwordMatch" class="text-danger"
                 >Password and confirmation don&apos;t match.</span
               >
-            </div>
-            <div class="form-floating mb-3">
-              <input
-                type="email"
-                class="form-control"
-                id="inputEmail"
-                name="email"
-                placeholder="Email"
-                required
-              />
-              <label for="inputEmail">Email</label>
             </div>
             <div class="mb-3">
               <div class="form-check">

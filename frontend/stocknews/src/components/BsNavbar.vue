@@ -6,30 +6,38 @@ import { handleApi } from "@/utilities";
 export default {
   data: () => {
     return {
-      username: "",
+      email: "",
       signedIn: false,
+      emailVerified: false,
       searchText: "",
     };
   },
   methods: {
     onUserStatus: function () {
-      handleApi(this.$refs.formStatus, []).then(
+      handleApi("post", "/api/user/status", []).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
-            this.username = response.data.data.username;
+            this.email = response.data.data.email;
             this.signedIn = true;
+            this.emailVerified =
+              (response.data.data.emailVerified as string).toLowerCase() ===
+              "true"
+                ? true
+                : false;
           } else {
             this.signedIn = false;
+            this.emailVerified = false;
           }
         },
         () => {
           this.signedIn = false;
+          this.emailVerified = false;
         }
       );
     },
     onUserSignout: function () {
-      handleApi(this.$refs.formSignout, []).then(() => {
-        this.username = "";
+      handleApi("post", "/api/user/signout", []).then(() => {
+        this.email = "";
         this.signedIn = false;
         this.$router.push("/");
       });
@@ -86,6 +94,11 @@ export default {
               <span>Home</span>
             </RouterLink>
           </li>
+          <li v-if="signedIn" class="nav-item">
+            <RouterLink class="nav-link" to="/myfeeds">
+              <span>My Feeds</span>
+            </RouterLink>
+          </li>
           <li class="nav-item dropdown">
             <a
               class="nav-link dropdown-toggle"
@@ -96,7 +109,7 @@ export default {
             >
               Industries
             </a>
-            <ul class="dropdown-menu dropdown-menu-dark">
+            <ul class="dropdown-menu dropdown-menu-dark" style="margin: 0">
               <li>
                 <RouterLink class="dropdown-item" to="/">
                   <span>Agriculture</span>
@@ -169,13 +182,6 @@ export default {
           </button>
         </form>
         <div>
-          <form
-            class="d-none"
-            action="/api/user/status"
-            method="post"
-            @submit.prevent="onUserStatus"
-            ref="formStatus"
-          ></form>
           <ul v-if="!signedIn" class="navbar-nav mb-2 mb-lg-0">
             <li class="nav-item">
               <RouterLink class="nav-link" to="/signin">
@@ -197,9 +203,12 @@ export default {
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
-                {{ username }}
+                {{ email }}
               </a>
-              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+              <ul
+                class="dropdown-menu dropdown-menu-end dropdown-menu-dark"
+                style="margin: 0"
+              >
                 <li>
                   <RouterLink class="dropdown-item" to="/profile">
                     <span>Profile</span>
@@ -207,18 +216,9 @@ export default {
                 </li>
                 <li><hr class="dropdown-divider" /></li>
                 <li>
-                  <form
-                    action="/api/user/signout"
-                    method="post"
-                    @submit.prevent="onUserSignout"
-                    ref="formSignout"
-                  >
-                    <input
-                      class="dropdown-item"
-                      type="submit"
-                      value="Sign out"
-                    />
-                  </form>
+                  <button class="dropdown-item" @click="onUserSignout">
+                    Sign out
+                  </button>
                 </li>
               </ul>
             </li>

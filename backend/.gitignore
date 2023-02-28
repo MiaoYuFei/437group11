@@ -2,9 +2,9 @@
 __pycache__
 .idea
 flask_session
+test
 
 logs
-
 knn_ticker.npy
 local_snapshot_us_equity
 local_us_equity_news

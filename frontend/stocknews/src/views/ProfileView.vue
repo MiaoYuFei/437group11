@@ -26,9 +26,10 @@ export default {
   },
  methods:{
             update(){
-                  handleApi(this.$refs.form, []).then(doc => {
+                  handleApi("post", "/api/user/status", []).then(doc => {
                           var code = doc.data.code;
                           var data = doc.data.data;
+                          console.log(data);
                       if (parseInt(code) == 200){
                         this.userid = data.id;
                         this.username = data.username;

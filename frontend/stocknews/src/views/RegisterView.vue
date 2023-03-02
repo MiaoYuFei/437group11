@@ -59,7 +59,7 @@ export default {
       this.recaptchaResponse = "";
       this.loading = true;
       const apiData = getFormData(this.$refs.form, ["email", "password"]);
-      apiData["recaptch"] = lastRecaptchaResponse;
+      apiData["recaptcha_response"] = lastRecaptchaResponse;
       handleApi("post", "/api/user/register", apiData).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
@@ -188,12 +188,12 @@ export default {
                 <label class="form-check-label" for="inputTerms">
                   I agree to
                   <RouterLink to="/" target="_blank"
-                    >terms of service</RouterLink
+                    >Terms &amp; Conditions</RouterLink
                   >.
                 </label>
               </div>
               <span v-if="!termsChecked" class="text-danger"
-                >You have to agree with the terms of service.</span
+                >You have to agree with the terms and conditions.</span
               >
             </div>
             <div class="mb-3" ref="recaptchaContainer">

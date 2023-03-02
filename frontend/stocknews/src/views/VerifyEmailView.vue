@@ -9,6 +9,8 @@ export default {
     return {
       loading: false,
       formAlertMessage: "unknown error",
+      submitButtonTimer: 0,
+      submitButtonSeconds: 0,
     };
   },
   watch: {
@@ -16,37 +18,51 @@ export default {
       const formAlert = this.$refs.formAlert as typeof BsAlert;
       if (newValue) {
         formAlert.hide();
-        disableForm(this.$refs.form);
       } else {
         formAlert.show();
-        enableForm(this.$refs.form);
       }
     },
   },
   methods: {
     onFormSubmit: function () {
       this.loading = true;
-      handleApi("post", "/api/user/verifyemail", []).then(
+      disableForm(this.$refs.form);
+      const apiData = {
+        requestType: "registration",
+      };
+      handleApi("post", "/api/user/verifyemail", apiData).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
             (this.$refs.form as any).reset();
             this.loading = false;
             this.formAlertMessage =
               "Email sent! Please check your email account.";
+            this.submitButtonSeconds = 30;
+            this.submitButtonTimer = setInterval(this.onTimerTick, 1000);
           } else {
             this.formAlertMessage = response.data.data.reason;
             this.loading = false;
+            enableForm(this.$refs.form);
           }
         },
         (error) => {
           this.formAlertMessage = error.message;
           this.loading = false;
+          enableForm(this.$refs.form);
         }
       );
       return true;
     },
     onProceed: function () {
       this.$router.push("/myfeeds");
+    },
+    onTimerTick: function () {
+      if (this.submitButtonSeconds > 0) {
+        this.submitButtonSeconds -= 1;
+      } else {
+        clearInterval(this.submitButtonTimer);
+        enableForm(this.$refs.form);
+      }
     },
   },
   created() {
@@ -55,6 +71,7 @@ export default {
   mounted() {
     (this.$refs.form as any).reset();
     this.loading = false;
+    this.onFormSubmit();
   },
   components: {
     FontAwesomeIcon,
@@ -80,8 +97,8 @@ export default {
           </h3>
           <div class="mb-3">
             <span
-              >For your security, please follow instructions to verify your
-              email address.</span
+              >For security reasons, please follow instructions to verify your
+              email address to finish registration.</span
             >
           </div>
           <form @submit.prevent="onFormSubmit" ref="form">
@@ -94,7 +111,9 @@ export default {
                 textColor="light"
                 ref="formSubmit"
               >
-                Send verification email
+                Send verification email<span v-if="submitButtonSeconds > 0">
+                  ({{ submitButtonSeconds }}s)</span
+                >
               </BsButton>
             </div>
             <div class="mb-3">

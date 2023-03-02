@@ -1,147 +1,191 @@
 #!/usr/bin/env python3
 
-from flask import Flask, jsonify, make_response, request, session
-from flask_session import Session
 import json
-import pyrebase
+import datetime
+from flask import Flask, Response, jsonify, make_response, request, session
+from flask_session import Session
+from firebase_helper import firebase_helper
+from utilities import call_api
 
-firebaseConfig = {
-  "apiKey": "AIzaSyB8eOEHSXykFluDLDDeBe7wkyR55stIAAM",
-  "authDomain": "stocknews-aa6b7.firebaseapp.com",
-  "databaseURL": "https://stocknews-aa6b7.firebaseio.com",
-  "projectId": "stocknews-aa6b7",
-  "storageBucket": "stocknews-aa6b7.appspot.com",
-  "messagingSenderId": "425418971970",
-  "appId": "1:425418971970:web:565abf186779c1edf306db",
-  "measurementId": "G-SYMFM414XJ"
-}
-
-firebase = pyrebase.initialize_app(firebaseConfig)
-auth = firebase.auth()
+fb = firebase_helper()
 
 app = Flask("stocknews")
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
+def set_session_user(data):
+    session["user"] = {
+        "localId": data["localId"],
+        "idToken": data["idToken"],
+        "expiry": datetime.datetime.now() +  + datetime.timedelta(0, int(data["expiresIn"]))
+    }
+
+def clear_session_user():
+    session["user"] = None
+    session.clear()
+
+def is_session_user_set():
+    return True if ("user" in session and session["user"] != None) else False
+
 @app.route("/api/user/signin", methods=["POST"])
-def signin():
+def signin() -> Response:
     email = request.form["email"]
     password = request.form["password"]
-    result = {
+    response = {
         "code": "500",
         "data": {}
     }
 
     try:
-        user = auth.sign_in_with_email_and_password(email, password)
-    except Exception:
-        result["code"] = "403"
-        result["data"]["reason"] = "Invalid credentials."
-        return make_response(jsonify(result), 200)
-
-    session["user"] = user["idToken"]
-
-    result["code"] = "200"
-    return make_response(jsonify(result), 200)
+        result = fb.verify_email_and_password(email, password)
+    except RuntimeError:
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
+    except PermissionError:
+        response["code"] = "403"
+        response["data"]["reason"] = "Invalid credentials."
+        return make_response(jsonify(response), 200)
+    set_session_user(result)
+    response["code"] = "200"
+    return make_response(jsonify(response), 200)
 
 @app.route("/api/user/register", methods=["POST"])
-def register():
+def register() -> Response:
     email = request.form["email"]
     password = request.form["password"]
-    result = {
+    recaptcha_response = request.form["recaptcha_response"]
+    response = {
         "code": "500",
         "data": {}
     }
 
+    recaptcha_endpoint = "https://www.google.com/recaptcha/api/siteverify"
+    recaptcha_data = {
+        "secret": "6LeQ5LQkAAAAAFzmh3iSPp7-KyhSFzgcgXlxxmk2",
+        "response": recaptcha_response,
+        "remoteip": request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+    }
     try:
-        user = auth.create_user_with_email_and_password(email, password)  
-    except Exception as ex:
-        ex_json = json.loads(ex.strerror)
+        recaptcha_result = call_api(recaptcha_endpoint, recaptcha_data)
+    except:
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
+    if not recaptcha_result["success"]:
+        response["code"] = "403"
+        response["data"]["reason"] = "Invalid reCAPTCHA response."
+        return make_response(jsonify(response), 200)
+    try:
+        result = fb.sign_up_with_email_and_password(email, password)
+    except RuntimeError:
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
+    except PermissionError as ex:
+        ex_json = json.loads(str(ex))
         if ex_json["error"]["message"] == "EMAIL_EXISTS":
-            result["code"] = "403"
-            result["data"]["reason"] = "This email has already registered."
+            response["code"] = "403"
+            response["data"]["reason"] = "This email has already registered."
         else:
-            result["code"] = "403"
-            result["data"]["reason"] = "Access denied."
-        return make_response(jsonify(result), 200)
-
-    session["user"] = user["idToken"]
-
-    result["code"] = "200"
-    return make_response(jsonify(result), 200)
+            response["code"] = "403"
+            response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
+    set_session_user(result)
+    response["code"] = "200"
+    return make_response(jsonify(response), 200)
 
 @app.route("/api/user/status", methods=["POST"])
-def status():
-    result = { 
+def status() -> Response:
+    response = { 
         "code": "500",
         "data": {}
     }
 
-    if ("user" in session and session["user"] != None):
+    if is_session_user_set():
         try:
-            user_info = auth.get_account_info(session["user"])
+            result = fb.get_account_info(session["user"]["idToken"]) # TODO: check token expiry
         except:
-            result["code"] = "500"
-            result["data"]["reason"] = "Service unavailable."
-            return make_response(jsonify(result), 200)
-
-        result["code"] = "200"
-        result["data"]["userid"] = user_info["users"][0]["localId"]
-        result["data"]["email"] = user_info["users"][0]["email"]
-        result["data"]["emailVerified"] = "true" if user_info["users"][0]["emailVerified"] else "false"
-        return make_response(jsonify(result), 200)
+            response["code"] = "403"
+            response["data"]["reason"] = "Access denied."
+            return make_response(jsonify(response), 200)
+        response["code"] = "200"
+        response["data"]["userid"] = result["users"][0]["localId"]
+        response["data"]["email"] = result["users"][0]["email"]
+        response["data"]["emailVerified"] = "true" if result["users"][0]["emailVerified"] else "false"
+        return make_response(jsonify(response), 200)
     else:
-        result["code"] = "403"
-        result["data"]["reason"] = "Access denied."
-        return make_response(jsonify(result), 200)
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
 
 @app.route("/api/user/verifyemail", methods=["POST"])
-def verifyEmail():
-    result = { 
+def verifyEmail() -> Response:
+    requestType = request.form["requestType"].lower()
+    response = { 
         "code": "500",
         "data": {}
     }
 
-    if ("user" in session and session["user"] != None):
-        try:
-            user_info = auth.get_account_info(session["user"])
-        except Exception:
-            result["code"] = "500"
-            result["data"]["reason"] = "Service unavailable."
-            return make_response(jsonify(result), 200)
+    if requestType == "registration" or requestType == "reset_password":
+        if is_session_user_set():
+            if requestType == "registration":
+                try:
+                    result = fb.get_account_info(session["user"]["idToken"])
+                except Exception:
+                    response["code"] = "403"
+                    response["data"]["reason"] = "Access denied."
+                    return make_response(jsonify(response), 200)
+                if (not result["users"][0]["emailVerified"]):
+                    try:
+                        fb.send_email_verification_email(session["user"]["idToken"])
+                    except Exception:
+                        response["code"] = "403"
+                        response["data"]["reason"] = "Access denied."
+                        return make_response(jsonify(response), 200)
 
-        if (not user_info["users"][0]["emailVerified"]):
-            try:
-                auth.send_email_verification(session["user"])
-            except Exception as ex:
-                result["code"] = "403"
-                result["data"]["reason"] = "Access denied."
-                return make_response(jsonify(result), 200)
-
-            result["code"] = "200"
-            return make_response(jsonify(result), 200)
+                    response["code"] = "200"
+                    return make_response(jsonify(response), 200)
+                else:
+                    response["code"] = "403"
+                    response["data"]["reason"] = "Email already verified."
+                    return make_response(jsonify(response), 200)
+            elif requestType == "reset_password":
+                print("reset password")
+                response["code"] = "200"
+                return make_response(jsonify(response), 200)
         else:
-            result["code"] = "403"
-            result["data"]["reason"] = "Email already verified."
-            return make_response(jsonify(result), 200)
-
+            response["code"] = "403"
+            response["data"]["reason"] = "Access denied."
+            return make_response(jsonify(response), 200)
+    elif requestType == "sign_in":
+        print("sign in")
+        response["code"] = "200"
+        return make_response(jsonify(response), 200)
     else:
-        result["code"] = "403"
-        result["data"]["reason"] = "Access denied."
-    return make_response(jsonify(result), 200)
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+
+@app.route("/api/user/resetpassword", methods=["POST"])
+def resetPassword() -> Response:
+    response = { 
+        "code": "500",
+        "data": {}
+    }
+        
+    print("reset password")
+    return make_response(jsonify(response), 200)
 
 @app.route("/api/user/signout", methods=["POST"])
-def signout():
-    result = { 
+def signOut() -> Response:
+    response = { 
         "code": "200",
         "data": {}
     }
 
-    session["user"] = None
-    session.clear()
-
-    return make_response(jsonify(result), 200)
+    clear_session_user()
+    return make_response(jsonify(response), 200)
 
 if __name__ == "__main__":
     app.run(port=8081, use_reloader=True)

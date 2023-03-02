@@ -88,7 +88,7 @@ export default {
 @import url("https://fonts.googleapis.com/css?family=Newsreader");
 
 .stocknews-article-title {
-  font-size: 1.4em;
+  font-size: 1.6em;
   font-optical-sizing: auto;
   font-family: "Newsreader rev=1";
   font-weight: 500;
@@ -109,6 +109,7 @@ export default {
 }
 
 .stocknews-article-description {
+  font-size: 1.2em;
   font-optical-sizing: auto;
   font-family: "Newsreader rev=1";
   font-weight: 300;

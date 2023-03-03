@@ -30,7 +30,6 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Create CodeDeploy Deployment
-      id: deploy
       run: |
         aws deploy create-deployment \
           --application-name ${{ env.AWS_APPLICATION_NAME }} \

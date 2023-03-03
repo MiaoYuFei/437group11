@@ -8,7 +8,7 @@
 
 Flask, Firebase, Python
 
-Python: v3+ required, v3.9 recommended, v3.10 and v3.11 are not supported.
+Python: v3+ required, v3.10 recommended.
 
 - `cd backend`
 

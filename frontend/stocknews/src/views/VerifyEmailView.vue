@@ -14,7 +14,7 @@ export default {
     };
   },
   watch: {
-    loading(newValue) {
+    loading(newValue: Boolean) {
       const formAlert = this.$refs.formAlert as typeof BsAlert;
       if (newValue) {
         formAlert.hide();
@@ -38,7 +38,7 @@ export default {
             this.formAlertMessage =
               "Email sent! Please check your email account.";
             this.submitButtonSeconds = 30;
-            this.submitButtonTimer = setInterval(this.onTimerTick, 1000);
+            this.submitButtonTimer = window.setInterval(this.onTimerTick, 1000);
           } else {
             this.formAlertMessage = response.data.data.reason;
             this.loading = false;
@@ -60,7 +60,7 @@ export default {
       if (this.submitButtonSeconds > 0) {
         this.submitButtonSeconds -= 1;
       } else {
-        clearInterval(this.submitButtonTimer);
+        window.clearInterval(this.submitButtonTimer);
         enableForm(this.$refs.form);
       }
     },

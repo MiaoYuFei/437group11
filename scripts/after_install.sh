@@ -2,9 +2,11 @@
 
 source $(dirname $0)/common.sh
 
-chown -R www-data:www-data $APPLICATION_PATH
-cd $APPLICATION_PATH/backend
-sudo -u www-data python3 -m venv $PYTHON_ENV_PATH
-sudo -u www-data $PYTHON_ENV_PATH/bin/python3 -m pip install -r $APPLICATION_PATH/backend/requirements.txt
-cd $APPLICATION_PATH/frontend/stocknews
-sudo -u www-data npm install
+chown -R $WEB_USER:$WEB_USER $APPLICATION_PATH
+cd $APPLICATION_PATH$BACKEND_PATH_SUFFIX
+sudo -u $WEB_USER python3 -m venv $PYTHON_ENV_PATH
+sudo -u $WEB_USER $PYTHON_ENV_PATH/bin/python3 -m pip install -r $APPLICATION_PATH$BACKEND_PATH_SUFFIX/requirements.txt
+cd $APPLICATION_PATH$FRONTEND_PATH_SUFFIX
+sudo -u $WEB_USER npm install
+
+exit 0

@@ -2,5 +2,7 @@
 
 source $(dirname $0)/common.sh
 
-rm -rf $APPLICATION_PATH
-rm -rf $PYTHON_ENV_PATH
+$RM $APPLICATION_PATH
+$RM $PYTHON_ENV_PATH
+
+exit 0

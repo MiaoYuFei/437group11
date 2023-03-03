@@ -9,5 +9,7 @@ sudo -u $WEB_USER $PYTHON_ENV_PATH/bin/python3 -m pip install -r $APPLICATION_PA
 cd $APPLICATION_PATH$FRONTEND_PATH_SUFFIX
 sudo -u $WEB_USER npm install
 sudo -u $WEB_USER npm run build
+cd $APPLICATION_PATH$FRONTEND_PRODUCTION_PATH_SUFFIX
+sudo -u $WEB_USER npm install
 
 exit 0

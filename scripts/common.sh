@@ -5,6 +5,7 @@ WEB_USER="www-data"
 APPLICATION_PATH="/var/www/stocknews"
 
 FRONTEND_PATH_SUFFIX="/frontend/stocknews"
+FRONTEND_PRODUCTION_PATH_SUFFIX="$FRONTEND_PATH_SUFFIX/production"
 BACKEND_PATH_SUFFIX="/backend"
 
 PID_PATH="/var/run/stocknews"

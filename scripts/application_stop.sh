@@ -4,7 +4,7 @@ source $(dirname $0)/common.sh
 
 sudo -u $WEB_USER $PM2_STOP $APPLICATION_NAME
 
-BACKEND_PID_FILE="$PID_PATH/backend.pid"
+BACKEND_PID_FILE="$RUN_PATH/backend.pid"
 if test -f "$BACKEND_PID_FILE"; then
     BACKEND_PID="$(<$BACKEND_PID_FILE)"
     $KILL $BACKEND_PID

@@ -20,7 +20,7 @@ Python: v3+ required, v3.10 recommended.
 
 Vite, Vue 3, TypeScript
 
-Node.js: v16 and v18 work so far, v19 not supported
+Node.js: v16 or v18.
 
 - `cd frontend/stocknews`
 

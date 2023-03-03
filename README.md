@@ -28,9 +28,11 @@ Node.js: v16 or v18.
 
 - Run a development server: `npm run dev`
 
-- Run a production server: `npm run build`
+- Run a production server: `npm run build`, `cd production`, `npm run start`
 
 - Go to [http://localhost:8080/](http://localhost:8080/) on local development machine. 127.0.0.1 is not allowed because Google reCAPTCHA requires a domain rather than IP address.
+
+NOTICE: You MUST run `npm run lint` prior to each commit and resolve all issues if exist. Failing to comply with this policy will break the production environment on cloud.
 
 ## API
 

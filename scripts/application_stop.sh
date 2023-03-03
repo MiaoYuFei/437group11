@@ -2,12 +2,7 @@
 
 source $(dirname $0)/common.sh
 
-FRONTEND_PID_FILE="$PID_PATH/frontend.pid"
-if test -f "$FRONTEND_PID_FILE"; then
-    FRONTEND_PID="$(<$FRONTEND_PID_FILE)"
-    $KILL $FRONTEND_PID
-    $RM $FRONTEND_PID_FILE
-fi
+sudo -u $WEB_USER $PM2_STOP $APPLICATION_NAME
 
 BACKEND_PID_FILE="$PID_PATH/backend.pid"
 if test -f "$BACKEND_PID_FILE"; then

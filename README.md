@@ -90,7 +90,7 @@ Sends verification email to the user.
 
 #### Request:
 
-None. The backend will check the session.
+- requestType: "registration", sends verification email to the user to finish registration.
 
 #### Response:
 

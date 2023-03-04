@@ -14,7 +14,7 @@ Python: v3+ required, v3.10 recommended.
 
 - Install dependency packages: `pip install -r requirements.txt`. Needs to be run only if package dependencies changed.
 
-- Run backend server: `python app.py`
+- Run backend server: `python3 app.py`
 
 ## Frontend
 

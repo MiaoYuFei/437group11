@@ -18,6 +18,7 @@ def set_session_user(data):
     session["user"] = {
         "localId": data["localId"],
         "idToken": data["idToken"],
+        "email": data["email"],
         "expiry": datetime.datetime.now() +  + datetime.timedelta(0, int(data["expiresIn"]))
     }
 
@@ -169,9 +170,14 @@ def verifyEmail() -> Response:
         try:
             fb.send_email_sign_in_email(email)
         except Exception as ex:
-            print(ex)
-            response["code"] = "403"
-            response["data"]["reason"] = "Access denied."
+            ex_json = json.loads(str(ex))
+            if ex_json["error"]["message"].upper().startswith("QUOTA_EXCEEDED"):
+                response["code"] = "403"
+                response["data"]["reason"] = "Firebase refused email sign in: Quota (5/day) exceeded."
+            else:
+                print(ex)
+                response["code"] = "403"
+                response["data"]["reason"] = "Access denied."
             return make_response(jsonify(response), 200)
         response["code"] = "200"
         return make_response(jsonify(response), 200)
@@ -184,8 +190,8 @@ def verifyEmail() -> Response:
             response["data"]["reason"] = "Access denied."
             return make_response(jsonify(response), 200)
         except PermissionError as ex:
-            ex_json = json.loads(str(ex))
-            if ex_json["error"]["message"] == "EMAIL_NOT_FOUND":
+            ex_json = json.loads(str(ex)) # TODO: This is not safe. Consider add custom Exception class
+            if ex_json["error"]["message"].upper().startswith("EMAIL_NOT_FOUND"):
                 response["code"] = "200"
             elif ex_json["error"]["message"] == "INVALID_EMAIL":
                 response["code"] = "403"

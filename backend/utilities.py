@@ -9,7 +9,6 @@ def call_api(endpoint, data):
     except Exception as ex:
         raise RuntimeError(json.dumps(ex))
     result = response.json()
-    print(result)
     if "error" in result:
         raise PermissionError(json.dumps(result))
     return response.json()

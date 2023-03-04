@@ -1,31 +1,30 @@
 <script lang="ts">
+import $ from "jquery";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import BsAlert from "@/components/BsAlert.vue";
-import BsButton from "@/components/BsButton.vue";
 import { disableForm, enableForm, handleApi } from "@/utilities";
 
 export default {
   data() {
     return {
-      loading: false,
+      formLoading: false,
       formAlertMessage: "unknown error",
       submitButtonTimer: 0,
       submitButtonSeconds: 0,
     };
   },
   watch: {
-    loading(newValue: Boolean) {
-      const formAlert = this.$refs.formAlert as typeof BsAlert;
+    formLoading(newValue: Boolean) {
+      const formAlert = $(this.$refs.formAlert as Element);
       if (newValue) {
-        formAlert.hide();
+        formAlert.fadeOut();
       } else {
-        formAlert.show();
+        formAlert.css("display", "flex").hide().fadeIn();
       }
     },
   },
   methods: {
-    onFormSubmit: function () {
-      this.loading = true;
+    onFormSubmit() {
+      this.formLoading = true;
       disableForm(this.$refs.form);
       const apiData = {
         requestType: "registration",
@@ -34,29 +33,29 @@ export default {
         (response) => {
           if (parseInt(response.data.code) === 200) {
             (this.$refs.form as any).reset();
-            this.loading = false;
+            this.formLoading = false;
             this.formAlertMessage =
               "Email sent! Please check your email account.";
             this.submitButtonSeconds = 30;
             this.submitButtonTimer = window.setInterval(this.onTimerTick, 1000);
           } else {
             this.formAlertMessage = response.data.data.reason;
-            this.loading = false;
+            this.formLoading = false;
             enableForm(this.$refs.form);
           }
         },
         (error) => {
           this.formAlertMessage = error.message;
-          this.loading = false;
+          this.formLoading = false;
           enableForm(this.$refs.form);
         }
       );
       return true;
     },
-    onProceed: function () {
-      this.$router.push("/myfeeds");
+    onFormAlertClose() {
+      $(this.$refs.formAlert as Element).fadeOut();
     },
-    onTimerTick: function () {
+    onTimerTick() {
       if (this.submitButtonSeconds > 0) {
         this.submitButtonSeconds -= 1;
       } else {
@@ -70,13 +69,12 @@ export default {
   },
   mounted() {
     (this.$refs.form as any).reset();
-    this.loading = false;
+    $(this.$refs.formAlert as Element).hide();
+    this.formLoading = false;
     this.onFormSubmit();
   },
   components: {
     FontAwesomeIcon,
-    BsAlert,
-    BsButton,
   },
 };
 </script>
@@ -103,26 +101,38 @@ export default {
           </div>
           <form @submit.prevent="onFormSubmit" ref="form">
             <div class="mb-3">
-              <BsButton
+              <button
                 type="submit"
-                class="btn-block me-3"
-                :loading="loading"
-                bgColor="primary"
-                textColor="light"
-                ref="formSubmit"
+                class="btn btn-dark text-light btn-lg btn-block d-flex align-items-center me-3"
               >
-                Send verification email<span v-if="submitButtonSeconds > 0">
-                  ({{ submitButtonSeconds }}s)</span
+                <span v-if="!formLoading">
+                  Send verification email<span v-if="submitButtonSeconds > 0">
+                    ({{ submitButtonSeconds }}s)</span
+                  ></span
                 >
-              </BsButton>
+                <div v-if="formLoading" class="spinner-border" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </button>
             </div>
             <div class="mb-3">
-              <BsAlert
-                class="mb-3"
-                :message="formAlertMessage"
-                bgColor="warning"
+              <div
+                class="alert alert-warning align-items-center mb-0"
+                role="alert"
+                aria-hidden="true"
                 ref="formAlert"
-              ></BsAlert>
+              >
+                <FontAwesomeIcon icon="fa-circle-exclamation" />
+                <span class="mx-2">
+                  {{ formAlertMessage }}
+                </span>
+                <button
+                  type="button"
+                  class="btn-close ms-auto"
+                  aria-label="Close"
+                  @click="onFormAlertClose"
+                ></button>
+              </div>
             </div>
           </form>
           <div class="mb-3">
@@ -132,15 +142,9 @@ export default {
             >
           </div>
           <div>
-            <BsButton
-              type="button"
-              class="btn-block me-3"
-              bgColor="secondary"
-              textColor="light"
-              @click="onProceed"
-            >
-              Go to My Feeds page
-            </BsButton>
+            <RouterLink to="/myfeeds">
+              <span>Go to My Feeds page</span>
+            </RouterLink>
           </div>
         </div>
       </div>

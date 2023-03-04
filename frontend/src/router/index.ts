@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import EmailSignInView from "@/views/EmailSignInView.vue";
 import HomeView from "@/views/HomeView.vue";
 import MyFeedsView from "@/views/MyFeedsView.vue";
 import RegisterView from "@/views/RegisterView.vue";
@@ -21,6 +22,11 @@ const router = createRouter({
       path: "/signin",
       name: "signin",
       component: SigninView,
+    },
+    {
+      path: "/emailsignin",
+      name: "emailsignin",
+      component: EmailSignInView,
     },
     {
       path: "/register",

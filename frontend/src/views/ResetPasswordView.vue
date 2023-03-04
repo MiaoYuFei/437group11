@@ -1,67 +1,73 @@
 <script lang="ts">
+import $ from "jquery";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import BsAlert from "@/components/BsAlert.vue";
-import BsButton from "@/components/BsButton.vue";
-import { disableForm, enableForm, handleApi } from "@/utilities";
+import {
+  disableForm,
+  enableForm,
+  focusForm,
+  getFormData,
+  handleApi,
+} from "@/utilities";
 
 export default {
   data() {
     return {
-      loading: false,
-      formAlertMessage: "unknown error",
+      formSendEmailLoading: false,
+      formSendEmailAlertMessage: "unknown error",
     };
   },
   watch: {
-    loading(newValue) {
-      const formAlert = this.$refs.formAlert as typeof BsAlert;
+    formSendEmailLoading(newValue) {
+      const formAlert = $(this.$refs.formSendEmailAlert as Element);
       if (newValue) {
-        formAlert.hide();
-        disableForm(this.$refs.form);
+        formAlert.fadeOut();
+        disableForm(this.$refs.formSendEmail);
       } else {
-        formAlert.show();
-        enableForm(this.$refs.form);
+        formAlert.css("display", "flex").hide().fadeIn();
+        enableForm(this.$refs.formSendEmail);
       }
     },
   },
   methods: {
-    onFormSubmit: function () {
-      this.loading = true;
-      const apiData: { [key: string]: string } = {};
-      apiData["type"] = "email";
-      handleApi("post", "/api/user/getonetimecode", apiData).then(
+    onFormSendEmailSubmit() {
+      this.formSendEmailLoading = true;
+      const apiData = getFormData(this.$refs.formSendEmail, ["email"]);
+      apiData["requestType"] = "reset_password";
+      handleApi("post", "/api/user/verifyemail", apiData).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
-            (this.$refs.form as any).reset();
-            this.loading = false;
-            this.formAlertMessage =
-              "Email sent! Please check your email account.";
+            (this.$refs.formSendEmail as any).reset();
+            this.formSendEmailLoading = false;
+            this.formSendEmailAlertMessage =
+              "If there is an account associated with this email address, it will receive a password reset email.";
           } else {
-            this.formAlertMessage = response.data.data.reason;
-            this.loading = false;
+            this.formSendEmailAlertMessage = response.data.data.reason;
+            this.formSendEmailLoading = false;
           }
         },
         (error) => {
-          this.formAlertMessage = error.message;
-          this.loading = false;
+          this.formSendEmailAlertMessage = error.message;
+          this.formSendEmailLoading = false;
         }
       );
       return true;
     },
-    onProceed: function () {
-      this.$router.push("/myfeeds");
+    onFormSendEmailAlertClose() {
+      $(this.$refs.formSendEmailAlert as Element).fadeOut();
+      focusForm(this.$refs.formSendEmail);
     },
   },
   created() {
     document.title = "Reset password - " + (this as any).$projectName;
   },
   mounted() {
-    (this.$refs.form as any).reset();
-    this.loading = false;
+    (this.$refs.formSendEmail as any).reset();
+    $(this.$refs.formSendEmailAlert as Element).hide();
+    this.formSendEmailLoading = false;
+    focusForm(this.$refs.formSendEmail);
   },
   components: {
     FontAwesomeIcon,
-    BsAlert,
-    BsButton,
   },
 };
 </script>
@@ -81,11 +87,11 @@ export default {
           </h3>
           <div class="mb-3">
             <span
-              >For your security, we will send an one time code to your email
+              >To reset your password, we will send a link to your email
               address.</span
             >
           </div>
-          <form @submit.prevent="onFormSubmit" ref="form">
+          <form @submit.prevent="onFormSendEmailSubmit" ref="formSendEmail">
             <div class="input-group mb-3">
               <div class="form-floating">
                 <input
@@ -101,48 +107,43 @@ export default {
               </div>
             </div>
             <div class="mb-3">
-              <BsButton
+              <button
                 type="submit"
-                class="btn-block me-3"
-                :loading="loading"
-                bgColor="secondary"
-                textColor="light"
-                ref="formSubmit"
+                class="btn btn-dark text-light btn-lg btn-block d-flex align-items-center me-3"
               >
-                Send verification email
-              </BsButton>
+                <span v-if="!formSendEmailLoading">Send Email</span>
+                <div
+                  v-if="formSendEmailLoading"
+                  class="spinner-border"
+                  role="status"
+                >
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </button>
             </div>
             <div class="mb-3">
-              <BsAlert
-                class="mb-3"
-                :message="formAlertMessage"
-                bgColor="warning"
-                ref="formAlert"
-              ></BsAlert>
-            </div>
-          </form>
-          <form>
-            <div class="form-floating mb-3">
-              <input
-                type="text"
-                class="form-control"
-                id="inputOneTimeCode"
-                name="onetimecode"
-                placeholder="One Time Code"
-                required
-              />
-              <label for="inputPassword">One Time Code</label>
+              <div
+                class="alert alert-warning align-items-center mb-0"
+                role="alert"
+                aria-hidden="true"
+                ref="formSendEmailAlert"
+              >
+                <FontAwesomeIcon icon="fa-circle-exclamation" />
+                <span class="mx-2">
+                  {{ formSendEmailAlertMessage }}
+                </span>
+                <button
+                  type="button"
+                  class="btn-close ms-auto"
+                  aria-label="Close"
+                  @click="onFormSendEmailAlertClose"
+                ></button>
+              </div>
             </div>
             <div>
-              <BsButton
-                type="button"
-                class="btn-block me-3"
-                bgColor="secondary"
-                textColor="light"
-                @click="onProceed"
-              >
-                Confirm
-              </BsButton>
+              <RouterLink to="/signin">
+                <span>Go back to sign in.</span>
+              </RouterLink>
             </div>
           </form>
         </div>

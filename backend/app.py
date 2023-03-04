@@ -30,15 +30,21 @@ def is_session_user_set():
 
 @app.route("/api/user/signin", methods=["POST"])
 def signin() -> Response:
-    email = request.form["email"]
-    password = request.form["password"]
+    requestType = request.form["requestType"].lower()
     response = {
         "code": "500",
         "data": {}
     }
 
     try:
-        result = fb.verify_email_and_password(email, password)
+        if requestType == "email_password":
+            result = fb.verify_email_and_password(email=request.form["email"], password=request.form["password"])
+        elif requestType == "email_link":
+            result = fb.verify_email_sign_in_code(email=request.form["email"], oobCode=request.form["oobCode"])
+        else:
+            response["code"] = "403"
+            response["data"]["reason"] = "Sign in type not supported."
+            return make_response(jsonify(response), 200)
     except RuntimeError:
         response["code"] = "403"
         response["data"]["reason"] = "Access denied."
@@ -128,54 +134,67 @@ def verifyEmail() -> Response:
         "data": {}
     }
 
-    if requestType == "registration" or requestType == "reset_password":
+    if requestType == "registration":
         if is_session_user_set():
-            if requestType == "registration":
+            try:
+                result = fb.get_account_info(session["user"]["idToken"])
+            except Exception as ex:
+                print(ex)
+                response["code"] = "403"
+                response["data"]["reason"] = "Access denied."
+                return make_response(jsonify(response), 200)
+            if (not result["users"][0]["emailVerified"]):
                 try:
-                    result = fb.get_account_info(session["user"]["idToken"])
-                except Exception:
+                    fb.send_email_verification_email(email=session["user"]["email"], idToken=session["user"]["idToken"])
+                except Exception as ex:
+                    print(ex)
                     response["code"] = "403"
                     response["data"]["reason"] = "Access denied."
                     return make_response(jsonify(response), 200)
-                if (not result["users"][0]["emailVerified"]):
-                    try:
-                        fb.send_email_verification_email(session["user"]["idToken"])
-                    except Exception:
-                        response["code"] = "403"
-                        response["data"]["reason"] = "Access denied."
-                        return make_response(jsonify(response), 200)
-
-                    response["code"] = "200"
-                    return make_response(jsonify(response), 200)
-                else:
-                    response["code"] = "403"
-                    response["data"]["reason"] = "Email already verified."
-                    return make_response(jsonify(response), 200)
-            elif requestType == "reset_password":
-                print("reset password")
                 response["code"] = "200"
+                return make_response(jsonify(response), 200)
+            else:
+                response["code"] = "403"
+                response["data"]["reason"] = "Email already verified."
                 return make_response(jsonify(response), 200)
         else:
             response["code"] = "403"
             response["data"]["reason"] = "Access denied."
             return make_response(jsonify(response), 200)
     elif requestType == "sign_in":
-        print("sign in")
+        email = request.form["email"]
+        try:
+            fb.send_email_sign_in_email(email)
+        except Exception as ex:
+            print(ex)
+            response["code"] = "403"
+            response["data"]["reason"] = "Access denied."
+            return make_response(jsonify(response), 200)
         response["code"] = "200"
+        return make_response(jsonify(response), 200)
+    elif requestType == "reset_password":
+        email = request.form["email"]
+        try:
+            fb.send_password_reset_email(email)
+        except RuntimeError:
+            response["code"] = "403"
+            response["data"]["reason"] = "Access denied."
+            return make_response(jsonify(response), 200)
+        except PermissionError as ex:
+            ex_json = json.loads(str(ex))
+            if ex_json["error"]["message"] == "EMAIL_NOT_FOUND":
+                response["code"] = "200"
+            elif ex_json["error"]["message"] == "INVALID_EMAIL":
+                response["code"] = "403"
+                response["data"]["reason"] = "This email is invalid."
+            else:
+                response["code"] = "403"
+                response["data"]["reason"] = "Access denied."
+            return make_response(jsonify(response), 200)
         return make_response(jsonify(response), 200)
     else:
         response["code"] = "403"
         response["data"]["reason"] = "Access denied."
-
-@app.route("/api/user/resetpassword", methods=["POST"])
-def resetPassword() -> Response:
-    response = { 
-        "code": "500",
-        "data": {}
-    }
-        
-    print("reset password")
-    return make_response(jsonify(response), 200)
 
 @app.route("/api/user/signout", methods=["POST"])
 def signOut() -> Response:

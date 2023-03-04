@@ -5,6 +5,7 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 from firebase_admin import auth
+import urllib
 from utilities import call_api
 
 script_path = os.path.realpath(os.path.dirname(__file__))
@@ -49,9 +50,19 @@ class firebase_helper:
         data = {"idToken": id_token}
         return call_api(endpoint, data)
 
-    def send_email_verification_email(self, id_token):
+    def send_email_verification_email(self, email, idToken):
         endpoint = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobConfirmationCode?key={0}".format(self.conf["apiKey"])
-        data = {"requestType": "VERIFY_EMAIL", "idToken": id_token}
+        data = {"requestType": "VERIFY_EMAIL", "email": email, "idToken": idToken}
+        return call_api(endpoint, data)
+
+    def send_email_sign_in_email(self, email):
+        endpoint = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobConfirmationCode?key={0}".format(self.conf["apiKey"])
+        data = {"requestType": "EMAIL_SIGNIN", "email": email, "continueUrl": "http://localhost:8080/" + "emailsignin?" + urllib.parse.urlencode({"email": email})}
+        return call_api(endpoint, data)
+
+    def verify_email_sign_in_code(self, email, oobCode):
+        endpoint = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/emailLinkSignin?key={0}".format(self.conf["apiKey"])
+        data = {"email": email, "oobCode": oobCode}
         return call_api(endpoint, data)
 
     def send_password_reset_email(self, email):
@@ -59,7 +70,7 @@ class firebase_helper:
         data = {"requestType": "PASSWORD_RESET", "email": email}
         return call_api(endpoint, data)
 
-    def verify_password_reset_code(self, oob_code, new_password):
+    def verify_password_reset_code(self, oobCode, newPassword):
         endpoint = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/resetPassword?key={0}".format(self.conf["apiKey"])
-        data = {"oobCode": oob_code, "newPassword": new_password}
+        data = {"oobCode": oobCode, "newPassword": newPassword}
         return call_api(endpoint, data)

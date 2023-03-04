@@ -14,13 +14,13 @@ Python: v3+ required, v3.10 recommended.
 
 - Install dependency packages: `pip install -r requirements.txt`. Needs to be run only if package dependencies changed.
 
-- Run backend server: `python main.py`
+- Run backend server: `python app.py`
 
 ## Frontend
 
 Vite, Vue 3, TypeScript
 
-Node.js: v16 or v18.
+Node.js: v16 or v18. v18 recommended.
 
 - `cd frontend/stocknews`
 
@@ -28,11 +28,9 @@ Node.js: v16 or v18.
 
 - Run a development server: `npm run dev`
 
-- Run a production server: `npm run build`, `cd production`, `npm run start`
-
 - Go to [http://localhost:8080/](http://localhost:8080/) on local development machine. 127.0.0.1 is not allowed because Google reCAPTCHA requires a domain rather than IP address.
 
-NOTICE: You MUST run `npm run lint` prior to each commit and resolve all issues if exist. Failing to comply with this policy will break the production environment on cloud.
+NOTICE: Please run `npm run lint` prior to each commit and resolve all issues if exist.
 
 ## API
 
@@ -92,7 +90,7 @@ Sends verification email to the user.
 
 #### Request:
 
-- requestType: "registration", sends verification email to the user to finish registration.
+- requestType: "registration", sends verification email to the user to finish registration. "sign_in", sends email to user for signing in. "reset_password", sends email to user for resetting password.
 
 #### Response:
 
@@ -172,9 +170,9 @@ i.e. sign out the user, refresh the user status.
 
 You don't need a `<form>` element in the html.
 
-Just call the `handleApi` with `[]`
+Just call the `handleApi` with `{}`
 
-`handleApi("post", "/api/user/status", [])`
+`handleApi("post", "/api/user/status", {})`
 
 ### Get the response data
 

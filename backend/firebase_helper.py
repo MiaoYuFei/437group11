@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os, json
-import requests
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
@@ -11,8 +10,8 @@ from utilities import call_api
 script_path = os.path.realpath(os.path.dirname(__file__))
 
 class firebase_helper:
-    cred = credentials.Certificate(script_path + "/stocknews-firebase-project.json")
-    conf = json.load(open(script_path + "/stocknews-firebase-app.json"))
+    cred = credentials.Certificate(script_path + "/configs/stocknews-firebase-project.json")
+    conf = json.load(open(script_path + "/configs/stocknews-firebase-app.json"))
 
     app = None
     auth = None

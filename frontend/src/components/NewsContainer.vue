@@ -1,8 +1,5 @@
 <script lang="ts">
 import { parseDatetime } from "@/utilities";
-import $ from "jquery";
-
-let domObj: Element | null = null;
 
 export default {
   props: {
@@ -11,10 +8,7 @@ export default {
   methods: {
     parseDatetime,
   },
-  mounted: function () {
-    domObj = this.$refs.root as Element;
-    const jqObj = $(domObj);
-  },
+  mounted: function () {},
 };
 </script>
 <template>

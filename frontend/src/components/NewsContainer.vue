@@ -14,7 +14,7 @@ export default {
 <template>
   <ul class="list-group">
     <li class="list-group-item" v-for="(news, index) in newsData" :key="index">
-      <div class="card container p-2 border-0">
+      <div class="card container p-2 border-0" style="box-shadow: none">
         <div class="row">
           <div class="col-12 col-lg-3">
             <img

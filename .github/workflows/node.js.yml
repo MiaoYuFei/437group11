@@ -9,6 +9,10 @@ on:
   pull_request:
     branches: [ "main" ]
 
+defaults:
+  run:
+    working-directory: ./frontend
+
 jobs:
   build:
 
@@ -27,8 +31,5 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
-      working-directory: ./frontend
     - run: npm lint
-      working-directory: ./frontend
     - run: npm run build
-      working-directory: ./frontend

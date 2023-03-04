@@ -75,7 +75,8 @@ def register() -> Response:
     }
     try:
         recaptcha_result = call_api(recaptcha_endpoint, recaptcha_data)
-    except:
+    except Exception as ex:
+        print(ex)
         response["code"] = "403"
         response["data"]["reason"] = "Access denied."
         return make_response(jsonify(response), 200)
@@ -85,7 +86,8 @@ def register() -> Response:
         return make_response(jsonify(response), 200)
     try:
         result = fb.sign_up_with_email_and_password(email, password)
-    except RuntimeError:
+    except RuntimeError as ex:
+        print(ex)
         response["code"] = "403"
         response["data"]["reason"] = "Access denied."
         return make_response(jsonify(response), 200)
@@ -95,6 +97,7 @@ def register() -> Response:
             response["code"] = "403"
             response["data"]["reason"] = "This email has already registered."
         else:
+            print(ex)
             response["code"] = "403"
             response["data"]["reason"] = "Access denied."
         return make_response(jsonify(response), 200)

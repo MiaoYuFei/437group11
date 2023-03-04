@@ -23,7 +23,7 @@ export default {
     };
   },
   watch: {
-    loading(newValue) {
+    formLoading(newValue) {
       const formAlert = $(this.$refs.formAlert as Element);
       if (newValue) {
         formAlert.fadeOut();

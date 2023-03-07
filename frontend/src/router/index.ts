@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import EmailSignInView from "@/views/EmailSignInView.vue";
 import HomeView from "@/views/HomeView.vue";
+import MyAccountView from "@/views/MyAccountView.vue";
 import MyFeedsView from "@/views/MyFeedsView.vue";
 import RegisterView from "@/views/RegisterView.vue";
 import SigninView from "@/views/SigninView.vue";
@@ -42,6 +43,11 @@ const router = createRouter({
       path: "/resetpassword",
       name: "resetpassword",
       component: ResetPasswordView,
+    },
+    {
+      path: "/myaccount",
+      name: "myaccount",
+      component: MyAccountView,
     },
     {
       path: "/profile",

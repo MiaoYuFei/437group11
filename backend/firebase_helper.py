@@ -74,3 +74,8 @@ class firebase_helper:
         endpoint = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/resetPassword?key={0}".format(self.conf["apiKey"])
         data = {"oobCode": oobCode, "newPassword": newPassword}
         return call_api(endpoint, data)
+
+    def update_account_info(self, localId, idToken, displayName):
+        endpoint = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo?key={0}".format(self.conf["apiKey"])
+        data = {"localId": localId, "idToken": idToken, "displayName": displayName}
+        return call_api(endpoint, data)

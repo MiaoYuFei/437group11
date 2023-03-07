@@ -215,5 +215,29 @@ def signOut() -> Response:
     clear_session_user()
     return make_response(jsonify(response), 200)
 
+@app.route("/api/user/update_account_info", methods=["POST"])
+def update_account_info() -> Response:
+    displayName = request.form["displayName"].strip()
+    response = {
+        "code": "200",
+        "data": {}
+    }
+
+    if not is_session_user_set():
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
+
+    localId = session["user"]["localId"]
+    idToken = session["user"]["idToken"]
+    try:
+        fb.update_account_info(localId, idToken, displayName)
+    except RuntimeError as ex:
+        print(ex)
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
+    return make_response(jsonify(response), 200)
+
 if __name__ == "__main__":
     app.run(port=8081, use_reloader=True)

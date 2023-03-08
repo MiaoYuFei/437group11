@@ -121,7 +121,8 @@ def status() -> Response:
             response["data"]["reason"] = "Access denied."
             return make_response(jsonify(response), 200)
         response["code"] = "200"
-        response["data"]["userid"] = result["users"][0]["localId"]
+        response["data"]["id"] = result["users"][0]["localId"]
+        response["data"]["name"] = result["users"][0]["displayName"]
         response["data"]["email"] = result["users"][0]["email"]
         response["data"]["emailVerified"] = "true" if result["users"][0]["emailVerified"] else "false"
         return make_response(jsonify(response), 200)
@@ -200,6 +201,7 @@ def verifyEmail() -> Response:
                 response["code"] = "403"
                 response["data"]["reason"] = "Access denied."
             return make_response(jsonify(response), 200)
+        response["code"] = "200"
         return make_response(jsonify(response), 200)
     else:
         response["code"] = "403"

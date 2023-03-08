@@ -6,7 +6,8 @@ import { handleApi } from "@/utilities";
 export default {
   data: () => {
     return {
-      email: "",
+      useremail: "",
+      username: "",
       signedIn: false,
       emailVerified: false,
       searchText: "",
@@ -16,8 +17,11 @@ export default {
     onUserStatus: function () {
       handleApi("post", "/api/user/status", []).then(
         (response) => {
-          if (parseInt(response.data.code) === 200) {
-            this.email = response.data.data.email;
+          const code = parseInt(response.data.code);
+          const data = response.data.data;
+          if (code === 200) {
+            this.useremail = data.email;
+            this.username = data.name;
             this.signedIn = true;
             this.emailVerified =
               (response.data.data.emailVerified as string).toLowerCase() ===
@@ -37,7 +41,7 @@ export default {
     },
     onUserSignout: function () {
       handleApi("post", "/api/user/signout", []).then(() => {
-        this.email = "";
+        this.useremail = "";
         this.signedIn = false;
         this.$router.push("/");
       });
@@ -66,6 +70,17 @@ export default {
     aria-label="Navigation"
   >
     <div class="container-fluid">
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#offcanvas"
+        aria-controls="offcanvas"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
       <RouterLink class="navbar-brand d-flex align-items-center gap-1" to="/">
         <img
           src="/src/assets/vue.svg"
@@ -123,11 +138,6 @@ export default {
               <li>
                 <RouterLink class="dropdown-item" to="/">
                   <span>Construction</span>
-                </RouterLink>
-              </li>
-              <li>
-                <RouterLink class="dropdown-item" to="/">
-                  <span>Manufacturing</span>
                 </RouterLink>
               </li>
               <li>
@@ -203,15 +213,14 @@ export default {
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
-                {{ email }}
+                {{ username }}
               </a>
               <ul
-                class="dropdown-menu dropdown-menu-end dropdown-menu-dark"
-                style="margin: 0"
+                class="dropdown-menu dropdown-menu-end dropdown-menu-dark m-0"
               >
                 <li>
-                  <RouterLink class="dropdown-item" to="/profile">
-                    <span>Profile</span>
+                  <RouterLink class="dropdown-item" to="/myaccount">
+                    <span>My Account</span>
                   </RouterLink>
                 </li>
                 <li><hr class="dropdown-divider" /></li>

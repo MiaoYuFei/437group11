@@ -1,257 +1,223 @@
 <script lang="ts">
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { handleApi } from "@/utilities";
 
 export default {
   data() {
     return {
+      userid: "",
+      username: "",
+      useremail: "",
+      loading: true,
       errorMessage: "unknown errror",
     };
   },
-  methods: {},
+  methods: {
+    update() {
+      this.loading = true;
+      handleApi("post", "/api/user/status", []).then((response) => {
+        const code = parseInt(response.data.code);
+        const data = response.data.data;
+        if (code == 200) {
+          this.loading = false;
+          this.userid = data.id;
+          this.username = data.name;
+          this.useremail = data.email;
+        }
+      });
+    },
+  },
   created() {
     document.title = "My Account - " + (this as any).$projectName;
   },
-  mounted() {},
-  components: {
-    FontAwesomeIcon,
+  mounted() {
+    this.update();
   },
+  components: {},
 };
 </script>
 <template>
-  <div>
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
-      <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasExampleLabel">Offcanvas</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  <div class="d-flex">
+    <div
+      class="offcanvas-lg offcanvas-start text-bg-dark"
+      tabindex="-1"
+      id="offcanvas"
+      aria-labelledby="offcanvasLabel"
+    >
+      <div class="offcanvas-header d-lg-none">
+        <h5 class="offcanvas-title" id="offcanvasLabel">Navigation</h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="offcanvas"
+          data-bs-target="#offcanvas"
+          aria-label="Close"
+        ></button>
       </div>
       <div class="offcanvas-body">
         <div>
-          Some text as placeholder. In real life you can have the elements you have chosen. Like, text, images, lists, etc.
-        </div>
-        <div class="dropdown mt-3">
-          <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-            Dropdown button
-          </button>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Action</a></li>
-            <li><a class="dropdown-item" href="#">Another action</a></li>
-            <li><a class="dropdown-item" href="#">Something else here</a></li>
+          <ul class="nav nav-tabs w-100" role="tablist">
+            <li
+              class="nav-item"
+              role="presentation"
+              v-for="(item, index) in [
+                { key: 'profile', value: 'Profile' },
+                { key: 'security', value: 'Security' },
+                { key: 'preferences', value: 'Preferences' },
+              ]"
+              :key="index"
+            >
+              <button
+                :class="'nav-link' + (index === 0 ? ' active' : '')"
+                :id="'tab_' + item.key"
+                data-bs-toggle="tab"
+                :data-bs-target="'#tabPane_' + item.key"
+                type="button"
+                role="tab"
+                :aria-controls="'tabPane_' + item.key"
+                :aria-selected="index === 0 ? 'true' : 'false'"
+              >
+                {{ item.value }}
+              </button>
+            </li>
           </ul>
         </div>
       </div>
     </div>
-    <div
-      class="container d-flex flex-column align-items-center justify-content-center"
-      style="min-height: 100%"
-    >
-      <div
-        class="card col-12 col-md-10 col-lg-8 col-xl-6 col-xxl-5"
-        style="box-shadow: 0.2rem 0.2rem 0.1rem #eee"
-      >
-        <div class="card-body p-4">
-          <h3 class="card-title mb-4">
-            <FontAwesomeIcon icon="fa-user" class="me-3" />My Account
-          </h3>
-          <div id="myAccountTab">
-            <ul class="nav nav-tabs" role="tablist">
-              <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link active"
-                  id="profile-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#profile-tab-pane"
-                  type="button"
-                  role="tab"
-                  aria-controls="profile-tab-pane"
-                  aria-selected="true"
+    <div>
+      <div class="p-4">
+        <div class="tab-content">
+          <div
+            class="tab-pane fade show active"
+            id="tabPane_profile"
+            role="tabpanel"
+            aria-labelledby="tab_profile"
+            tabindex="0"
+          >
+            <h5 class="user-select-none">Profile</h5>
+            <form style="min-width: 18rem">
+              <div class="mb-3">
+                <label class="d-block user-select-none">Id</label>
+                <label class="d-block text-muted placeholder-glow"
+                  ><span class="placeholder col-8" v-if="loading"></span
+                  >{{ userid }}</label
                 >
-                  Profile
-                </button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link"
-                  id="security-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#security-tab-pane"
-                  type="button"
-                  role="tab"
-                  aria-controls="security-tab-pane"
-                  aria-selected="false"
+              </div>
+              <div class="mb-3">
+                <label class="d-block user-select-none">Name</label>
+                <label class="d-block text-muted placeholder-glow"
+                  ><span class="placeholder col-6" v-if="loading"></span
+                  >{{ username }}</label
                 >
-                  Security
-                </button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link"
-                  id="my-readings-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#my-readings-tab-pane"
-                  type="button"
-                  role="tab"
-                  aria-controls="my-readings-tab-pane"
-                  aria-selected="false"
+              </div>
+              <div class="mb-3">
+                <label class="d-block user-select-none">Email</label>
+                <label class="d-block text-muted placeholder-glow"
+                  ><span class="placeholder col-6" v-if="loading"></span
+                  >{{ useremail }}</label
                 >
-                  My Readings
-                </button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link"
-                  id="preferences-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#preferences-tab-pane"
-                  type="button"
-                  role="tab"
-                  aria-controls="preferences-tab-pane"
-                  aria-selected="false"
+              </div>
+              <hr />
+              <button class="btn btn-primary">Edit</button>
+            </form>
+          </div>
+          <div
+            class="tab-pane fade"
+            id="tabPane_security"
+            role="tabpanel"
+            aria-labelledby="tab_security"
+            tabindex="0"
+          >
+            <h5 class="user-select-none">Security</h5>
+            <form>
+              <div class="mb-3">
+                <label
+                  name="currentPassword"
+                  for="securityInputCurrentPassword"
+                  class="form-label"
+                  >Current password</label
                 >
-                  Preferences
-                </button>
-              </li>
-            </ul>
-            <div class="tab-content">
-              <div
-                class="tab-pane fade show active"
-                id="profile-tab-pane"
-                role="tabpanel"
-                aria-labelledby="profile-tab"
-                tabindex="0"
-              >
-                <form>
-                  <div class="form-floating mb-3">
-                    <input
-                      type="email"
-                      readonly
-                      class="form-control-plaintext"
-                      id="profileInputEmail"
-                      placeholder="name@example.com"
-                      value="name@example.com"
-                    />
-                    <label for="profileInputEmail">Email</label>
-                  </div>
-                  <div class="form-floating mb-3">
-                    <input
-                      type="text"
-                      readonly
-                      class="form-control-plaintext"
-                      id="profileInputName"
-                      placeholder="Username"
-                      value="Username"
-                    />
-                    <label for="profileInputName">Name</label>
-                  </div>
-                  <button class="btn btn-primary">Edit</button>
-                </form>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="securityInputCurrentPassword"
+                />
               </div>
-              <div
-                class="tab-pane fade"
-                id="security-tab-pane"
-                role="tabpanel"
-                aria-labelledby="security-tab"
-                tabindex="0"
-              >
-                <form>
-                  <div class="mb-3">
-                    <label
-                      name="currentPassword"
-                      for="securityInputCurrentPassword"
-                      class="form-label"
-                      >Current password</label
-                    >
-                    <input
-                      type="password"
-                      class="form-control"
-                      id="securityInputCurrentPassword"
-                    />
-                  </div>
-                  <div class="mb-3">
-                    <label
-                      name="newPassword"
-                      for="securityInputNewPassword"
-                      class="form-label"
-                      >New password</label
-                    >
-                    <input
-                      type="password"
-                      class="form-control"
-                      id="securityInputNewPassword"
-                    />
-                  </div>
-                  <div class="mb-3">
-                    <label
-                      name="newPasswordConfirmation"
-                      for="securityInputNewPasswordConfirmation"
-                      class="form-label"
-                      >Confirm new password</label
-                    >
-                    <input
-                      type="password"
-                      class="form-control"
-                      id="securityInputNewPasswordConfirmation"
-                    />
-                  </div>
-                  <button type="submit" class="btn btn-primary">Save</button>
-                </form>
+              <div class="mb-3">
+                <label
+                  name="newPassword"
+                  for="securityInputNewPassword"
+                  class="form-label"
+                  >New password</label
+                >
+                <input
+                  type="password"
+                  class="form-control"
+                  id="securityInputNewPassword"
+                />
               </div>
-              <div
-                class="tab-pane fade"
-                id="my-readings-tab-pane"
-                role="tabpanel"
-                aria-labelledby="my-readings-tab"
-                tabindex="0"
-              >
-                ...
+              <div class="mb-3">
+                <label
+                  name="newPasswordConfirmation"
+                  for="securityInputNewPasswordConfirmation"
+                  class="form-label"
+                  >Confirm new password</label
+                >
+                <input
+                  type="password"
+                  class="form-control"
+                  id="securityInputNewPasswordConfirmation"
+                />
               </div>
-              <div
-                class="tab-pane fade"
-                id="preferences-tab-pane"
-                role="tabpanel"
-                aria-labelledby="preferences-tab"
-                tabindex="0"
-              >
-                <form>
-                  <p>Select the categories you are interested in.</p>
-                  <div class="d-flex flex-wrap gap-2">
-                    <div
-                      v-for="(item, index) in [
-                        { key: 'algriculture', value: 'Agriculture' },
-                        { key: 'mining', value: 'Mining' },
-                        { key: 'construction', value: 'Construction' },
-                        { key: 'manufacuring', value: 'Manufacturing' },
-                        { key: 'transportation', value: 'Transportation' },
-                        { key: 'wholesale', value: 'Wholesale' },
-                        { key: 'retail', value: 'Retail' },
-                        { key: 'finance', value: 'Finance' },
-                        { key: 'services', value: 'Services' },
-                        {
-                          key: 'public_administration',
-                          value: 'Public Administration',
-                        },
-                      ]"
-                      :key="index"
-                    >
-                      <input
-                        type="checkbox"
-                        class="btn-check"
-                        :name="'inputCheck_' + item.key"
-                        :id="'inputCheck_' + item.key"
-                        autocomplete="off"
-                      />
-                      <label
-                        class="btn btn-outline-primary"
-                        :for="'inputCheck_' + item.key"
-                        >{{ item.value }}</label
-                      >
-                    </div>
-                  </div>
-                  <hr />
-                  <button class="btn btn-primary">Edit</button>
-                </form>
+              <hr />
+              <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+          </div>
+          <div
+            class="tab-pane fade"
+            id="tabPane_preferences"
+            role="tabpanel"
+            aria-labelledby="tab_preferences"
+            tabindex="0"
+          >
+            <h5 class="user-select-none">Preferences</h5>
+            <form>
+              <p>Select the categories you are interested in.</p>
+              <div class="d-flex flex-wrap gap-2">
+                <div
+                  v-for="(item, index) in [
+                    { key: 'algriculture', value: 'Agriculture' },
+                    { key: 'mining', value: 'Mining' },
+                    { key: 'construction', value: 'Construction' },
+                    { key: 'manufacuring', value: 'Manufacturing' },
+                    { key: 'transportation', value: 'Transportation' },
+                    { key: 'wholesale', value: 'Wholesale' },
+                    { key: 'retail', value: 'Retail' },
+                    { key: 'finance', value: 'Finance' },
+                    { key: 'services', value: 'Services' },
+                    {
+                      key: 'public_administration',
+                      value: 'Public Administration',
+                    },
+                  ]"
+                  :key="index"
+                >
+                  <input
+                    type="checkbox"
+                    class="btn-check"
+                    :name="'inputCheck_' + item.key"
+                    :id="'inputCheck_' + item.key"
+                    autocomplete="off"
+                  />
+                  <label
+                    class="btn btn-outline-primary"
+                    :for="'inputCheck_' + item.key"
+                    >{{ item.value }}</label
+                  >
+                </div>
               </div>
-            </div>
+              <hr />
+              <button class="btn btn-primary">Edit</button>
+            </form>
           </div>
         </div>
       </div>
@@ -259,43 +225,51 @@ export default {
   </div>
 </template>
 <style scoped>
+@import url("@/assets/common.css");
+
 .form-floating label,
 .form-floating input {
   padding-left: 0;
 }
 
-#myAccountTab {
+.offcanvas-body > * {
   display: flex;
   flex-direction: row;
 }
 
-#myAccountTab .nav-tabs {
+.offcanvas-body .nav-tabs {
   display: flex;
   flex-direction: column;
   border: none;
 }
 
-#myAccountTab .nav-tabs .nav-link {
+.offcanvas-body .nav-tabs .nav-link {
   width: 100%;
+  padding: 1rem;
+  margin: 0.1rem;
   border: none;
-  border-radius: 0;
-  color: rgb(57, 169, 225);
+  border-radius: 0.25rem;
+  color: #eee;
 }
 
-#myAccountTab .nav-tabs .nav-link:hover {
-  background: rgba(134, 203, 237, 0.6);
+.offcanvas-body .nav-tabs .nav-link:hover {
+  background: rgb(255 255 255 / 10%);
 }
 
-#myAccountTab .nav-tabs .nav-link:active {
-  background: rgba(134, 203, 237, 1);
+.offcanvas-body .nav-tabs .nav-link:active {
+  background: rgb(255 255 255 / 30%);
 }
 
-#myAccountTab .nav-tabs .nav-link.active {
-  background: rgba(134, 203, 237, 0.8);
-  color: #222;
+.offcanvas-body .nav-tabs .nav-link.active {
+  background: rgb(255 255 255 / 20%);
 }
 
-#myAccountTab .tab-content .tab-pane {
-  margin-left: 1rem;
+.tab-content {
+  width: 100%;
+}
+
+.offcanvas-lg + .container {
+  min-height: 100%;
+  overflow: auto;
 }
 </style>

@@ -100,4 +100,15 @@ class firebase_helper:
         if doc.exists:
             return doc.to_dict()
         else:
-            return None
+            return {
+                'algriculture': False,
+                'mining': False,
+                'construction': False,
+                'manufacuring': False,
+                'transportation': False,
+                'wholesale': False,
+                'retail': False,
+                'finance': False,
+                'services': False,
+                'public_administration': False
+            }

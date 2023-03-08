@@ -1,5 +1,6 @@
 <script lang="ts">
 import $ from "jquery";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { handleApi } from "@/utilities";
 
 export default {
@@ -8,27 +9,55 @@ export default {
       userid: "",
       username: "",
       useremail: "",
-      profileLoading: true,
-      errorMessage: "unknown errror",
+      formProfileGetLoading: true,
+      formProfileSetLoading: false,
+      formSecuritySetLoading: false,
+      formPreferencesGetLoading: true,
+      formPreferencesSetLoading: false,
+      formProfileAlertMessage: "unknown errror",
+      formSecurityAlertMessage: "unknown errror",
+      formPreferencesAlertMessage: "unknown errror",
     };
   },
+  watch: {
+    formSecuritySetLoading(newValue) {
+      const formAlert = $(this.$refs.formSecurityAlert as Element);
+      if (newValue) {
+        formAlert.fadeOut();
+      } else {
+        formAlert.css("display", "flex").hide().fadeIn();
+      }
+    },
+    formPreferencesSetLoading(newValue) {
+      const formAlert = $(this.$refs.formPreferencesAlert as Element);
+      if (newValue) {
+        formAlert.fadeOut();
+      } else {
+        formAlert.css("display", "flex").hide().fadeIn();
+      }
+    },
+  },
   methods: {
-    onUpdateStatus() {
-      this.profileLoading = true;
+    onGetStatus() {
+      this.formProfileGetLoading = true;
       handleApi("post", "/api/user/status", []).then((response) => {
         const code = parseInt(response.data.code);
         const data = response.data.data;
         if (code == 200) {
-          this.profileLoading = false;
+          this.formProfileGetLoading = false;
           this.userid = data.id;
           this.username = data.name;
           this.useremail = data.email;
         } else {
-          this.errorMessage = data.reason;
+          this.formProfileAlertMessage = data.reason;
         }
       });
     },
-    onSubmitPreferences() {
+    onSetSecurity() {
+      // TODO: send old and new password to backend. /api/user/updatepassword
+    },
+    onSetPreferences() {
+      this.formPreferencesSetLoading = true;
       const apiData: { [key: string]: boolean } = {};
       $(this.$refs.formPreferences as Element)
         .find("input")
@@ -42,18 +71,20 @@ export default {
           const code = parseInt(response.data.code);
           const data = response.data.data;
           if (code == 200) {
-            this.errorMessage = "Preferences updated successfully.";
+            this.formPreferencesAlertMessage =
+              "Preferences updated successfully.";
           } else {
-            this.errorMessage = data.reason;
+            this.formPreferencesAlertMessage = data.reason;
           }
+          this.formPreferencesSetLoading = false;
         }
       );
     },
-    onUpdatePreferences() {
+    onGetPreferences() {
+      this.formPreferencesGetLoading = true;
       handleApi("post", "/api/user/getpreferences", []).then((response) => {
         const code = parseInt(response.data.code);
         const data = response.data.data;
-
         if (code == 200) {
           for (const key in data.preferences) {
             const value =
@@ -63,19 +94,30 @@ export default {
               .prop("checked", value);
           }
         } else {
-          this.errorMessage = data.reason;
+          this.formProfileAlertMessage = data.reason;
         }
+        this.formPreferencesGetLoading = false;
       });
+    },
+    onFormPreferencesAlertClose() {
+      $(this.$refs.formPreferencesAlert as Element).fadeOut();
+    },
+    onFormSecurityAlertClose() {
+      $(this.$refs.formSecurityAlert as Element).fadeOut();
     },
   },
   created() {
     document.title = "My Account - " + (this as any).$projectName;
   },
   mounted() {
-    this.onUpdateStatus();
-    this.onUpdatePreferences();
+    $(this.$refs.formSecurityAlert as Element).fadeOut();
+    $(this.$refs.formPreferencesAlert as Element).fadeOut();
+    this.onGetStatus();
+    this.onGetPreferences();
   },
-  components: {},
+  components: {
+    FontAwesomeIcon,
+  },
 };
 </script>
 <template>
@@ -137,25 +179,34 @@ export default {
             tabindex="0"
           >
             <h5 class="user-select-none">Profile</h5>
-            <form style="min-width: 18rem">
+            <form ref="formProfile">
               <div class="mb-3">
                 <label class="d-block user-select-none">Id</label>
                 <label class="d-block text-muted placeholder-glow"
-                  ><span class="placeholder col-8" v-if="profileLoading"></span
+                  ><span
+                    class="placeholder col-8"
+                    v-if="formProfileGetLoading"
+                  ></span
                   >{{ userid }}</label
                 >
               </div>
               <div class="mb-3">
                 <label class="d-block user-select-none">Name</label>
                 <label class="d-block text-muted placeholder-glow"
-                  ><span class="placeholder col-6" v-if="profileLoading"></span
+                  ><span
+                    class="placeholder col-6"
+                    v-if="formProfileGetLoading"
+                  ></span
                   >{{ username }}</label
                 >
               </div>
               <div class="mb-3">
                 <label class="d-block user-select-none">Email</label>
                 <label class="d-block text-muted placeholder-glow"
-                  ><span class="placeholder col-6" v-if="profileLoading"></span
+                  ><span
+                    class="placeholder col-6"
+                    v-if="formProfileGetLoading"
+                  ></span
                   >{{ useremail }}</label
                 >
               </div>
@@ -171,7 +222,7 @@ export default {
             tabindex="0"
           >
             <h5 class="user-select-none">Security</h5>
-            <form>
+            <form @submit.prevent="onSetSecurity" ref="formSecurity">
               <div class="mb-3">
                 <label
                   name="currentPassword"
@@ -212,7 +263,28 @@ export default {
                 />
               </div>
               <hr />
-              <button type="submit" class="btn btn-primary">Save</button>
+              <div class="mb-3">
+                <button type="submit" class="btn btn-primary">Save</button>
+              </div>
+              <div>
+                <div
+                  class="alert alert-warning align-items-center mb-0"
+                  role="alert"
+                  aria-hidden="true"
+                  ref="formSecurityAlert"
+                >
+                  <FontAwesomeIcon icon="fa-circle-exclamation" />
+                  <span class="mx-2">
+                    {{ formSecurityAlertMessage }}
+                  </span>
+                  <button
+                    type="button"
+                    class="btn-close ms-auto"
+                    aria-label="Close"
+                    @click="onFormSecurityAlertClose"
+                  ></button>
+                </div>
+              </div>
             </form>
           </div>
           <div
@@ -223,9 +295,25 @@ export default {
             tabindex="0"
           >
             <h5 class="user-select-none">Preferences</h5>
-            <form @submit.prevent="onSubmitPreferences" ref="formPreferences">
+            <form @submit.prevent="onSetPreferences" ref="formPreferences">
               <p>Select the categories you are interested in.</p>
-              <div class="d-flex flex-wrap gap-2">
+              <div class="placeholder-glow" style="min-width: 18rem">
+                <span
+                  class="placeholder col-12"
+                  v-if="formPreferencesGetLoading"
+                ></span>
+                <span
+                  class="placeholder col-12"
+                  v-if="formPreferencesGetLoading"
+                ></span>
+              </div>
+              <div
+                class="flex-wrap gap-2"
+                :class="{
+                  'd-none': formPreferencesGetLoading,
+                  'd-flex': !formPreferencesGetLoading,
+                }"
+              >
                 <div
                   v-for="(item, index) in [
                     { key: 'algriculture', value: 'Agriculture' },
@@ -259,7 +347,37 @@ export default {
                 </div>
               </div>
               <hr />
-              <button class="btn btn-primary">Save</button>
+              <div class="mb-3">
+                <button type="submit" class="btn btn-primary">
+                  <span v-if="!formPreferencesSetLoading">Save</span>
+                  <div
+                    v-if="formPreferencesSetLoading"
+                    class="spinner-border"
+                    role="status"
+                  >
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </button>
+              </div>
+              <div>
+                <div
+                  class="alert alert-warning align-items-center mb-0"
+                  role="alert"
+                  aria-hidden="true"
+                  ref="formPreferencesAlert"
+                >
+                  <FontAwesomeIcon icon="fa-circle-exclamation" />
+                  <span class="mx-2">
+                    {{ formPreferencesAlertMessage }}
+                  </span>
+                  <button
+                    type="button"
+                    class="btn-close ms-auto"
+                    aria-label="Close"
+                    @click="onFormPreferencesAlertClose"
+                  ></button>
+                </div>
+              </div>
             </form>
           </div>
         </div>
@@ -314,5 +432,9 @@ export default {
 .offcanvas-lg + .container {
   min-height: 100%;
   overflow: auto;
+}
+
+form {
+  min-width: 20rem;
 }
 </style>

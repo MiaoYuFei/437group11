@@ -20,6 +20,27 @@ export default {
 </script>
 <template>
   <div>
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasExampleLabel">Offcanvas</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <div>
+          Some text as placeholder. In real life you can have the elements you have chosen. Like, text, images, lists, etc.
+        </div>
+        <div class="dropdown mt-3">
+          <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            Dropdown button
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">Action</a></li>
+            <li><a class="dropdown-item" href="#">Another action</a></li>
+            <li><a class="dropdown-item" href="#">Something else here</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
     <div
       class="container d-flex flex-column align-items-center justify-content-center"
       style="min-height: 100%"
@@ -191,7 +212,44 @@ export default {
                 aria-labelledby="preferences-tab"
                 tabindex="0"
               >
-                ...
+                <form>
+                  <p>Select the categories you are interested in.</p>
+                  <div class="d-flex flex-wrap gap-2">
+                    <div
+                      v-for="(item, index) in [
+                        { key: 'algriculture', value: 'Agriculture' },
+                        { key: 'mining', value: 'Mining' },
+                        { key: 'construction', value: 'Construction' },
+                        { key: 'manufacuring', value: 'Manufacturing' },
+                        { key: 'transportation', value: 'Transportation' },
+                        { key: 'wholesale', value: 'Wholesale' },
+                        { key: 'retail', value: 'Retail' },
+                        { key: 'finance', value: 'Finance' },
+                        { key: 'services', value: 'Services' },
+                        {
+                          key: 'public_administration',
+                          value: 'Public Administration',
+                        },
+                      ]"
+                      :key="index"
+                    >
+                      <input
+                        type="checkbox"
+                        class="btn-check"
+                        :name="'inputCheck_' + item.key"
+                        :id="'inputCheck_' + item.key"
+                        autocomplete="off"
+                      />
+                      <label
+                        class="btn btn-outline-primary"
+                        :for="'inputCheck_' + item.key"
+                        >{{ item.value }}</label
+                      >
+                    </div>
+                  </div>
+                  <hr />
+                  <button class="btn btn-primary">Edit</button>
+                </form>
               </div>
             </div>
           </div>

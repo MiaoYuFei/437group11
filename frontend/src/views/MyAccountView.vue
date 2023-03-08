@@ -1,4 +1,5 @@
 <script lang="ts">
+import $ from "jquery";
 import { handleApi } from "@/utilities";
 
 export default {
@@ -7,21 +8,62 @@ export default {
       userid: "",
       username: "",
       useremail: "",
-      loading: true,
+      profileLoading: true,
       errorMessage: "unknown errror",
     };
   },
   methods: {
-    update() {
-      this.loading = true;
+    onUpdateStatus() {
+      this.profileLoading = true;
       handleApi("post", "/api/user/status", []).then((response) => {
         const code = parseInt(response.data.code);
         const data = response.data.data;
         if (code == 200) {
-          this.loading = false;
+          this.profileLoading = false;
           this.userid = data.id;
           this.username = data.name;
           this.useremail = data.email;
+        } else {
+          this.errorMessage = data.reason;
+        }
+      });
+    },
+    onSubmitPreferences() {
+      const apiData: { [key: string]: boolean } = {};
+      $(this.$refs.formPreferences as Element)
+        .find("input")
+        .each(function () {
+          const jqObj = $(this);
+          const name: string = jqObj.attr("name") as string;
+          apiData[name] = jqObj.is(":checked");
+        });
+      handleApi("post", "/api/user/updatepreferences", apiData).then(
+        (response) => {
+          const code = parseInt(response.data.code);
+          const data = response.data.data;
+          if (code == 200) {
+            this.errorMessage = "Preferences updated successfully.";
+          } else {
+            this.errorMessage = data.reason;
+          }
+        }
+      );
+    },
+    onUpdatePreferences() {
+      handleApi("post", "/api/user/getpreferences", []).then((response) => {
+        const code = parseInt(response.data.code);
+        const data = response.data.data;
+
+        if (code == 200) {
+          for (const key in data.preferences) {
+            const value =
+              data.preferences[key].toString().toLowerCase() === "true";
+            $(this.$refs.formPreferences as Element)
+              .find(`input[name="${key}"]`)
+              .prop("checked", value);
+          }
+        } else {
+          this.errorMessage = data.reason;
         }
       });
     },
@@ -30,7 +72,8 @@ export default {
     document.title = "My Account - " + (this as any).$projectName;
   },
   mounted() {
-    this.update();
+    this.onUpdateStatus();
+    this.onUpdatePreferences();
   },
   components: {},
 };
@@ -98,21 +141,21 @@ export default {
               <div class="mb-3">
                 <label class="d-block user-select-none">Id</label>
                 <label class="d-block text-muted placeholder-glow"
-                  ><span class="placeholder col-8" v-if="loading"></span
+                  ><span class="placeholder col-8" v-if="profileLoading"></span
                   >{{ userid }}</label
                 >
               </div>
               <div class="mb-3">
                 <label class="d-block user-select-none">Name</label>
                 <label class="d-block text-muted placeholder-glow"
-                  ><span class="placeholder col-6" v-if="loading"></span
+                  ><span class="placeholder col-6" v-if="profileLoading"></span
                   >{{ username }}</label
                 >
               </div>
               <div class="mb-3">
                 <label class="d-block user-select-none">Email</label>
                 <label class="d-block text-muted placeholder-glow"
-                  ><span class="placeholder col-6" v-if="loading"></span
+                  ><span class="placeholder col-6" v-if="profileLoading"></span
                   >{{ useremail }}</label
                 >
               </div>
@@ -180,7 +223,7 @@ export default {
             tabindex="0"
           >
             <h5 class="user-select-none">Preferences</h5>
-            <form>
+            <form @submit.prevent="onSubmitPreferences" ref="formPreferences">
               <p>Select the categories you are interested in.</p>
               <div class="d-flex flex-wrap gap-2">
                 <div
@@ -204,7 +247,7 @@ export default {
                   <input
                     type="checkbox"
                     class="btn-check"
-                    :name="'inputCheck_' + item.key"
+                    :name="item.key"
                     :id="'inputCheck_' + item.key"
                     autocomplete="off"
                   />
@@ -216,7 +259,7 @@ export default {
                 </div>
               </div>
               <hr />
-              <button class="btn btn-primary">Edit</button>
+              <button class="btn btn-primary">Save</button>
             </form>
           </div>
         </div>

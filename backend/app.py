@@ -39,9 +39,9 @@ def signin() -> Response:
 
     try:
         if requestType == "email_password":
-            result = fb.verify_email_and_password(email=request.form["email"], password=request.form["password"])
+            result = fb.verify_email_and_password(request.form["email"], request.form["password"])
         elif requestType == "email_link":
-            result = fb.verify_email_sign_in_code(email=request.form["email"], oobCode=request.form["oobCode"])
+            result = fb.verify_email_sign_in_code(request.form["email"], request.form["oobCode"])
         else:
             response["code"] = "403"
             response["data"]["reason"] = "Sign in type not supported."
@@ -150,7 +150,7 @@ def verifyEmail() -> Response:
                 return make_response(jsonify(response), 200)
             if (not result["users"][0]["emailVerified"]):
                 try:
-                    fb.send_email_verification_email(email=session["user"]["email"], idToken=session["user"]["idToken"])
+                    fb.send_email_verification_email(session["user"]["idToken"], session["user"]["email"])
                 except Exception as ex:
                     print(ex)
                     response["code"] = "403"
@@ -239,6 +239,64 @@ def update_account_info() -> Response:
         response["code"] = "403"
         response["data"]["reason"] = "Access denied."
         return make_response(jsonify(response), 200)
+    return make_response(jsonify(response), 200)
+
+@app.route("/api/user/updatepreferences", methods=["POST"])
+def updatePreferences() -> Response:
+    algriculture = request.form["algriculture"].lower()
+    mining = request.form["mining"].lower()
+    construction = request.form["construction"].lower()
+    manufacuring = request.form["manufacuring"].lower()
+    transportation = request.form["transportation"].lower()
+    wholesale = request.form["wholesale"].lower()
+    retail = request.form["retail"].lower()
+    finance = request.form["finance"].lower()
+    services = request.form["services"].lower()
+    public_administration = request.form["public_administration"].lower()
+    response = { 
+        "code": "500",
+        "data": {}
+    }
+
+    if not is_session_user_set():
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
+    
+    localId = session["user"]["localId"]
+    try:
+        fb.update_preferences(localId, algriculture, mining, construction, manufacuring, transportation, wholesale, retail, finance, services, public_administration)
+    except Exception as ex:
+        print(ex)
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
+    
+    response["code"] = "200"
+    return make_response(jsonify(response), 200)
+
+@app.route("/api/user/getpreferences", methods=["POST"])
+def getPreferences() -> Response:
+    response = { 
+        "code": "500",
+        "data": {}
+    }
+
+    if not is_session_user_set():
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
+
+    try:
+        preferences = fb.get_preferences(session["user"]["localId"])
+        response["data"]["preferences"] = preferences
+    except Exception as ex:
+        print(ex)
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
+
+    response["code"] = "200"
     return make_response(jsonify(response), 200)
 
 if __name__ == "__main__":

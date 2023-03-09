@@ -78,7 +78,9 @@ None. The backend will check the session.
 
 - data: array
 
-    - userid: string
+    - id: string
+
+    - name: string
 
     - email: string
 
@@ -115,6 +117,96 @@ Note: If api fails, i.e. not 200 code, it will have following structure:
 - data: array
 
     - reason: string, reason for the error, needs to be presented to the user on the UI.
+
+### `/api/user/update_account_info`
+
+Update the information associated with the account. Currently supported: name.
+
+#### Request:
+
+- displayName: string, shows as 'name' on profile page.
+
+#### Response:
+
+- code: number, 200 if update succeded, 403 if restricted by security policies.
+
+### `/api/user/updatepreferences`
+
+Update the user preferences, which are ten boolean values.
+
+#### Request:
+
+- algriculture: boolean.
+
+- mining: boolean.
+
+- construction: boolean.
+
+- manufacuring: boolean.
+
+- transportation: boolean.
+
+- wholesale: boolean.
+
+- retail: boolean.
+
+- finance: boolean.
+
+- services: boolean.
+
+- public_administration: boolean.
+
+#### Response:
+
+- code: number, 200 if update succeded, 403 if restricted by security policies.
+
+### `/api/user/getpreferences`
+
+Get the user preferences, which are ten boolean values.
+
+#### Request:
+
+- None
+
+#### Response:
+
+- code: number, 200 if get operation successfuly, 403 if restricted by security policies.
+
+- data:
+
+  - algriculture: boolean.
+
+  - mining: boolean.
+
+  - construction: boolean.
+
+  - manufacuring: boolean.
+
+  - transportation: boolean.
+
+  - wholesale: boolean.
+
+  - retail: boolean.
+
+  - finance: boolean.
+
+  - services: boolean.
+
+  - public_administration: boolean.
+
+### `/api/user/updatepassword`
+
+Update the password of the user.
+
+#### Request:
+
+- currentPassword: string, current / old password.
+
+- newPassword: string, new password.
+
+#### Response:
+
+- code: number, 200 if update succeded, 403 if restricted by security policies.
 
 ## Calling API
 

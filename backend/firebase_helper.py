@@ -112,3 +112,8 @@ class firebase_helper:
                 'services': False,
                 'public_administration': False
             }
+
+    def update_password(self, email: str, currentPassword: str, newPassword: str):
+        endpoint = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/resetPassword?key={0}".format(self.conf["apiKey"])
+        data = {"email": email, "oldPassword": currentPassword, "newPassword": newPassword}
+        return call_api(endpoint, data)

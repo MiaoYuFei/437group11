@@ -1,7 +1,7 @@
 <script lang="ts">
 import $ from "jquery";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { handleApi } from "@/utilities";
+import { getFormData, handleApi } from "@/utilities";
 
 export default {
   data() {
@@ -54,7 +54,27 @@ export default {
       });
     },
     onSetSecurity() {
-      // TODO: send old and new password to backend. /api/user/updatepassword
+      this.formSecuritySetLoading = true;
+      const apiData = getFormData(this.$refs.formSecurity, [
+        "currentPassword",
+        "newPassword",
+      ]);
+      handleApi("post", "/api/user/updatepassword", apiData).then(
+        (response) => {
+          if (parseInt(response.data.code) === 200) {
+            (this.$refs.formSecurity as any).reset();
+            this.formSecurityAlertMessage = "Password updated successfully.";
+            this.formSecuritySetLoading = false;
+          } else {
+            this.formSecurityAlertMessage = response.data.data.reason;
+            this.formSecuritySetLoading = false;
+          }
+        },
+        (error) => {
+          this.formSecurityAlertMessage = error.message;
+          this.formSecuritySetLoading = false;
+        }
+      );
     },
     onSetPreferences() {
       this.formPreferencesSetLoading = true;
@@ -112,6 +132,7 @@ export default {
   mounted() {
     $(this.$refs.formSecurityAlert as Element).fadeOut();
     $(this.$refs.formPreferencesAlert as Element).fadeOut();
+    (this.$refs.formSecurity as any).reset();
     this.onGetStatus();
     this.onGetPreferences();
   },
@@ -224,40 +245,36 @@ export default {
             <h5 class="user-select-none">Security</h5>
             <form @submit.prevent="onSetSecurity" ref="formSecurity">
               <div class="mb-3">
-                <label
-                  name="currentPassword"
-                  for="securityInputCurrentPassword"
-                  class="form-label"
+                <label for="securityInputCurrentPassword" class="form-label"
                   >Current password</label
                 >
                 <input
                   type="password"
+                  name="currentPassword"
                   class="form-control"
                   id="securityInputCurrentPassword"
                 />
               </div>
               <div class="mb-3">
-                <label
-                  name="newPassword"
-                  for="securityInputNewPassword"
-                  class="form-label"
+                <label for="securityInputNewPassword" class="form-label"
                   >New password</label
                 >
                 <input
                   type="password"
+                  name="newPassword"
                   class="form-control"
                   id="securityInputNewPassword"
                 />
               </div>
               <div class="mb-3">
                 <label
-                  name="newPasswordConfirmation"
                   for="securityInputNewPasswordConfirmation"
                   class="form-label"
                   >Confirm new password</label
                 >
                 <input
                   type="password"
+                  name="newPasswordConfirmation"
                   class="form-control"
                   id="securityInputNewPasswordConfirmation"
                 />

@@ -299,5 +299,36 @@ def getPreferences() -> Response:
     response["code"] = "200"
     return make_response(jsonify(response), 200)
 
+@app.route("/api/user/updatepassword", methods=["POST"])
+def updatePassword() -> Response:
+    currentPassword = request.form["currentPassword"]
+    newPassword = request.form["newPassword"]
+    response = {
+        "code": "500",
+        "data": {}
+    }
+
+    if not is_session_user_set():
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
+    
+    email = session["user"]["email"]
+    try:
+        fb.update_password(email, currentPassword, newPassword)
+    except RuntimeError as ex:
+        print(ex)
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
+    except PermissionError as ex:
+        ex_json = json.loads(str(ex))
+        if ex_json["error"]["message"].upper().startswith("INVALID_PASSWORD"):
+            response["code"] = "403"
+            response["data"]["reason"] = "Invalid current password."
+            return make_response(jsonify(response), 200)
+    response["code"] = "200"
+    return make_response(jsonify(response), 200)
+
 if __name__ == "__main__":
     app.run(port=8081, use_reloader=True)

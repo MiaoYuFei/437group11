@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import EmailSignInView from "@/views/EmailSignInView.vue";
 import HomeView from "@/views/HomeView.vue";
 import MyAccountView from "@/views/MyAccountView.vue";
-import MyFeedsView from "@/views/MyFeedsView.vue";
+import MyReadingListView from "@/views/MyReadingListView.vue";
 import RegisterView from "@/views/RegisterView.vue";
 import SigninView from "@/views/SigninView.vue";
 import ProfileView from "@/views/ProfileView.vue";
@@ -55,9 +55,9 @@ const router = createRouter({
       component: ProfileView,
     },
     {
-      path: "/myfeeds",
-      name: "myfeeds",
-      component: MyFeedsView,
+      path: "/myreadinglist",
+      name: "myreadinglist",
+      component: MyReadingListView,
     },
     {
       path: "/search",

@@ -137,13 +137,13 @@ export default {
           </form>
           <div class="mb-3">
             <span
-              >After email verification, you can proceed to your feeds
+              >After email verification, you can proceed to your reading list
               page.</span
             >
           </div>
           <div>
-            <RouterLink to="/myfeeds">
-              <span>Go to My Feeds page</span>
+            <RouterLink to="/myreadinglist">
+              <span>Go to My Reading List</span>
             </RouterLink>
           </div>
         </div>

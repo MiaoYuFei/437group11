@@ -2,6 +2,7 @@
 import $ from "jquery";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { getFormData, handleApi } from "@/utilities";
+import { VueRecaptcha } from "vue-recaptcha";
 
 export default {
   data() {
@@ -17,6 +18,10 @@ export default {
       formProfileAlertMessage: "unknown errror",
       formSecurityAlertMessage: "unknown errror",
       formPreferencesAlertMessage: "unknown errror",
+      formSecurityPasswordMatch: true,
+      formSecurityPasswordWeak: false,
+      formSecurityRecaptchaResponse: "",
+      formSecurityRecaptchaChecked: true,
     };
   },
   watch: {
@@ -24,8 +29,11 @@ export default {
       const formAlert = $(this.$refs.formSecurityAlert as Element);
       if (newValue) {
         formAlert.fadeOut();
+        $(this.$refs.formSecurityRecaptchaContainer as Element).hide();
       } else {
         formAlert.css("display", "flex").hide().fadeIn();
+        $(this.$refs.formSecurityRecaptchaContainer as Element).show();
+        (this.$refs.formSecurityRecaptcha as VueRecaptcha).reset();
       }
     },
     formPreferencesSetLoading(newValue) {
@@ -54,11 +62,33 @@ export default {
       });
     },
     onSetSecurity() {
+      if (!this.formSecurityPasswordMatch) {
+        return false;
+      }
+      if (
+        (
+          $(this.$refs.formSecurity as Element)
+            .find("input[name='newPassword']")
+            .val() as any
+        ).length < 6
+      ) {
+        this.formSecurityPasswordWeak = true;
+        return false;
+      }
+      if (this.formSecurityRecaptchaResponse == "") {
+        this.formSecurityRecaptchaChecked = false;
+        return false;
+      }
+      const formSecurityLastRecaptchaResponse =
+        this.formSecurityRecaptchaResponse;
+      this.formSecurityRecaptchaChecked = true;
+      this.formSecurityRecaptchaResponse = "";
       this.formSecuritySetLoading = true;
       const apiData = getFormData(this.$refs.formSecurity, [
         "currentPassword",
         "newPassword",
       ]);
+      apiData["recaptcha_response"] = formSecurityLastRecaptchaResponse;
       handleApi("post", "/api/user/updatepassword", apiData).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
@@ -101,23 +131,33 @@ export default {
       );
     },
     onGetPreferences() {
-      this.formPreferencesGetLoading = true;
-      handleApi("post", "/api/user/getpreferences", []).then((response) => {
-        const code = parseInt(response.data.code);
-        const data = response.data.data;
-        if (code == 200) {
-          for (const key in data.preferences) {
-            const value =
-              data.preferences[key].toString().toLowerCase() === "true";
-            $(this.$refs.formPreferences as Element)
-              .find(`input[name="${key}"]`)
-              .prop("checked", value);
-          }
-        } else {
-          this.formProfileAlertMessage = data.reason;
-        }
+      if (this.$route.query.showSetPreferences === "true") {
+        this.formPreferencesAlertMessage = "Please select your preferences.";
         this.formPreferencesGetLoading = false;
-      });
+        $(this.$refs.formPreferencesAlert as Element)
+          .css("display", "flex")
+          .hide()
+          .fadeIn();
+      } else {
+        this.formPreferencesGetLoading = true;
+        handleApi("post", "/api/user/getpreferences", []).then((response) => {
+          const code = parseInt(response.data.code);
+          const data = response.data.data;
+          if (code == 200) {
+            for (const key in data.preferences) {
+              const value =
+                data.preferences[key].toString().toLowerCase() === "true";
+              $(this.$refs.formPreferences as Element)
+                .find(`input[name="${key}"]`)
+                .prop("checked", value);
+            }
+          } else {
+            this.formPreferencesAlertMessage = data.reason;
+            this.formPreferencesGetLoading = false;
+          }
+          this.formPreferencesGetLoading = false;
+        });
+      }
     },
     onFormPreferencesAlertClose() {
       $(this.$refs.formPreferencesAlert as Element).fadeOut();
@@ -125,19 +165,62 @@ export default {
     onFormSecurityAlertClose() {
       $(this.$refs.formSecurityAlert as Element).fadeOut();
     },
+    onFormSecurityChange() {
+      const form = $(this.$refs.formSecurity as Element);
+      this.formSecurityPasswordMatch =
+        form.find("input[name='newPassword']").val() ===
+          form.find("input[name='newPasswordConfirmation']").val() ||
+        form.find("input[name='newPasswordConfirmation']").val() === "";
+      this.formSecurityPasswordWeak =
+        (form.find("input[name='newPassword']").val() as any).length < 6 &&
+        (form.find("input[name='newPasswordConfirmation']").val() as any)
+          .length != 0;
+    },
+    onRecaptchaExpired() {
+      this.formSecurityRecaptchaResponse = "";
+      this.formSecurityRecaptchaChecked = false;
+    },
+    onRecaptchaChecked(response: string) {
+      this.formSecurityRecaptchaResponse = response;
+      this.formSecurityRecaptchaChecked = true;
+    },
   },
   created() {
     document.title = "My Account - " + (this as any).$projectName;
   },
   mounted() {
     $(this.$refs.formSecurityAlert as Element).fadeOut();
-    $(this.$refs.formPreferencesAlert as Element).fadeOut();
+    if (this.$route.query.showSetPreferences != "true") {
+      $(this.$refs.formPreferencesAlert as Element).fadeOut();
+    }
     (this.$refs.formSecurity as any).reset();
+    $(this.$refs.formSecurity as Element)
+      .find("input")
+      .on("change keydown keyup keypress paste", this.onFormSecurityChange);
+    $(".nav-tabs button[data-bs-toggle]").each(function () {
+      const jqObj = $(this);
+      const target = jqObj.attr("data-bs-target");
+      if (
+        target != undefined &&
+        "#" + target.substring(target.indexOf("_") + 1).toLowerCase() ==
+          window.location.hash.toLowerCase()
+      ) {
+        jqObj.trigger("click");
+      }
+    });
+    $(".nav-tabs button[data-bs-toggle='tab']").on("click", function (e) {
+      let target = $(e.target).attr("data-bs-target");
+      target = target?.substring(target.indexOf("_") + 1);
+      if (target != undefined) {
+        window.location.hash = target;
+      }
+    });
     this.onGetStatus();
     this.onGetPreferences();
   },
   components: {
     FontAwesomeIcon,
+    VueRecaptcha,
   },
 };
 </script>
@@ -265,6 +348,11 @@ export default {
                   class="form-control"
                   id="securityInputNewPassword"
                 />
+                <span
+                  v-if="formSecurityPasswordWeak"
+                  class="text-danger d-block"
+                  >Password minimum length is 6.</span
+                >
               </div>
               <div class="mb-3">
                 <label
@@ -278,6 +366,24 @@ export default {
                   class="form-control"
                   id="securityInputNewPasswordConfirmation"
                 />
+
+                <span
+                  v-if="!formSecurityPasswordMatch"
+                  class="text-danger d-block"
+                  >Password and confirmation don&apos;t match.</span
+                >
+              </div>
+              <div class="mb-3" ref="formSecurityRecaptchaContainer">
+                <VueRecaptcha
+                  sitekey="6LeQ5LQkAAAAAJ4QjiBn6F9P9lyX76eVMSFGX72X"
+                  @verify="onRecaptchaChecked"
+                  @expired="onRecaptchaExpired"
+                  ref="formSecurityRecaptcha"
+                >
+                </VueRecaptcha>
+                <span v-if="!formSecurityRecaptchaChecked" class="text-danger"
+                  >Please complete the reCAPTCHA verification.</span
+                >
               </div>
               <hr />
               <div class="mb-3">

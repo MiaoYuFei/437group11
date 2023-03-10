@@ -1,4 +1,5 @@
 <script lang="ts">
+import $ from "jquery";
 import NewsContainer from "@/components/NewsContainer.vue";
 import { handleApi, parseDatetime } from "@/utilities";
 
@@ -41,7 +42,7 @@ export default {
   },
   methods: {
     parseDatetime,
-    onUserStatus: function () {
+    onGetUserStatus: function () {
       handleApi("post", "/api/user/status", []).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
@@ -68,12 +69,35 @@ export default {
         }
       );
     },
+    onGetPreferences() {
+      handleApi("post", "/api/user/getpreferences", []).then((response) => {
+        const code = parseInt(response.data.code);
+        const data = response.data.data;
+        if (code == 200) {
+          let preferencesAllFalse = true;
+          for (const key in data.preferences) {
+            const value =
+              data.preferences[key].toString().toLowerCase() === "true";
+            if (value) {
+              preferencesAllFalse = false;
+              break;
+            }
+          }
+          if (preferencesAllFalse) {
+            this.$router.push("/myaccount?showSetPreferences=true#preferences");
+          }
+        } else {
+          // TODO: Handle error
+        }
+      });
+    },
   },
   created() {
     document.title = "My Feeds - " + (this as any).$projectName;
   },
   mounted() {
-    this.onUserStatus();
+    this.onGetUserStatus();
+    this.onGetPreferences();
     this.news_list = JSON.parse(this.news_string);
   },
   components: {

@@ -110,8 +110,8 @@ export default {
             </RouterLink>
           </li>
           <li v-if="signedIn" class="nav-item">
-            <RouterLink class="nav-link" to="/myfeeds">
-              <span>My Feeds</span>
+            <RouterLink class="nav-link" to="/myreadinglist">
+              <span>My Reading List</span>
             </RouterLink>
           </li>
           <li class="nav-item dropdown">

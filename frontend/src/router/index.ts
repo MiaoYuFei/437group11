@@ -5,7 +5,6 @@ import MyAccountView from "@/views/MyAccountView.vue";
 import MyReadingListView from "@/views/MyReadingListView.vue";
 import RegisterView from "@/views/RegisterView.vue";
 import SigninView from "@/views/SigninView.vue";
-import ProfileView from "@/views/ProfileView.vue";
 import ResetPasswordView from "@/views/ResetPasswordView.vue";
 import SearchView from "@/views/SearchView.vue";
 import TickerView from "@/views/TickerView.vue";
@@ -48,11 +47,6 @@ const router = createRouter({
       path: "/myaccount",
       name: "myaccount",
       component: MyAccountView,
-    },
-    {
-      path: "/profile",
-      name: "profile",
-      component: ProfileView,
     },
     {
       path: "/myreadinglist",

@@ -30,7 +30,7 @@ export default {
       (response) => {
         if (parseInt(response.data.code) === 200) {
           this.errorMessage = "Sign in successful! Redirecting...";
-          this.$router.replace("/myfeeds");
+          this.$router.replace("/myreadinglist");
         } else {
           this.errorMessage = response.data.data.reason;
         }

@@ -481,6 +481,9 @@ export default {
                     <span class="visually-hidden">Loading...</span>
                   </div>
                 </button>
+                <RouterLink to="/myreadinglist" class="btn btn-secondary ms-2"
+                  >Go to my reading list</RouterLink
+                >
               </div>
               <div>
                 <div

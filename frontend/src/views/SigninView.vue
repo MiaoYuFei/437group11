@@ -53,7 +53,7 @@ export default {
           if (parseInt(response.data.code) === 200) {
             (this.$refs.formPassword as any).reset();
             this.formPasswordLoading = false;
-            this.$router.push("/myfeeds");
+            this.$router.push("/myreadinglist");
           } else {
             this.formPasswordAlertMessage = response.data.data.reason;
             this.formPasswordLoading = false;

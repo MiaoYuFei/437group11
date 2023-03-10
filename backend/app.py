@@ -330,5 +330,33 @@ def updatePassword() -> Response:
     response["code"] = "200"
     return make_response(jsonify(response), 200)
 
+@app.route("/api/news/getnews", methods=["POST"])
+def getNews() -> Response:
+    requestType = request.form["requestType"]
+    response = {
+        "code": "500",
+        "data": {}
+    }
+
+    temp = []
+
+    if requestType == "recommendations":
+        temp = [ \
+        {"article": {"title": "Invest Like Warren Buffett, Not Carl Icahn", "description": "Warren Buffett and Carl Icahn are two of the most successful investors of the past century. But Buffett is a superior model for investors to follow because of his patient style and focus on finding great businesses.", "keywords": ["investing"], "datetime": "2017-04-10T00:24:00Z", "url": "https://www.fool.com/investing/2017/04/09/invest-like-warren-buffett-not-carl-icahn.aspx"}, "cover_image": {"url": "https://g.foolcdn.com/editorial/images/435736/warren-buffett3_tmf.jpg"}, "publisher": {"name": "The Motley Fool", "homepage": {"url": "https://www.fool.com/"}, "logo": {"url": "https://s3.polygon.io/public/assets/news/logos/themotleyfool.svg"}}, "tickers": ["BRK.B", "IEP", "BRK.A", "AAPL", "NFLX"]}, \
+        {"article": {"title": "Should Apple Investors Believe Tim Cook\'s Promise of Innovation?", "description": "There are nearly 15 billion reasons to do so.", "keywords": ["investing"], "datetime": "2019-03-05T11:03:00Z", "url": "https://www.fool.com/investing/2019/03/05/should-apple-investors-believe-tim-cooks-promise-o.aspx"}, "cover_image": {"url": "https://g.foolcdn.com/editorial/images/514902/apple-keynote-tim-cook-september-event-09122018.jpg"}, "publisher": {"name": "The Motley Fool", "homepage": {"url": "https://www.fool.com/"}, "logo": {"url": "https://s3.polygon.io/public/assets/news/logos/themotleyfool.svg"}}, "tickers": ["AAPL"]}, \
+        {"article": {"title": "Apple Is Going to Be Late to 5G -- So What?", "description": "Apple won\'t be the first to adopt this new wireless technology, but that doesn\'t mean the company will be completely helpless.", "keywords": ["investing"], "datetime": "2019-03-03T13:15:00Z", "url": "https://www.fool.com/investing/2019/03/03/apple-is-going-to-be-late-to-5g-so-what.aspx"}, "cover_image": {"url": "https://g.foolcdn.com/editorial/images/514453/apple-customer.jpg"}, "publisher": {"name": "The Motley Fool", "homepage": {"url": "https://www.fool.com/"}, "logo": {"url": "https://s3.polygon.io/public/assets/news/logos/themotleyfool.svg"}}, "tickers": ["AAPL"]}]
+    elif requestType == "myfavorites":
+        temp = [ \
+        {"article": {"title": "MY: Invest Like Warren Buffett, Not Carl Icahn", "description": "Warren Buffett and Carl Icahn are two of the most successful investors of the past century. But Buffett is a superior model for investors to follow because of his patient style and focus on finding great businesses.", "keywords": ["investing"], "datetime": "2017-04-10T00:24:00Z", "url": "https://www.fool.com/investing/2017/04/09/invest-like-warren-buffett-not-carl-icahn.aspx"}, "cover_image": {"url": "https://g.foolcdn.com/editorial/images/435736/warren-buffett3_tmf.jpg"}, "publisher": {"name": "The Motley Fool", "homepage": {"url": "https://www.fool.com/"}, "logo": {"url": "https://s3.polygon.io/public/assets/news/logos/themotleyfool.svg"}}, "tickers": ["BRK.B", "IEP", "BRK.A", "AAPL", "NFLX"]}, \
+        {"article": {"title": "MY: Should Apple Investors Believe Tim Cook\'s Promise of Innovation?", "description": "There are nearly 15 billion reasons to do so.", "keywords": ["investing"], "datetime": "2019-03-05T11:03:00Z", "url": "https://www.fool.com/investing/2019/03/05/should-apple-investors-believe-tim-cooks-promise-o.aspx"}, "cover_image": {"url": "https://g.foolcdn.com/editorial/images/514902/apple-keynote-tim-cook-september-event-09122018.jpg"}, "publisher": {"name": "The Motley Fool", "homepage": {"url": "https://www.fool.com/"}, "logo": {"url": "https://s3.polygon.io/public/assets/news/logos/themotleyfool.svg"}}, "tickers": ["AAPL"]}, \
+        {"article": {"title": "MY: Apple Is Going to Be Late to 5G -- So What?", "description": "Apple won\'t be the first to adopt this new wireless technology, but that doesn\'t mean the company will be completely helpless.", "keywords": ["investing"], "datetime": "2019-03-03T13:15:00Z", "url": "https://www.fool.com/investing/2019/03/03/apple-is-going-to-be-late-to-5g-so-what.aspx"}, "cover_image": {"url": "https://g.foolcdn.com/editorial/images/514453/apple-customer.jpg"}, "publisher": {"name": "The Motley Fool", "homepage": {"url": "https://www.fool.com/"}, "logo": {"url": "https://s3.polygon.io/public/assets/news/logos/themotleyfool.svg"}}, "tickers": ["AAPL"]}]
+    else:
+        response["code"] = "403"
+        response["data"]["news"] = "Invalid request type."
+        return make_response(jsonify(response), 403)
+    response["code"] = "200"
+    response["data"]["news"] = temp
+    return make_response(jsonify(response), 200)
+
 if __name__ == "__main__":
     app.run(port=8081, use_reloader=True)

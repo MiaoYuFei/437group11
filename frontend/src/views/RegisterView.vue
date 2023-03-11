@@ -67,7 +67,11 @@ export default {
       this.recaptchaChecked = true;
       this.recaptchaResponse = "";
       this.formLoading = true;
-      const apiData = getFormData(this.$refs.form, ["email", "password"]);
+      const apiData = getFormData(this.$refs.form, [
+        "name",
+        "email",
+        "password",
+      ]);
       apiData["recaptcha_response"] = lastRecaptchaResponse;
       handleApi("post", "/api/user/register", apiData).then(
         (response) => {
@@ -150,6 +154,17 @@ export default {
             <h3 class="card-title mb-4">
               <FontAwesomeIcon icon="fa-user-plus" class="me-3" />Register
             </h3>
+            <div class="form-floating mb-3">
+              <input
+                type="text"
+                class="form-control"
+                id="inputName"
+                name="name"
+                placeholder="Name"
+                required
+              />
+              <label for="inputName">Name</label>
+            </div>
             <div class="form-floating mb-3">
               <input
                 type="email"

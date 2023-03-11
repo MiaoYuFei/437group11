@@ -5,9 +5,11 @@ import datetime
 from flask import Flask, Response, jsonify, make_response, request, session
 from flask_session import Session
 from firebase_helper import firebase_helper
-from utilities import call_api
+from newsdata_helper import newsdata_helper
+from utilities import call_api_firebase
 
 fb = firebase_helper()
+nd = newsdata_helper()
 
 app = Flask("stocknews")
 app.config["SESSION_PERMANENT"] = False
@@ -60,6 +62,7 @@ def signin() -> Response:
 
 @app.route("/api/user/register", methods=["POST"])
 def register() -> Response:
+    name = request.form["name"]
     email = request.form["email"]
     password = request.form["password"]
     recaptcha_response = request.form["recaptcha_response"]
@@ -75,7 +78,7 @@ def register() -> Response:
         "remoteip": request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
     }
     try:
-        recaptcha_result = call_api(recaptcha_endpoint, recaptcha_data)
+        recaptcha_result = call_api_firebase(recaptcha_endpoint, recaptcha_data)
     except Exception as ex:
         print(ex)
         response["code"] = "403"
@@ -103,6 +106,13 @@ def register() -> Response:
             response["data"]["reason"] = "Access denied."
         return make_response(jsonify(response), 200)
     set_session_user(result)
+    try:
+        fb.update_account_info(result["localId"], result["idToken"], name)
+    except Exception:
+        print(ex)
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
     response["code"] = "200"
     return make_response(jsonify(response), 200)
 
@@ -233,12 +243,11 @@ def update_account_info() -> Response:
         response["code"] = "403"
         response["data"]["reason"] = "Access denied."
         return make_response(jsonify(response), 200)
-
     localId = session["user"]["localId"]
     idToken = session["user"]["idToken"]
     try:
         fb.update_account_info(localId, idToken, displayName)
-    except RuntimeError as ex:
+    except Exception as ex:
         print(ex)
         response["code"] = "403"
         response["data"]["reason"] = "Access denied."
@@ -266,7 +275,6 @@ def updatePreferences() -> Response:
         response["code"] = "403"
         response["data"]["reason"] = "Access denied."
         return make_response(jsonify(response), 200)
-    
     localId = session["user"]["localId"]
     try:
         fb.update_preferences(localId, algriculture, mining, construction, manufacuring, transportation, wholesale, retail, finance, services, public_administration)
@@ -290,7 +298,6 @@ def getPreferences() -> Response:
         response["code"] = "403"
         response["data"]["reason"] = "Access denied."
         return make_response(jsonify(response), 200)
-
     try:
         preferences = fb.get_preferences(session["user"]["localId"])
         response["data"]["preferences"] = preferences
@@ -316,7 +323,6 @@ def updatePassword() -> Response:
         response["code"] = "403"
         response["data"]["reason"] = "Access denied."
         return make_response(jsonify(response), 200)
-    
     email = session["user"]["email"]
     try:
         fb.update_password(email, currentPassword, newPassword)
@@ -360,6 +366,27 @@ def getNews() -> Response:
         return make_response(jsonify(response), 403)
     response["code"] = "200"
     response["data"]["news"] = temp
+    return make_response(jsonify(response), 200)
+
+@app.route("/api/stock/getaggregates", methods=["POST"])
+def getAggregates() -> Response:
+    ticker = request.form["ticker"]
+    start_date = request.form["start_date"]
+    end_date = request.form["end_date"]
+    response = {
+        "code": "200",
+        "data": {}
+    }
+
+    try:
+        result = nd.get_aggregates(ticker, start_date, end_date)
+    except Exception as ex:
+        print(ex)
+        response["code"] = "403"
+        response["data"]["reason"] = "Access denied."
+        return make_response(jsonify(response), 200)
+    response["code"] = "200"
+    response["data"]["aggregates"] = result
     return make_response(jsonify(response), 200)
 
 if __name__ == "__main__":

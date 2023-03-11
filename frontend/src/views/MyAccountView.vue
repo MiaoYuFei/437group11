@@ -127,6 +127,13 @@ export default {
             this.formPreferencesAlertMessage = data.reason;
           }
           this.formPreferencesSetLoading = false;
+          const queries: any = {};
+          for (const key in this.$route.query) {
+            if (key !== "showSetPreferences") {
+              queries[key] = this.$route.query[key];
+            }
+          }
+          this.$router.replace({ query: queries, hash: this.$route.hash });
         }
       );
     },
@@ -190,7 +197,9 @@ export default {
   },
   mounted() {
     $(this.$refs.formSecurityAlert as Element).fadeOut();
-    if (this.$route.query.showSetPreferences != "true") {
+    if (
+      this.$route.query.showSetPreferences?.toString().toLowerCase() !== "true"
+    ) {
       $(this.$refs.formPreferencesAlert as Element).fadeOut();
     }
     (this.$refs.formSecurity as any).reset();

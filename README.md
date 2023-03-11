@@ -12,7 +12,7 @@ Python: v3+ required, v3.10 recommended.
 
 - `cd backend`
 
-- Install dependency packages: `pip install -r requirements.txt`. Needs to be run only if package dependencies changed.
+- Install dependency packages: `pip3 install -r requirements.txt`. Needs to be run only if package dependencies changed.
 
 - Run backend server: `python3 app.py`
 
@@ -22,7 +22,7 @@ Vite, Vue 3, TypeScript
 
 Node.js: v16 or v18. v18 recommended.
 
-- `cd frontend/stocknews`
+- `cd frontend`
 
 - Install dependency packages: `npm install`. Needs to be run only if package dependencies changed.
 

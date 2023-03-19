@@ -34,9 +34,6 @@ export default {
           type: "value",
           scale: true,
         },
-        grid: {
-          left: "10%",
-        },
         series: {
           type: "candlestick",
           data: data.map((item) => [

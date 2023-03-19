@@ -6,96 +6,76 @@ export default {
   data() {
     return {};
   },
+  methods: {
+    drawPriceChart(
+      data: {
+        timestamp: number;
+        open: number;
+        close: number;
+        low: number;
+        high: number;
+      }[]
+    ) {
+      const chartObj = echarts.init(
+        this.$refs.chart_stockprice as HTMLDivElement
+      );
+      const chartOption: echarts.EChartsOption = {
+        tooltip: {
+          trigger: "axis",
+          axisPointer: {
+            type: "cross",
+          },
+        },
+        xAxis: {
+          type: "time",
+          scale: true,
+        },
+        yAxis: {
+          type: "value",
+          scale: true,
+        },
+        grid: {
+          left: "10%",
+        },
+        series: {
+          type: "candlestick",
+          data: data.map((item) => [
+            item.timestamp,
+            item.open,
+            item.close,
+            item.low,
+            item.high,
+          ]),
+          itemStyle: {
+            color: "green",
+            color0: "red",
+            borderColor: "green",
+            borderColor0: "red",
+          },
+        },
+      };
+      chartObj.setOption(chartOption);
+    },
+  },
   created() {
     document.title = "Ticker - " + (this as any).$projectName;
   },
   mounted() {
-    const chartStockPriceDom = document.getElementById("chart_stockprice")!;
-    const chartStockPriceObj = echarts.init(chartStockPriceDom);
-    const chartStockPriceOption: echarts.EChartsOption = {
-      title: [
-        {
-          text: "Michelson-Morley Experiment",
-          left: "center",
-        },
-        {
-          text: "upper: Q3 + 1.5 * IQR \nlower: Q1 - 1.5 * IQR",
-          borderColor: "#999",
-          borderWidth: 1,
-          textStyle: {
-            fontWeight: "normal",
-            fontSize: 14,
-            lineHeight: 20,
-          },
-          left: "10%",
-          top: "90%",
-        },
-      ],
-      dataset: [
-        {
-          // prettier-ignore
-          source: [
-        [850, 740, 900, 1070, 930, 850, 950, 980, 980, 880, 1000, 980, 930, 650, 760, 810, 1000, 1000, 960, 960],
-        [960, 940, 960, 940, 880, 800, 850, 880, 900, 840, 830, 790, 810, 880, 880, 830, 800, 790, 760, 800],
-        [880, 880, 880, 860, 720, 720, 620, 860, 970, 950, 880, 910, 850, 870, 840, 840, 850, 840, 840, 840],
-        [890, 810, 810, 820, 800, 770, 760, 740, 750, 760, 910, 920, 890, 860, 880, 720, 840, 850, 850, 780],
-        [890, 840, 780, 810, 760, 810, 790, 810, 820, 850, 870, 870, 810, 740, 810, 940, 950, 800, 810, 870]
-      ],
-        },
-        {
-          transform: {
-            type: "boxplot",
-            config: { itemNameFormatter: "expr {value}" },
-          },
-        },
-        {
-          fromDatasetIndex: 1,
-          fromTransformResult: 1,
-        },
-      ],
-      tooltip: {
-        trigger: "item",
-        axisPointer: {
-          type: "shadow",
-        },
-      },
-      grid: {
-        left: "10%",
-        right: "10%",
-        bottom: "15%",
-      },
-      xAxis: {
-        type: "category",
-        boundaryGap: true,
-        nameGap: 30,
-        splitArea: {
-          show: false,
-        },
-        splitLine: {
-          show: false,
-        },
-      },
-      yAxis: {
-        type: "value",
-        name: "km/s minus 299,000",
-        splitArea: {
-          show: true,
-        },
-      },
-      series: [
-        {
-          name: "boxplot",
-          type: "boxplot",
-          datasetIndex: 1,
-        },
-        {
-          name: "outlier",
-          type: "scatter",
-          datasetIndex: 2,
-        },
-      ],
-    };
-    chartStockPriceObj.setOption(chartStockPriceOption);
+    const endDate = new Date();
+    const startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
+    handleApi("post", "/api/stock/getprice", {
+      ticker: this.$route.query.q,
+      start_date: "2023-03-17",
+      end_date: "2023-03-17",
+      // start_date: Math.round(startDate.getTime() / 1000),
+      // end_date: Math.round(endDate.getTime() / 1000),
+    }).then((response) => {
+      const code = parseInt(response.data.code);
+      const data = response.data.data;
+      if (code === 200) {
+        this.drawPriceChart(data.price);
+      }
+    });
   },
 };
 </script>
@@ -103,7 +83,7 @@ export default {
   <div>
     <div class="container">
       Ticker information for {{ $route.query.q }}:
-      <div id="chart_stockprice" style="width: 60rem; height: 40rem"></div>
+      <div style="width: 40rem; height: 30rem" ref="chart_stockprice"></div>
     </div>
   </div>
 </template>

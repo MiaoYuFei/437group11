@@ -368,8 +368,8 @@ def getNews() -> Response:
     response["data"]["news"] = temp
     return make_response(jsonify(response), 200)
 
-@app.route("/api/stock/getaggregates", methods=["POST"])
-def getAggregates() -> Response:
+@app.route("/api/stock/getprice", methods=["POST"])
+def getPrice() -> Response:
     ticker = request.form["ticker"]
     start_date = request.form["start_date"]
     end_date = request.form["end_date"]
@@ -385,8 +385,15 @@ def getAggregates() -> Response:
         response["code"] = "403"
         response["data"]["reason"] = "Access denied."
         return make_response(jsonify(response), 200)
+    if result["resultsCount"] <= 0:
+        response["code"] = "404"
+        response["data"]["reason"] = "No data found."
+        return make_response(jsonify(response), 200)
     response["code"] = "200"
-    response["data"]["aggregates"] = result
+    response["data"]["price"] = []
+    for item in result["results"]:
+        response["data"]["price"].append({"open": item["o"], "close": item["c"], "low": item["l"], "high": item["h"], "timestamp": item["t"]})
+    
     return make_response(jsonify(response), 200)
 
 if __name__ == "__main__":

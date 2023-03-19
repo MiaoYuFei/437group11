@@ -5,7 +5,7 @@ from utilities import call_api_polygon
 
 script_path = os.path.realpath(os.path.dirname(__file__))
 
-api_key = "UlZ5J8DytULKSiAyj92pWLJrQVpehxkH"
+api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
 
 class newsdata_helper:
 

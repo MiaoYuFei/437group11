@@ -8,29 +8,33 @@
 
 Flask, Firebase, Python
 
-Python: v3+ required, v3.9 recommended, v3.10 and v3.11 are not supported.
+Python: v3+ required, v3.10 recommended.
 
 - `cd backend`
 
-- Install dependency packages: `pip install -r requirements.txt`. Needs to be run only if package dependencies changed.
+- Install dependency packages: `pip3 install -r requirements.txt`. Needs to be run only if package dependencies changed.
 
-- Run backend server: `python main.py`
+- Run backend server: `python3 app.py`
+
+NOTICE: The local development server will monitor all changes to the project. You do not need to reload the server.
 
 ## Frontend
 
 Vite, Vue 3, TypeScript
 
-Node.js: v16 and v18 work so far, v19 not supported
+Node.js: v16 or v18. v18 recommended.
 
-- `cd frontend/stocknews`
+- `cd frontend`
 
 - Install dependency packages: `npm install`. Needs to be run only if package dependencies changed.
 
 - Run a development server: `npm run dev`
 
-- Run a production server: `npm run build`
-
 - Go to [http://localhost:8080/](http://localhost:8080/) on local development machine. 127.0.0.1 is not allowed because Google reCAPTCHA requires a domain rather than IP address.
+
+NOTICE: The local development server will monitor all changes to the project. You do not need to reload the server. Usually your changes will take effect immediately after saving. If not, click refresh button on your browser.
+
+NOTICE: Please run `npm run lint` prior to each commit and resolve all issues if exist.
 
 ## API
 
@@ -78,7 +82,9 @@ None. The backend will check the session.
 
 - data: array
 
-    - userid: string
+    - id: string
+
+    - name: string
 
     - email: string
 
@@ -90,7 +96,7 @@ Sends verification email to the user.
 
 #### Request:
 
-None. The backend will check the session.
+- requestType: "registration", sends verification email to the user to finish registration. "sign_in", sends email to user for signing in. "reset_password", sends email to user for resetting password.
 
 #### Response:
 
@@ -115,6 +121,96 @@ Note: If api fails, i.e. not 200 code, it will have following structure:
 - data: array
 
     - reason: string, reason for the error, needs to be presented to the user on the UI.
+
+### `/api/user/update_account_info`
+
+Update the information associated with the account. Currently supported: name.
+
+#### Request:
+
+- displayName: string, shows as 'name' on profile page.
+
+#### Response:
+
+- code: number, 200 if update succeded, 403 if restricted by security policies.
+
+### `/api/user/updatepreferences`
+
+Update the user preferences, which are ten boolean values.
+
+#### Request:
+
+- algriculture: boolean.
+
+- mining: boolean.
+
+- construction: boolean.
+
+- manufacuring: boolean.
+
+- transportation: boolean.
+
+- wholesale: boolean.
+
+- retail: boolean.
+
+- finance: boolean.
+
+- services: boolean.
+
+- public_administration: boolean.
+
+#### Response:
+
+- code: number, 200 if update succeded, 403 if restricted by security policies.
+
+### `/api/user/getpreferences`
+
+Get the user preferences, which are ten boolean values.
+
+#### Request:
+
+- None
+
+#### Response:
+
+- code: number, 200 if get operation successfuly, 403 if restricted by security policies.
+
+- data:
+
+  - algriculture: boolean.
+
+  - mining: boolean.
+
+  - construction: boolean.
+
+  - manufacuring: boolean.
+
+  - transportation: boolean.
+
+  - wholesale: boolean.
+
+  - retail: boolean.
+
+  - finance: boolean.
+
+  - services: boolean.
+
+  - public_administration: boolean.
+
+### `/api/user/updatepassword`
+
+Update the password of the user.
+
+#### Request:
+
+- currentPassword: string, current / old password.
+
+- newPassword: string, new password.
+
+#### Response:
+
+- code: number, 200 if update succeded, 403 if restricted by security policies.
 
 ## Calling API
 
@@ -170,9 +266,9 @@ i.e. sign out the user, refresh the user status.
 
 You don't need a `<form>` element in the html.
 
-Just call the `handleApi` with `[]`
+Just call the `handleApi` with `{}`
 
-`handleApi("post", "/api/user/status", [])`
+`handleApi("post", "/api/user/status", {})`
 
 ### Get the response data
 

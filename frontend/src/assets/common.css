@@ -1,0 +1,27 @@
+.offcanvas-lg {
+  --bs-offcanvas-width: 300px;
+  display: flex;
+  width: var(--bs-offcanvas-width);
+  min-width: var(--bs-offcanvas-width);
+  max-width: var(--bs-offcanvas-width);
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.offcanvas-lg .offcanvas-header {
+  display: flex;
+}
+
+.offcanvas-lg .offcanvas-body {
+  display: block;
+  flex: 1 1 auto;
+  padding: var(--bs-offcanvas-padding-y) var(--bs-offcanvas-padding-x);
+  min-height: 0;
+  overflow: auto;
+}
+
+@media (min-width: 1400px) {
+  .offcanvas-lg {
+    --bs-offcanvas-width: 320px;
+  }
+}

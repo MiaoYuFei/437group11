@@ -16,6 +16,8 @@ Python: v3+ required, v3.10 recommended.
 
 - Run backend server: `python3 app.py`
 
+NOTICE: The local development server will monitor all changes to the project. You do not need to reload the server.
+
 ## Frontend
 
 Vite, Vue 3, TypeScript
@@ -29,6 +31,8 @@ Node.js: v16 or v18. v18 recommended.
 - Run a development server: `npm run dev`
 
 - Go to [http://localhost:8080/](http://localhost:8080/) on local development machine. 127.0.0.1 is not allowed because Google reCAPTCHA requires a domain rather than IP address.
+
+NOTICE: The local development server will monitor all changes to the project. You do not need to reload the server. Usually your changes will take effect immediately after saving. If not, click refresh button on your browser.
 
 NOTICE: Please run `npm run lint` prior to each commit and resolve all issues if exist.
 

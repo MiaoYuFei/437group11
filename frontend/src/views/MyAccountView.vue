@@ -6,9 +6,6 @@ import { VueRecaptcha } from "vue-recaptcha";
 
 export default {
   name: "UserSettings",
-  components: {
-    VueRecaptcha,
-  },
   data() {
     return {
       userid: "",
@@ -353,28 +350,28 @@ export default {
               </div>
               <hr />
               <button
-                  class="btn btn-primary"
-                  type="button"
-                  v-show="!formProfileInEdit"
-                  @click="formProfileInEdit = true"
-                >
-                  Edit
-                </button>
-                <button
-                  class="btn btn-primary"
-                  type="submit"
-                  v-show="formProfileInEdit"
-                >
-                  Save
-                </button>
-                <button
-                  class="btn btn-secondary"
-                  type="button"
-                  v-show="formProfileInEdit"
-                  @click="formProfileInEdit = false"
-                >
-                  Cancel
-                </button>
+                class="btn btn-primary"
+                type="button"
+                v-show="!formProfileInEdit"
+                @click="formProfileInEdit = true"
+              >
+                Edit
+              </button>
+              <button
+                class="btn btn-primary"
+                type="submit"
+                v-show="formProfileInEdit"
+              >
+                Save
+              </button>
+              <button
+                class="btn btn-secondary"
+                type="button"
+                v-show="formProfileInEdit"
+                @click="formProfileInEdit = false"
+              >
+                Cancel
+              </button>
             </form>
           </div>
           <div
@@ -623,4 +620,3 @@ form {
   min-width: 20rem;
 }
 </style>
-

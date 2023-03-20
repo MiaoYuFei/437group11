@@ -104,8 +104,11 @@ async def get_data_from_url(ticker: str, url: str, session) -> pd.DataFrame:
     try:
         async with session.get(url=url) as response:
             j = await response.json()
-            if isinstance(j, dict): # single day would return only a dict for each ticker
-                df = pd.DataFrame.from_dict(j, orient='index').T
+            if isinstance(j, dict): # single day would return only a dict for each ticker, or ticker info
+                if "results" in j.keys():
+                    df = pd.json_normalize(j["results"])
+                else:
+                    df = pd.DataFrame.from_dict(j, orient='index').T #singelday 
             elif isinstance(j["results"], list): # list of dicts for most cases
                 df = pd.DataFrame(j["results"])
                 while "next_url" in j.keys():

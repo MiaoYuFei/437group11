@@ -13,7 +13,7 @@ import poly_helper as poly_helper
 import poly_url as poly_url
 
 
-async def get_tickers_data(ticker_lc: List[str], url_factory: poly_url.StockUrlFactory,
+async def get_tickers_data(ticker_lc: List[str], url_factory: poly_url.PolyUrlFactory,
                            data_type: Union[Literal['price', 'div', 'info']] = "price", start: str = "2000-01-01",
                            time_interval: Literal["minute", "hour", "day", "week", "month", "quarter", "year"] = "day",
                            end: str = dt.now().strftime("%Y-%m-%d")) -> List[List[Union[str, pd.DataFrame]]]:
@@ -43,27 +43,14 @@ async def get_tickers_data(ticker_lc: List[str], url_factory: poly_url.StockUrlF
     return df_dict
 
 
-async def get_tickers_info(ticker_lc: List[str], t0_thresh="2015/01/01", full_data=False) -> pd.DataFrame:
-    """
-    :param: t0_thresh, date threshold (if ticker listed after cut off date, do not get data for ticker)
-    combine results from get_ticker_info as a mxn dataframe
-    """
-    t0_thresh = pd.to_datetime(t0_thresh)
-    results = await get_tickers_data(ticker_lc, t0=t0_thresh, data_type="info")
-    output_df = pd.concat(results.values(), axis=0, keys=results.keys())
-    output_df["list_date"] = pd.to_datetime(output_df["list_date"])
-    if full_data:
-        return output_df
-    else:
-        output_df = output_df[["ticker", "market", "locale", "type", "active", "currency_name", "list_date"]]
-        if ("currency_name" in output_df.columns) and ("active" in output_df.columns) and (
-                "list_date" in output_df.columns):
-            output_df = output_df[
-                (output_df["currency_name"] == "usd") & (output_df["active"])]  # & (df["list_date"] < t0_thresh)
-        return output_df
+async def get_tickers_info(ticker_lc: List[str], url_factory: poly_url.PolyUrlFactory, full_data=True) -> pd.DataFrame:
+    urls_dict = {ticker: url_factory.ReferenceData.ticker_info(url_factory, ticker) for ticker in ticker_lc}
+    df_dict = await poly_helper.get_data_from_urls(urls_dict)
+    df = pd.concat(df_dict.values())
+    return df
 
 
-async def get_adj_tickers_price(ticker_lc: List[str], t0_thresh="2015/01/01") -> pd.DataFrame:
+async def get_adj_tickers_price(ticker_lc: List[str], url_factory: poly_url.PolyUrlFactory) -> pd.DataFrame:
     """
     :param ticker_lc: list of tickers to try to get adj price
     :param t0_thresh: cut off date, if ticker listed after thresh, do not get data for ticker

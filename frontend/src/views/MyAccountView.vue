@@ -5,12 +5,18 @@ import { getFormData, handleApi } from "@/utilities";
 import { VueRecaptcha } from "vue-recaptcha";
 
 export default {
+  name: "UserSettings",
+  components: {
+    VueRecaptcha,
+  },
   data() {
     return {
       userid: "",
       username: "",
       useremail: "",
-      formProfileGetLoading: true,
+      updatedUsername: "",
+      formProfileInEdit: false,
+      formProfileGetLoading: false,
       formProfileSetLoading: false,
       formSecuritySetLoading: false,
       formPreferencesGetLoading: true,
@@ -46,6 +52,20 @@ export default {
     },
   },
   methods: {
+    submitProfileChanges() {
+      if (this.updatedUsername) {
+        this.username = this.updatedUsername;
+      }
+      this.formProfileInEdit = false;
+    },
+    onUpdateProfile() {
+      // Pass the user's inputted username to the backend
+      // Use 'this.updatedUsername' to access the updated username
+      // Implement the backend call here
+
+      // Reset the formProfileInEdit variable to false after successful update
+      this.formProfileInEdit = false;
+    },
     onGetStatus() {
       this.formProfileGetLoading = true;
       handleApi("post", "/api/user/status", []).then((response) => {
@@ -292,7 +312,7 @@ export default {
             tabindex="0"
           >
             <h5 class="user-select-none">Profile</h5>
-            <form ref="formProfile">
+            <form ref="formProfile" @submit.prevent="submitProfileChanges">
               <div class="mb-3">
                 <label class="d-block user-select-none">Id</label>
                 <label class="d-block text-muted placeholder-glow"
@@ -305,13 +325,21 @@ export default {
               </div>
               <div class="mb-3">
                 <label class="d-block user-select-none">Name</label>
-                <label class="d-block text-muted placeholder-glow"
-                  ><span
+                <label
+                  class="d-block text-muted placeholder-glow"
+                  v-show="!formProfileInEdit"
+                >
+                  <span
                     class="placeholder col-6"
                     v-if="formProfileGetLoading"
                   ></span
                   >{{ username }}</label
                 >
+                <input
+                  type="text"
+                  v-show="formProfileInEdit"
+                  v-model="updatedUsername"
+                />
               </div>
               <div class="mb-3">
                 <label class="d-block user-select-none">Email</label>
@@ -324,7 +352,29 @@ export default {
                 >
               </div>
               <hr />
-              <button class="btn btn-primary">Edit</button>
+              <button
+                  class="btn btn-primary"
+                  type="button"
+                  v-show="!formProfileInEdit"
+                  @click="formProfileInEdit = true"
+                >
+                  Edit
+                </button>
+                <button
+                  class="btn btn-primary"
+                  type="submit"
+                  v-show="formProfileInEdit"
+                >
+                  Save
+                </button>
+                <button
+                  class="btn btn-secondary"
+                  type="button"
+                  v-show="formProfileInEdit"
+                  @click="formProfileInEdit = false"
+                >
+                  Cancel
+                </button>
             </form>
           </div>
           <div
@@ -573,3 +623,4 @@ form {
   min-width: 20rem;
 }
 </style>
+

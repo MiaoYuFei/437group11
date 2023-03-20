@@ -1,30 +1,39 @@
 import $ from "jquery";
+import qs from "qs";
 import axios, { type AxiosResponse } from "axios";
 
+function getFormData(form: any, fields: string[]): { [key: string]: string } {
+  const data: { [key: string]: string } = {};
+  const jqObj = $(form as Element);
+  for (const field of fields) {
+    data[field] = jqObj.find("input[name=" + field + "]").val() as string;
+  }
+  return data;
+}
+
 function handleApi(
-  form: any,
-  fields: string[],
+  method: string,
+  action: string,
   data: any | undefined = undefined
 ): Promise<AxiosResponse<any, any>> {
-  const jqObj = $(form as Element);
-  const method = jqObj.attr("method")?.toLowerCase() || "get";
-  const action = jqObj.attr("action") as string;
-  const apiDdata: { [key: string]: string } = data != undefined ? data : {};
-  for (const field of fields) {
-    apiDdata[field] = jqObj.find("input[name=" + field + "]").val() as string;
-  }
-  let api: Promise<AxiosResponse<any, any>>;
   if (method === "get") {
     const search =
       (action.substring(action.indexOf("/")).indexOf("?") < 0 ? "?" : "&") +
-      $.param(apiDdata);
-    api = axios.get(action + search);
+      $.param(data);
+    return axios({
+      method: "get",
+      url: action + search,
+    });
   } else if (method === "post") {
-    api = axios.post(action, apiDdata);
+    return axios({
+      method: "post",
+      url: action,
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      data: qs.stringify(data),
+    });
   } else {
     throw new Error("api method not supported: " + method);
   }
-  return api;
 }
 
 function enableForm(form: any) {
@@ -47,4 +56,21 @@ function focusForm(form: any) {
     .trigger("focus");
 }
 
-export { handleApi, enableForm, disableForm, focusForm };
+function parseDatetime(datetimeString: string) {
+  return new Date(datetimeString).toLocaleString([], {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export {
+  getFormData,
+  handleApi,
+  enableForm,
+  disableForm,
+  focusForm,
+  parseDatetime,
+};

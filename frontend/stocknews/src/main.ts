@@ -12,14 +12,26 @@ const app = createApp(App);
 app.use(createPinia());
 app.use(router);
 
+app.config.globalProperties.$projectName = "Stock news";
+
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
   faCircleExclamation,
+  faEnvelope,
   faHome,
+  faLock,
   faMagnifyingGlass,
   faUser,
   faUserPlus,
 } from "@fortawesome/free-solid-svg-icons";
-library.add(faCircleExclamation, faHome, faMagnifyingGlass, faUser, faUserPlus);
+library.add(
+  faCircleExclamation,
+  faEnvelope,
+  faHome,
+  faLock,
+  faMagnifyingGlass,
+  faUser,
+  faUserPlus
+);
 
 app.mount("#app");

@@ -1,19 +1,60 @@
 <script lang="ts">
 import { RouterLink } from "vue-router";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { handleApi } from "@/utilities";
 
 export default {
   data: () => {
     return {
+      email: "",
+      signedIn: false,
+      emailVerified: false,
       searchText: "",
     };
   },
   methods: {
+    onUserStatus: function () {
+      handleApi("post", "/api/user/status", []).then(
+        (response) => {
+          if (parseInt(response.data.code) === 200) {
+            this.email = response.data.data.email;
+            this.signedIn = true;
+            this.emailVerified =
+              (response.data.data.emailVerified as string).toLowerCase() ===
+              "true"
+                ? true
+                : false;
+          } else {
+            this.signedIn = false;
+            this.emailVerified = false;
+          }
+        },
+        () => {
+          this.signedIn = false;
+          this.emailVerified = false;
+        }
+      );
+    },
+    onUserSignout: function () {
+      handleApi("post", "/api/user/signout", []).then(() => {
+        this.email = "";
+        this.signedIn = false;
+        this.$router.push("/");
+      });
+    },
     search_click: function () {
       if (this.searchText === "") {
         return false;
       }
       window.open("/search?q=" + encodeURIComponent(this.searchText), "_blank");
+    },
+  },
+  mounted() {
+    this.onUserStatus();
+  },
+  watch: {
+    $route() {
+      this.onUserStatus();
     },
   },
   components: { RouterLink, FontAwesomeIcon },
@@ -53,8 +94,10 @@ export default {
               <span>Home</span>
             </RouterLink>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Link</a>
+          <li v-if="signedIn" class="nav-item">
+            <RouterLink class="nav-link" to="/myfeeds">
+              <span>My Feeds</span>
+            </RouterLink>
           </li>
           <li class="nav-item dropdown">
             <a
@@ -64,31 +107,68 @@ export default {
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
-              Dropdown
+              Industries
             </a>
-            <ul class="dropdown-menu dropdown-menu-dark">
+            <ul class="dropdown-menu dropdown-menu-dark" style="margin: 0">
               <li>
                 <RouterLink class="dropdown-item" to="/">
-                  <span>Action</span>
+                  <span>Agriculture</span>
                 </RouterLink>
               </li>
               <li>
                 <RouterLink class="dropdown-item" to="/">
-                  <span>Another action</span>
+                  <span>Mining</span>
                 </RouterLink>
               </li>
               <li>
-                <hr class="dropdown-divider" />
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Construction</span>
+                </RouterLink>
               </li>
               <li>
                 <RouterLink class="dropdown-item" to="/">
-                  <span>Something else here</span>
+                  <span>Manufacturing</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Manufacturing</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Transportation</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Wholesale Trade</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Retail Trade</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Finance, Insurance, Real, Estate</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Services</span>
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="dropdown-item" to="/">
+                  <span>Public Administration</span>
                 </RouterLink>
               </li>
             </ul>
           </li>
         </ul>
-        <form class="d-flex" role="search" @submit.prevent="search_click">
+        <form class="d-flex me-2" role="search" @submit.prevent="search_click">
           <input
             class="form-control me-2"
             type="search"
@@ -101,20 +181,55 @@ export default {
             <FontAwesomeIcon icon="fa-magnifying-glass" class="fs-5" />
           </button>
         </form>
-        <ul class="navbar-nav mb-2 mb-lg-0">
-          <li class="nav-item">
-            <RouterLink class="nav-link" to="/signin">
-              <span>Sign in</span>
-            </RouterLink>
-          </li>
-          <li class="nav-item">
-            <RouterLink class="nav-link" to="/register">
-              <span>Register</span>
-            </RouterLink>
-          </li>
-        </ul>
+        <div>
+          <ul v-if="!signedIn" class="navbar-nav mb-2 mb-lg-0">
+            <li class="nav-item">
+              <RouterLink class="nav-link" to="/signin">
+                <span>Sign in</span>
+              </RouterLink>
+            </li>
+            <li class="nav-item">
+              <RouterLink class="nav-link" to="/register">
+                <span>Register</span>
+              </RouterLink>
+            </li>
+          </ul>
+          <ul v-if="signedIn" class="navbar-nav mb-2 mb-lg-0">
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                {{ email }}
+              </a>
+              <ul
+                class="dropdown-menu dropdown-menu-end dropdown-menu-dark"
+                style="margin: 0"
+              >
+                <li>
+                  <RouterLink class="dropdown-item" to="/profile">
+                    <span>Profile</span>
+                  </RouterLink>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <button class="dropdown-item" @click="onUserSignout">
+                    Sign out
+                  </button>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </nav>
 </template>
-<style scoped></style>
+<style scoped>
+.dropdown-menu-dark .dropdown-divider {
+  border-top: 1px solid rgba(var(--bs-secondary-rgb), 0.675);
+}
+</style>

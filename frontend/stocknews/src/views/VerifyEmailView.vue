@@ -2,13 +2,7 @@
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import BsAlert from "@/components/BsAlert.vue";
 import BsButton from "@/components/BsButton.vue";
-import {
-  disableForm,
-  enableForm,
-  focusForm,
-  getFormData,
-  handleApi,
-} from "@/utilities";
+import { disableForm, enableForm, handleApi } from "@/utilities";
 
 export default {
   data() {
@@ -32,13 +26,13 @@ export default {
   methods: {
     onFormSubmit: function () {
       this.loading = true;
-      const apiData = getFormData(this.$refs.form, ["email", "password"]);
-      handleApi("post", "/api/user/signin", apiData).then(
+      handleApi("post", "/api/user/verifyemail", []).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
             (this.$refs.form as any).reset();
             this.loading = false;
-            this.$router.push("/myfeeds");
+            this.formAlertMessage =
+              "Email sent! Please check your email account.";
           } else {
             this.formAlertMessage = response.data.data.reason;
             this.loading = false;
@@ -51,17 +45,16 @@ export default {
       );
       return true;
     },
-    onFormAlertClosed: function () {
-      focusForm(this.$refs.form);
+    onProceed: function () {
+      this.$router.push("/myfeeds");
     },
   },
   created() {
-    document.title = "Sign in - " + (this as any).$projectName;
+    document.title = "Email verification - " + (this as any).$projectName;
   },
   mounted() {
     (this.$refs.form as any).reset();
     this.loading = false;
-    focusForm(this.$refs.form);
   },
   components: {
     FontAwesomeIcon,
@@ -81,66 +74,55 @@ export default {
         style="box-shadow: 0.2rem 0.2rem 0.1rem #eee"
       >
         <div class="card-body p-4">
+          <h3 class="card-title mb-4">
+            <FontAwesomeIcon icon="fa-envelope" class="me-3" />Email
+            verification
+          </h3>
+          <div class="mb-3">
+            <span
+              >For your security, please follow instructions to verify your
+              email address.</span
+            >
+          </div>
           <form @submit.prevent="onFormSubmit" ref="form">
-            <h3 class="card-title mb-4">
-              <FontAwesomeIcon icon="fa-user" class="me-3" />Sign In
-            </h3>
-            <div class="input-group mb-3">
-              <div class="form-floating">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="inputEmail"
-                  name="email"
-                  placeholder="Email"
-                  required
-                  autofocus
-                />
-                <label for="inputEmail">Email</label>
-              </div>
-            </div>
-            <div class="form-floating mb-3">
-              <input
-                type="password"
-                class="form-control"
-                id="inputPassword"
-                name="password"
-                placeholder="Password"
-                required
-              />
-              <label for="inputPassword">Password</label>
-            </div>
             <div class="mb-3">
               <BsButton
                 type="submit"
-                class="btn-lg btn-block me-3"
+                class="btn-block me-3"
                 :loading="loading"
-                bgColor="dark"
+                bgColor="primary"
                 textColor="light"
                 ref="formSubmit"
               >
-                Sign In
+                Send verification email
               </BsButton>
             </div>
-            <div>
+            <div class="mb-3">
               <BsAlert
                 class="mb-3"
                 :message="formAlertMessage"
                 bgColor="warning"
-                @closed="onFormAlertClosed"
                 ref="formAlert"
               ></BsAlert>
             </div>
-            <div>
-              <RouterLink to="/resetpassword">Forgot password?</RouterLink>
-            </div>
-            <div>
-              Don&apos;t have a stocknews account?
-              <RouterLink to="/register">
-                <span>Get one now.</span>
-              </RouterLink>
-            </div>
           </form>
+          <div class="mb-3">
+            <span
+              >After email verification, you can proceed to your feeds
+              page.</span
+            >
+          </div>
+          <div>
+            <BsButton
+              type="button"
+              class="btn-block me-3"
+              bgColor="secondary"
+              textColor="light"
+              @click="onProceed"
+            >
+              Go to My Feeds page
+            </BsButton>
+          </div>
         </div>
       </div>
     </div>

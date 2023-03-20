@@ -1,9 +1,13 @@
 .ipynb_checkpoints
 __pycache__
+.idea
+flask_session
+test
+
+logs
 knn_ticker.npy
 local_snapshot_us_equity
 local_us_equity_news
-logs
 queue.feather
 local_knn_news
 local_us_equity_info

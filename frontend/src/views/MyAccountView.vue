@@ -101,7 +101,7 @@ export default {
         "currentPassword",
         "newPassword",
       ]);
-      apiData["recaptcha_response"] = formSecurityLastRecaptchaResponse;
+      apiData["recaptchaResponse"] = formSecurityLastRecaptchaResponse;
       handleApi("post", "/api/user/updatepassword", apiData).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
@@ -196,11 +196,11 @@ export default {
         (form.find("input[name='newPasswordConfirmation']").val() as any)
           .length != 0;
     },
-    onRecaptchaExpired() {
+    onFormSecurityRecaptchaExpired() {
       this.formSecurityRecaptchaResponse = "";
       this.formSecurityRecaptchaChecked = false;
     },
-    onRecaptchaChecked(response: string) {
+    onFormSecurityRecaptchaChecked(response: string) {
       this.formSecurityRecaptchaResponse = response;
       this.formSecurityRecaptchaChecked = true;
     },
@@ -432,8 +432,8 @@ export default {
               <div class="mb-3" ref="formSecurityRecaptchaContainer">
                 <VueRecaptcha
                   sitekey="6LeQ5LQkAAAAAJ4QjiBn6F9P9lyX76eVMSFGX72X"
-                  @verify="onRecaptchaChecked"
-                  @expired="onRecaptchaExpired"
+                  @verify="onFormSecurityRecaptchaChecked"
+                  @expired="onFormSecurityRecaptchaExpired"
                   ref="formSecurityRecaptcha"
                 >
                 </VueRecaptcha>
@@ -568,8 +568,6 @@ export default {
   </div>
 </template>
 <style scoped>
-@import url("@/assets/common.css");
-
 .form-floating label,
 .form-floating input {
   padding-left: 0;

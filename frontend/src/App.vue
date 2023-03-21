@@ -5,7 +5,7 @@ import BsNavbar from "@/components/BsNavbar.vue";
 
 <template>
   <BsNavbar />
-  <div class="d-flex flex-row flex-fill" style="min-height: 0">
+  <div class="d-flex flex-fill" style="min-height: 0">
     <RouterView class="flex-fill" style="min-height: 0" />
   </div>
   <div style="border-top: 1px solid var(--bs-border-color)">

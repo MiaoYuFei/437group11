@@ -51,8 +51,8 @@ export default {
 };
 </script>
 <template>
-  <div>
-    <div class="container">
+  <div style="overflow: auto">
+    <div class="container my-3">
       <NewsContainer :newsData="news_list" />
     </div>
   </div>

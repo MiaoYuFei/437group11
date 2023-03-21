@@ -142,8 +142,8 @@ export default {
 };
 </script>
 <template>
-  <div>
-    <div class="container d-flex flex-column h-100 mt-3">
+  <div style="overflow: auto">
+    <div class="container d-flex flex-column h-100 my-3">
       <div
         class="d-block btn-group mb-3"
         role="group"

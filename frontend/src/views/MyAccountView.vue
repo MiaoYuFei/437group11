@@ -9,9 +9,8 @@ export default {
   data() {
     return {
       userid: "",
-      username: "",
+      userDisplayName: "",
       useremail: "",
-      updatedUsername: "",
       formProfileInEdit: false,
       formProfileGetLoading: false,
       formProfileSetLoading: false,
@@ -49,18 +48,21 @@ export default {
     },
   },
   methods: {
-    submitProfileChanges() {
-      if (this.updatedUsername) {
-        this.username = this.updatedUsername;
-      }
-      this.formProfileInEdit = false;
-    },
-    onUpdateProfile() {
-      // Pass the user's inputted username to the backend
-      // Use 'this.updatedUsername' to access the updated username
-      // Implement the backend call here
-
-      // Reset the formProfileInEdit variable to false after successful update
+    // submitProfileChanges() {
+    //   if (this.updatedUsername) {
+    //     this.username = this.updatedUsername;
+    //   }
+    //   this.formProfileInEdit = false;
+    // },
+    OnSetProfile() {
+      const apiData = getFormData(this.$refs.formProfile, ["displayName"]);
+      handleApi("post", "/api/user/update_account_info", apiData).then(
+        (response) => {
+          if (parseInt(response.data.code) === 200) {
+            window.location.reload();
+          }
+        }
+      );
       this.formProfileInEdit = false;
     },
     onGetStatus() {
@@ -71,7 +73,7 @@ export default {
         if (code == 200) {
           this.formProfileGetLoading = false;
           this.userid = data.id;
-          this.username = data.name;
+          this.userDisplayName = data.name;
           this.useremail = data.email;
         } else {
           this.formProfileAlertMessage = data.reason;
@@ -308,10 +310,10 @@ export default {
             aria-labelledby="tab_profile"
             tabindex="0"
           >
-            <h5 class="user-select-none">Profile</h5>
-            <form ref="formProfile" @submit.prevent="submitProfileChanges">
+            <h5 class="user-select-none">My data</h5>
+            <form ref="formProfile" @submit.prevent="OnSetProfile">
               <div class="mb-3">
-                <label class="d-block user-select-none">Id</label>
+                <label class="d-block user-select-none">Account ID:</label>
                 <label class="d-block text-muted placeholder-glow"
                   ><span
                     class="placeholder col-8"
@@ -321,7 +323,7 @@ export default {
                 >
               </div>
               <div class="mb-3">
-                <label class="d-block user-select-none">Name</label>
+                <label class="d-block user-select-none">Account Name:</label>
                 <label
                   class="d-block text-muted placeholder-glow"
                   v-show="!formProfileInEdit"
@@ -330,16 +332,16 @@ export default {
                     class="placeholder col-6"
                     v-if="formProfileGetLoading"
                   ></span
-                  >{{ username }}</label
+                  >{{ userDisplayName }}</label
                 >
                 <input
+                  name="displayName"
                   type="text"
                   v-show="formProfileInEdit"
-                  v-model="updatedUsername"
                 />
               </div>
               <div class="mb-3">
-                <label class="d-block user-select-none">Email</label>
+                <label class="d-block user-select-none">Email:</label>
                 <label class="d-block text-muted placeholder-glow"
                   ><span
                     class="placeholder col-6"
@@ -369,7 +371,7 @@ export default {
                   class="btn btn-secondary"
                   type="button"
                   v-show="formProfileInEdit"
-                  style="margin-left:20px;"
+                  style="margin-left: 20px"
                   @click="formProfileInEdit = false"
                 >
                   Cancel

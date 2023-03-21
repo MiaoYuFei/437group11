@@ -357,21 +357,24 @@ export default {
               >
                 Edit
               </button>
-              <button
-                class="btn btn-primary"
-                type="submit"
-                v-show="formProfileInEdit"
-              >
-                Save
-              </button>
-              <button
-                class="btn btn-secondary"
-                type="button"
-                v-show="formProfileInEdit"
-                @click="formProfileInEdit = false"
-              >
-                Cancel
-              </button>
+              <div class="mb-3">
+                <button
+                  class="btn btn-primary"
+                  type="submit"
+                  v-show="formProfileInEdit"
+                >
+                  Save
+                </button>
+                <button
+                  class="btn btn-secondary"
+                  type="button"
+                  v-show="formProfileInEdit"
+                  style="margin-left:20px;"
+                  @click="formProfileInEdit = false"
+                >
+                  Cancel
+                </button>
+              </div>
             </form>
           </div>
           <div

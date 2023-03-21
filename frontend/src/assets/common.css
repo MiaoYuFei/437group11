@@ -32,11 +32,12 @@ body {
 }
 
 .offcanvas-lg .offcanvas-body {
-  display: block;
-  flex: 1 1 auto;
-  padding: var(--bs-offcanvas-padding-y) var(--bs-offcanvas-padding-x);
+  display: block !important;
+  width: 100% !important;
+  flex: 1 1 auto !important;
+  padding: var(--bs-offcanvas-padding-y) var(--bs-offcanvas-padding-x) !important;
   min-height: 0;
-  overflow: auto;
+  overflow: auto !important;
 }
 
 @media (min-width: 1400px) {

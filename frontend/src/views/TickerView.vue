@@ -41,10 +41,12 @@ export default {
         type: "",
         weighted_shares_outstanding: 0,
       },
+      stockPriceResizeObserver: null as null | ResizeObserver,
+      pageLoading: true,
     };
   },
   methods: {
-    onGetTickerInfo() {
+    onGetTickerInfo(callback: Function | undefined = undefined) {
       const apiData = {
         ticker: this.$route.query.q,
       };
@@ -54,9 +56,32 @@ export default {
           const data = response.data.data;
           if (code === 200) {
             this.tickerInfo = data;
+            if (callback !== undefined) {
+              callback();
+            }
           }
         }
       );
+    },
+    onGetPrice(callback: Function | undefined = undefined) {
+      const endDate = new Date();
+      const startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
+      handleApi("post", "/api/stock/getprice", {
+        ticker: this.$route.query.q,
+        start_date: "2023-03-17",
+        end_date: "2023-03-17",
+        // start_date: Math.round(startDate.getTime() / 1000),
+        // end_date: Math.round(endDate.getTime() / 1000),
+      }).then((response) => {
+        const code = parseInt(response.data.code);
+        const data = response.data.data;
+        if (code === 200) {
+          this.drawPriceChart(data.price);
+          if (callback !== undefined) {
+            callback();
+          }
+        }
+      });
     },
     drawPriceChart(
       data: {
@@ -69,6 +94,12 @@ export default {
     ) {
       const chartObj = echarts.init(
         this.$refs.chart_stockprice as HTMLDivElement
+      );
+      this.stockPriceResizeObserver = new ResizeObserver(() =>
+        chartObj.resize()
+      );
+      this.stockPriceResizeObserver.observe(
+        this.$refs.chart_stockprice as Element
       );
       const chartOption: echarts.EChartsOption = {
         tooltip: {
@@ -109,22 +140,16 @@ export default {
     document.title = "Ticker - " + (this as any).$projectName;
   },
   mounted() {
-    this.onGetTickerInfo();
-    const endDate = new Date();
-    const startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
-    handleApi("post", "/api/stock/getprice", {
-      ticker: this.$route.query.q,
-      start_date: "2023-03-17",
-      end_date: "2023-03-17",
-      // start_date: Math.round(startDate.getTime() / 1000),
-      // end_date: Math.round(endDate.getTime() / 1000),
-    }).then((response) => {
-      const code = parseInt(response.data.code);
-      const data = response.data.data;
-      if (code === 200) {
-        this.drawPriceChart(data.price);
-      }
+    this.onGetTickerInfo(() => {
+      this.onGetPrice(() => {
+        this.pageLoading = false;
+      });
     });
+  },
+  unmounted() {
+    this.stockPriceResizeObserver?.unobserve(
+      this.$refs.chart_stockprice as Element
+    );
   },
   components: {
     FontAwesomeIcon,
@@ -133,7 +158,19 @@ export default {
 </script>
 <template>
   <div style="max-height: 100%; overflow: auto">
-    <div class="container">
+    <div
+      v-if="pageLoading"
+      class="w-100 h-100 d-flex justify-content-center align-items-center"
+    >
+      <div
+        role="status"
+        class="spinner-border text-primary"
+        style="width: 3rem; height: 3rem"
+      >
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <div v-show="!pageLoading" class="container">
       <div class="my-3 row gap-3">
         <div class="col-12">
           <div class="card">
@@ -144,7 +181,7 @@ export default {
                     v-if="tickerInfo.branding.logo_url !== undefined"
                     :src="tickerInfo.branding.logo_url"
                     alt="brand logo"
-                    style="height: 3em; width: auto"
+                    style="max-height: 3em; width: auto"
                   />
                   <h4>{{ tickerInfo.name }}</h4>
                 </div>
@@ -192,7 +229,9 @@ export default {
           <div class="card">
             <div class="card-header"><h5>Intro</h5></div>
             <div class="card-body">
-              <p class="card-text">{{ tickerInfo.description }}</p>
+              <p class="card-text" style="text-align: justify">
+                {{ tickerInfo.description }}
+              </p>
             </div>
           </div>
         </div>
@@ -239,7 +278,7 @@ export default {
             <div class="card-body">
               <div class="card-text">
                 <div
-                  style="width: 40rem; height: 30rem"
+                  style="width: 100%; min-height: 30rem"
                   ref="chart_stockprice"
                 ></div>
               </div>

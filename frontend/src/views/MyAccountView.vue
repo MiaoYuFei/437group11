@@ -573,11 +573,6 @@ export default {
   padding-left: 0;
 }
 
-.offcanvas-body > * {
-  display: flex;
-  flex-direction: row;
-}
-
 .offcanvas-body .nav-tabs {
   display: flex;
   flex-direction: column;

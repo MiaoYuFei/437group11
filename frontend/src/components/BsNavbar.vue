@@ -1,6 +1,5 @@
 <script lang="ts">
 import { RouterLink } from "vue-router";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { handleApi } from "@/utilities";
 
 export default {
@@ -61,7 +60,7 @@ export default {
       this.onUserStatus();
     },
   },
-  components: { RouterLink, FontAwesomeIcon },
+  components: { RouterLink },
 };
 </script>
 <template>
@@ -178,7 +177,7 @@ export default {
             </ul>
           </li>
         </ul>
-        <form class="d-flex me-2" role="search" @submit.prevent="search_click">
+        <!-- <form class="d-flex me-2" role="search" @submit.prevent="search_click">
           <input
             class="form-control me-2"
             type="search"
@@ -190,7 +189,7 @@ export default {
           <button class="btn btn-outline-success" type="submit">
             <FontAwesomeIcon icon="fa-magnifying-glass" class="fs-5" />
           </button>
-        </form>
+        </form> -->
         <div>
           <ul v-if="!signedIn" class="navbar-nav mb-2 mb-lg-0">
             <li class="nav-item">

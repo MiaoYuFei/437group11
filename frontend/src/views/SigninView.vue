@@ -119,10 +119,7 @@ export default {
       class="container d-flex flex-column align-items-center justify-content-center"
       style="min-height: 100%"
     >
-      <div
-        class="card col-12 col-md-10 col-lg-8 col-xl-6 col-xxl-5"
-        style="box-shadow: 0.2rem 0.2rem 0.1rem #eee"
-      >
+      <div class="card col-12 col-md-10 col-lg-8 col-xl-6 col-xxl-5">
         <div class="card-body p-4">
           <h3 class="card-title mb-4">
             <FontAwesomeIcon icon="fa-user" class="me-3" />Sign In
@@ -300,3 +297,10 @@ export default {
     </div>
   </div>
 </template>
+<style scoped>
+.card {
+  border: none;
+  box-shadow: 0 7px 14px 0 rgba(65, 69, 88, 0.1),
+    0 3px 6px 0 rgba(0, 0, 0, 0.07);
+}
+</style>

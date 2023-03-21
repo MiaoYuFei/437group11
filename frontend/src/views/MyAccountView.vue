@@ -8,10 +8,9 @@ export default {
   name: "UserSettings",
   data() {
     return {
-      userid: "",
-      username: "",
-      useremail: "",
-      updatedUsername: "",
+      userId: "",
+      userDisplayName: "",
+      userEmail: "",
       formProfileInEdit: false,
       formProfileGetLoading: false,
       formProfileSetLoading: false,
@@ -49,19 +48,16 @@ export default {
     },
   },
   methods: {
-    submitProfileChanges() {
-      if (this.updatedUsername) {
-        this.username = this.updatedUsername;
-      }
-      this.formProfileInEdit = false;
-    },
-    onUpdateProfile() {
-      // Pass the user's inputted username to the backend
-      // Use 'this.updatedUsername' to access the updated username
-      // Implement the backend call here
-
-      // Reset the formProfileInEdit variable to false after successful update
-      this.formProfileInEdit = false;
+    OnSetProfile() {
+      const apiData = getFormData(this.$refs.formProfile, ["displayName"]);
+      handleApi("post", "/api/user/update_account_info", apiData).then(
+        (response) => {
+          this.formProfileInEdit = false;
+          if (parseInt(response.data.code) === 200) {
+            window.location.reload();
+          }
+        }
+      );
     },
     onGetStatus() {
       this.formProfileGetLoading = true;
@@ -70,9 +66,9 @@ export default {
         const data = response.data.data;
         if (code == 200) {
           this.formProfileGetLoading = false;
-          this.userid = data.id;
-          this.username = data.name;
-          this.useremail = data.email;
+          this.userId = data.id;
+          this.userDisplayName = data.name;
+          this.userEmail = data.email;
         } else {
           this.formProfileAlertMessage = data.reason;
         }
@@ -105,7 +101,7 @@ export default {
         "currentPassword",
         "newPassword",
       ]);
-      apiData["recaptcha_response"] = formSecurityLastRecaptchaResponse;
+      apiData["recaptchaResponse"] = formSecurityLastRecaptchaResponse;
       handleApi("post", "/api/user/updatepassword", apiData).then(
         (response) => {
           if (parseInt(response.data.code) === 200) {
@@ -200,11 +196,11 @@ export default {
         (form.find("input[name='newPasswordConfirmation']").val() as any)
           .length != 0;
     },
-    onRecaptchaExpired() {
+    onFormSecurityRecaptchaExpired() {
       this.formSecurityRecaptchaResponse = "";
       this.formSecurityRecaptchaChecked = false;
     },
-    onRecaptchaChecked(response: string) {
+    onFormSecurityRecaptchaChecked(response: string) {
       this.formSecurityRecaptchaResponse = response;
       this.formSecurityRecaptchaChecked = true;
     },
@@ -308,70 +304,74 @@ export default {
             aria-labelledby="tab_profile"
             tabindex="0"
           >
-            <h5 class="user-select-none">Profile</h5>
-            <form ref="formProfile" @submit.prevent="submitProfileChanges">
+            <h5 class="user-select-none">My info</h5>
+            <form ref="formProfile" @submit.prevent="OnSetProfile">
               <div class="mb-3">
-                <label class="d-block user-select-none">Id</label>
+                <label class="d-block user-select-none mb-1">Account ID:</label>
                 <label class="d-block text-muted placeholder-glow"
                   ><span
                     class="placeholder col-8"
                     v-if="formProfileGetLoading"
                   ></span
-                  >{{ userid }}</label
+                  >{{ userId }}</label
                 >
               </div>
               <div class="mb-3">
-                <label class="d-block user-select-none">Name</label>
+                <label class="d-block user-select-none mb-1">My Name:</label>
                 <label
+                  v-if="!formProfileInEdit"
                   class="d-block text-muted placeholder-glow"
-                  v-show="!formProfileInEdit"
                 >
                   <span
-                    class="placeholder col-6"
                     v-if="formProfileGetLoading"
+                    class="placeholder col-6"
                   ></span
-                  >{{ username }}</label
+                  >{{ userDisplayName }}</label
                 >
                 <input
+                  v-if="formProfileInEdit"
+                  name="displayName"
                   type="text"
-                  v-show="formProfileInEdit"
-                  v-model="updatedUsername"
+                  class="form-control"
+                  :value="userDisplayName"
                 />
               </div>
               <div class="mb-3">
-                <label class="d-block user-select-none">Email</label>
+                <label class="d-block user-select-none mb-1">Email:</label>
                 <label class="d-block text-muted placeholder-glow"
                   ><span
-                    class="placeholder col-6"
                     v-if="formProfileGetLoading"
+                    class="placeholder col-6"
                   ></span
-                  >{{ useremail }}</label
+                  >{{ userEmail }}</label
                 >
               </div>
               <hr />
               <button
+                v-if="!formProfileInEdit"
                 class="btn btn-primary"
                 type="button"
-                v-show="!formProfileInEdit"
                 @click="formProfileInEdit = true"
               >
                 Edit
               </button>
-              <button
-                class="btn btn-primary"
-                type="submit"
-                v-show="formProfileInEdit"
-              >
-                Save
-              </button>
-              <button
-                class="btn btn-secondary"
-                type="button"
-                v-show="formProfileInEdit"
-                @click="formProfileInEdit = false"
-              >
-                Cancel
-              </button>
+              <div class="mb-3">
+                <button
+                  v-if="formProfileInEdit"
+                  class="btn btn-primary"
+                  type="submit"
+                >
+                  Save
+                </button>
+                <button
+                  v-if="formProfileInEdit"
+                  class="btn btn-secondary ms-2"
+                  type="button"
+                  @click="formProfileInEdit = false"
+                >
+                  Cancel
+                </button>
+              </div>
             </form>
           </div>
           <div
@@ -432,8 +432,8 @@ export default {
               <div class="mb-3" ref="formSecurityRecaptchaContainer">
                 <VueRecaptcha
                   sitekey="6LeQ5LQkAAAAAJ4QjiBn6F9P9lyX76eVMSFGX72X"
-                  @verify="onRecaptchaChecked"
-                  @expired="onRecaptchaExpired"
+                  @verify="onFormSecurityRecaptchaChecked"
+                  @expired="onFormSecurityRecaptchaExpired"
                   ref="formSecurityRecaptcha"
                 >
                 </VueRecaptcha>
@@ -568,16 +568,9 @@ export default {
   </div>
 </template>
 <style scoped>
-@import url("@/assets/common.css");
-
 .form-floating label,
 .form-floating input {
   padding-left: 0;
-}
-
-.offcanvas-body > * {
-  display: flex;
-  flex-direction: row;
 }
 
 .offcanvas-body .nav-tabs {

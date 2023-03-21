@@ -19,8 +19,10 @@ import {
   faCircleExclamation,
   faEnvelope,
   faHome,
+  faLink,
   faLock,
   faMagnifyingGlass,
+  faPhone,
   faUser,
   faUserPlus,
 } from "@fortawesome/free-solid-svg-icons";
@@ -28,8 +30,10 @@ library.add(
   faCircleExclamation,
   faEnvelope,
   faHome,
+  faLink,
   faLock,
   faMagnifyingGlass,
+  faPhone,
   faUser,
   faUserPlus
 );

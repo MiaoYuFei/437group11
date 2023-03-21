@@ -8,9 +8,9 @@ export default {
   name: "UserSettings",
   data() {
     return {
-      userid: "",
+      userId: "",
       userDisplayName: "",
-      useremail: "",
+      userEmail: "",
       formProfileInEdit: false,
       formProfileGetLoading: false,
       formProfileSetLoading: false,
@@ -48,22 +48,16 @@ export default {
     },
   },
   methods: {
-    // submitProfileChanges() {
-    //   if (this.updatedUsername) {
-    //     this.username = this.updatedUsername;
-    //   }
-    //   this.formProfileInEdit = false;
-    // },
     OnSetProfile() {
       const apiData = getFormData(this.$refs.formProfile, ["displayName"]);
       handleApi("post", "/api/user/update_account_info", apiData).then(
         (response) => {
+          this.formProfileInEdit = false;
           if (parseInt(response.data.code) === 200) {
             window.location.reload();
           }
         }
       );
-      this.formProfileInEdit = false;
     },
     onGetStatus() {
       this.formProfileGetLoading = true;
@@ -72,9 +66,9 @@ export default {
         const data = response.data.data;
         if (code == 200) {
           this.formProfileGetLoading = false;
-          this.userid = data.id;
+          this.userId = data.id;
           this.userDisplayName = data.name;
-          this.useremail = data.email;
+          this.userEmail = data.email;
         } else {
           this.formProfileAlertMessage = data.reason;
         }
@@ -310,68 +304,69 @@ export default {
             aria-labelledby="tab_profile"
             tabindex="0"
           >
-            <h5 class="user-select-none">My data</h5>
+            <h5 class="user-select-none">My info</h5>
             <form ref="formProfile" @submit.prevent="OnSetProfile">
               <div class="mb-3">
-                <label class="d-block user-select-none">Account ID:</label>
+                <label class="d-block user-select-none mb-1">Account ID:</label>
                 <label class="d-block text-muted placeholder-glow"
                   ><span
                     class="placeholder col-8"
                     v-if="formProfileGetLoading"
                   ></span
-                  >{{ userid }}</label
+                  >{{ userId }}</label
                 >
               </div>
               <div class="mb-3">
-                <label class="d-block user-select-none">Account Name:</label>
+                <label class="d-block user-select-none mb-1">My Name:</label>
                 <label
+                  v-if="!formProfileInEdit"
                   class="d-block text-muted placeholder-glow"
-                  v-show="!formProfileInEdit"
                 >
                   <span
-                    class="placeholder col-6"
                     v-if="formProfileGetLoading"
+                    class="placeholder col-6"
                   ></span
                   >{{ userDisplayName }}</label
                 >
                 <input
+                  v-if="formProfileInEdit"
                   name="displayName"
                   type="text"
-                  v-show="formProfileInEdit"
+                  class="form-control"
+                  :value="userDisplayName"
                 />
               </div>
               <div class="mb-3">
-                <label class="d-block user-select-none">Email:</label>
+                <label class="d-block user-select-none mb-1">Email:</label>
                 <label class="d-block text-muted placeholder-glow"
                   ><span
-                    class="placeholder col-6"
                     v-if="formProfileGetLoading"
+                    class="placeholder col-6"
                   ></span
-                  >{{ useremail }}</label
+                  >{{ userEmail }}</label
                 >
               </div>
               <hr />
               <button
+                v-if="!formProfileInEdit"
                 class="btn btn-primary"
                 type="button"
-                v-show="!formProfileInEdit"
                 @click="formProfileInEdit = true"
               >
                 Edit
               </button>
               <div class="mb-3">
                 <button
+                  v-if="formProfileInEdit"
                   class="btn btn-primary"
                   type="submit"
-                  v-show="formProfileInEdit"
                 >
                   Save
                 </button>
                 <button
-                  class="btn btn-secondary"
+                  v-if="formProfileInEdit"
+                  class="btn btn-secondary ms-2"
                   type="button"
-                  v-show="formProfileInEdit"
-                  style="margin-left: 20px"
                   @click="formProfileInEdit = false"
                 >
                   Cancel

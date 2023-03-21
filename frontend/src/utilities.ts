@@ -6,7 +6,9 @@ function getFormData(form: any, fields: string[]): { [key: string]: string } {
   const data: { [key: string]: string } = {};
   const jqObj = $(form as Element);
   for (const field of fields) {
-    data[field] = jqObj.find("input[name=" + field + "]").val() as string;
+    data[field] = (
+      jqObj.find("input[name=" + field + "]").val() as string
+    ).trim();
   }
   return data;
 }

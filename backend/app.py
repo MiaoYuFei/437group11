@@ -5,12 +5,14 @@ import datetime
 import urllib.parse
 from flask import Flask, Response, jsonify, make_response, request, session
 from flask_session import Session
+from newsdata_helper import newsdata_helper
 from utilities import verify_recaptcha
 from firebase_helper import firebase_helper
 from stockdata_helper import stockdata_helper
 
 fb = firebase_helper()
 sd = stockdata_helper()
+nd = newsdata_helper()
 
 app = Flask("stocknews")
 app.config["SESSION_PERMANENT"] = False
@@ -448,6 +450,53 @@ def proxyPolygon() -> Response:
     for key, value in headers.items():
         responseObj.headers[key] = value
     return responseObj
+
+@app.route("/api/news/getnewsbyticker", methods=["POST"])
+def getNewsByTicker() -> Response:
+    requestData = {
+        "ticker": request.form["ticker"].upper()
+    }
+    responseData = {
+        "code": "200",
+        "data": {}
+    }
+
+    try:
+        result = nd.get_news_by_ticker(requestData["ticker"])
+    except Exception as ex:
+        print(ex)
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+    
+    news_item_list = []
+    for news_api_item in result["results"]:
+        print(news_api_item)
+        news_item = {
+            "article": {},
+            "cover_image": {},
+            "publisher": {},
+            "tickers": {}
+        }
+        news_item["article"]["title"] = news_api_item["title"]
+        news_item["article"]["description"] = news_api_item["description"]
+        news_item["article"]["datetime"] = news_api_item["published_utc"]
+        news_item["article"]["url"] = news_api_item["article_url"]
+        news_item["cover_image"]["url"] = news_api_item["image_url"]
+        news_item["publisher"]["name"] = news_api_item["publisher"]["name"]
+        news_item["publisher"]["homepage"] = {
+            "url": news_api_item["publisher"]["homepage_url"]
+        }
+        news_item["publisher"]["logo"] = {
+            "url": news_api_item["publisher"]["logo_url"]
+        }
+        news_item["tickers"] = news_api_item["tickers"]
+        news_item_list.append(news_item)
+
+    responseData["code"] = "200"
+    responseData["data"]["news_list"] = news_item_list
+
+    return make_response(jsonify(responseData), 200)
 
 if __name__ == "__main__":
     app.run(port=8081, use_reloader=True)

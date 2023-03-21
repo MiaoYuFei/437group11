@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, json
+import os
 
 import requests
 from utilities import call_api_get

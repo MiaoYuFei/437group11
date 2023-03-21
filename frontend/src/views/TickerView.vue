@@ -1,7 +1,8 @@
 <script lang="ts">
+import NewsContainer from "@/components/NewsContainer.vue";
+import { handleApi } from "@/utilities";
 import * as echarts from "echarts";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { handleApi } from "@/utilities";
 
 export default {
   data() {
@@ -41,6 +42,28 @@ export default {
         type: "",
         weighted_shares_outstanding: 0,
       },
+      news_list: [] as {
+        id: string;
+        article: {
+          title: string;
+          description: string;
+          datetime: string;
+          url: string;
+        };
+        cover_image: {
+          url: string;
+        };
+        publisher: {
+          name: string;
+          homepage: {
+            url: string;
+          };
+          logo: {
+            url: string;
+          };
+        };
+        tickers: string[];
+      }[],
       stockPriceResizeObserver: null as null | ResizeObserver,
       pageLoading: true,
     };
@@ -82,6 +105,20 @@ export default {
           }
         }
       });
+    },
+    onGetTickerNews() {
+      const apiData = {
+        ticker: this.$route.query.q,
+      };
+      handleApi("post", "/api/news/getnewsbyticker", apiData).then(
+        (response) => {
+          const code = parseInt(response.data.code);
+          const data = response.data.data;
+          if (code === 200) {
+            this.news_list = data.news_list;
+          }
+        }
+      );
     },
     drawPriceChart(
       data: {
@@ -145,6 +182,7 @@ export default {
         this.pageLoading = false;
       });
     });
+    this.onGetTickerNews();
   },
   unmounted() {
     this.stockPriceResizeObserver?.unobserve(
@@ -152,6 +190,7 @@ export default {
     );
   },
   components: {
+    NewsContainer,
     FontAwesomeIcon,
   },
 };
@@ -281,6 +320,16 @@ export default {
                   style="width: 100%; min-height: 30rem"
                   ref="chart_stockprice"
                 ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header"><h5>News</h5></div>
+            <div class="card-body">
+              <div class="card-text">
+                <NewsContainer :newsData="news_list" />
               </div>
             </div>
           </div>

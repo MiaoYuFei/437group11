@@ -62,7 +62,7 @@ const router = createRouter({
       path: "/termsandconditions",
       name: "termsandconditions",
       component: () => import("@/views/TermsAndConditionsView.vue"),
-    }
+    },
   ],
 });
 

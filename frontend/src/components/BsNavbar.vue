@@ -194,7 +194,12 @@ export default {
             </ul>
           </li>
         </ul>
-        <form class="d-flex me-2" role="search" @submit.prevent="search_click" ref="searchForm">
+        <form
+          class="d-flex me-2"
+          role="search"
+          @submit.prevent="search_click"
+          ref="searchForm"
+        >
           <input
             class="form-control me-2"
             type="search"

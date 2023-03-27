@@ -328,7 +328,12 @@ export default {
                       <td>SIC Code</td>
                       <td>{{ tickerInfo.sic_code }}</td>
                     </tr>
-                    <tr v-if="tickerInfo.total_employees !== undefined">
+                    <tr
+                      v-if="
+                        tickerInfo.total_employees !== undefined &&
+                        tickerInfo.total_employees !== null
+                      "
+                    >
                       <td>Total Employees</td>
                       <td>{{ tickerInfo.total_employees }}</td>
                     </tr>
@@ -336,15 +341,37 @@ export default {
                       <td>Currency</td>
                       <td>{{ tickerInfo.currency_name }}</td>
                     </tr>
-                    <tr v-if="tickerInfo.list_date !== undefined">
+                    <tr
+                      v-if="
+                        tickerInfo.list_date !== undefined &&
+                        tickerInfo.list_date !== null
+                      "
+                    >
                       <td>List Date</td>
                       <td>{{ tickerInfo.list_date }}</td>
                     </tr>
-                    <tr v-if="tickerInfo.market_cap !== undefined">
+                    <tr
+                      v-if="
+                        tickerInfo.market_cap !== undefined &&
+                        tickerInfo.market_cap !== null
+                      "
+                    >
                       <td>Market Cap</td>
-                      <td>{{ tickerInfo.market_cap }}</td>
+                      <td>
+                        {{
+                          (tickerInfo.currency_name !== undefined &&
+                          tickerInfo.currency_name !== null
+                            ? tickerInfo.currency_name + " "
+                            : "") + tickerInfo.market_cap.toLocaleString()
+                        }}
+                      </td>
                     </tr>
-                    <tr v-if="tickerInfo.primary_exchange !== undefined">
+                    <tr
+                      v-if="
+                        tickerInfo.primary_exchange !== undefined &&
+                        tickerInfo.primary_exchange !== null
+                      "
+                    >
                       <td>Primary Exchange</td>
                       <td>{{ tickerInfo.primary_exchange }}</td>
                     </tr>

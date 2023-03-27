@@ -18,6 +18,8 @@ Python: v3+ required, v3.10 recommended.
 
 NOTICE: The local development server will monitor all changes to the project. You do not need to reload the server.
 
+NOTICE: The entry point of backend is in file `/backend/app.py`. It includes all the implementation of apis.
+
 ## Database
 
 This project uses MySQL 8.0 for database.
@@ -61,6 +63,36 @@ In a terminal:
 `mysql -u root -p stocknews < file.sql`
 
 and then enter your root password.
+
+### How to access database in backend (python)
+
+In `utilities.py` there is a function `get_sql_connection()`. It returns a mysql connection.
+
+`sql_cnx = get_sql_connection()`
+
+`sql_cursor = sql_cnx.cursor()`
+
+`sql_query = "SELECT * FROM TABLE WHERE COLUMN1=%s AND COLUMN2=%s;"`
+
+`sql_cursor.execute(sql_query, [value1, value2])`
+
+`result_rows = sql_cursor.fetchall()`
+
+\#result_rows is a list of values. If you want to get a dictionary with both column name and values:
+
+`result_columns = [column[0] for column in sql_cursor.description]`
+
+`result_dict = [dict(zip(result_columns, result_rows)) for result_row in result_rows]`
+
+\#result_dict is the data fetched from the database.
+
+`sql_cnx.commit()` \#Save your changes
+
+`sql_cursor.close()` \#Close cursor
+
+`sql_cnx.close()` \#Close connection
+
+NOTICE: You must cleanup the resourses by calling close() on cursor and conenction. Otherwise you will run out of resources.
 
 ## Frontend
 

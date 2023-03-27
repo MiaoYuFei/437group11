@@ -2,16 +2,27 @@
 
 import base64
 import json
+import os
 import requests
 import mysql.connector
 
-cnxconfig = {
-    "host": "127.0.0.1",
-    "user": "stocknews",
-    "password": "Cse@437s",
-    "database": "stocknews",
-    "pool_size": 5
-}
+if os.name == "nt":
+    cnxconfig = {
+        "host": "127.0.0.1",
+        "port": 3306,
+        "user": "stocknews",
+        "password": "Cse@437s",
+        "database": "stocknews",
+        "pool_size": 32
+    }
+else:
+    cnxconfig = {
+        "unix_socket": "/var/run/mysqld/mysqld.sock",
+        "user": "stocknews",
+        "password": "Cse@437s",
+        "database": "stocknews",
+        "pool_size": 32
+    }
 cnxpool = mysql.connector.pooling.MySQLConnectionPool(**cnxconfig)
 
 @staticmethod

@@ -60,13 +60,15 @@ To run an sql file:
 
 In a terminal:
 
-`mysql -u root -p stocknews < file.sql`
+`mysql -u root -p < file.sql`
 
 and then enter your root password (the password you set when installing the databse).
 
 For MACOS user:
 
 Your `mysql` command will be inside `/usr/local/mysql/bin/`. Use `/usr/local/mysql/bin/mysql` instead.
+
+You need to start the MySQL manually after installation.
 
 ### How to access database in backend (python)
 

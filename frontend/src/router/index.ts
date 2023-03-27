@@ -16,7 +16,7 @@ const router = createRouter({
     {
       path: "/emailsignin",
       name: "emailsignin",
-      component: () => import("@/views/EmailSigninView.vue"),
+      component: () => import("@/views/EmailSignInView.vue"),
     },
     {
       path: "/register",

@@ -15,6 +15,7 @@ export default {
       newsPageCurrent: 1,
       newsTotalCount: 0,
       newsError: false,
+      newsErrorMessage: "",
     };
   },
   computed: {
@@ -98,10 +99,14 @@ export default {
               this.newsTotalCount = data.total_count;
             }
             if (callback !== undefined) {
-              callback();
+              callback(true);
             }
           } else {
             this.newsError = true;
+            this.newsErrorMessage = data.reason;
+            if (callback !== undefined) {
+              callback(false);
+            }
           }
         }
       );
@@ -378,6 +383,16 @@ export default {
                   </div>
                   Loading news...
                 </div>
+                <div v-if="newsError" class="card">
+                  <div class="card-header"><h5>Error</h5></div>
+                  <div class="card-body">
+                    <p class="card-text" style="text-align: justify">
+                      Failed to get news. Please try again later. ({{
+                        newsErrorMessage
+                      }})
+                    </p>
+                  </div>
+                </div>
                 <div v-show="!newsLoading">
                   <NewsContainer
                     :newsData="news_list"
@@ -387,7 +402,6 @@ export default {
                     :newsFirstPage="newsFirstPage"
                     :newsLastPage="newsLastPage"
                     :newsLoading="newsLoading"
-                    :newsError="newsError"
                     @newsSwitchToPage="onNewsSwitchToPage"
                   />
                 </div>
@@ -400,22 +414,6 @@ export default {
   </div>
 </template>
 <style scoped>
-.card {
-  border: none;
-  box-shadow: 0 7px 14px 0 rgba(65, 69, 88, 0.1),
-    0 3px 6px 0 rgba(0, 0, 0, 0.07);
-}
-
-.card .card-header {
-  border: none;
-  background-color: rgb(249, 250, 253);
-}
-
-.card .card-header *,
-.card .card-title * {
-  margin-bottom: 0;
-}
-
 .stocknews-link {
   color: #0d0d0d;
   text-decoration: none;

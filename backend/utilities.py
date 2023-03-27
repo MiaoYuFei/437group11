@@ -17,8 +17,8 @@ cnxpool = mysql.connector.pooling.MySQLConnectionPool(**cnxconfig)
 @staticmethod
 def call_api_post(endpoint, data):
     try:
-        response = requests.post(endpoint, data=data, headers={
-                                 "Referer": "https://cse437s.yufeim.com/api"})
+        response = requests.post(endpoint, data=data,
+                                 headers={"Referer": "https://cse437s.yufeim.com/api"})
     except Exception as ex:
         raise RuntimeError(json.dumps(ex))
     result = response.json()
@@ -30,8 +30,8 @@ def call_api_post(endpoint, data):
 @staticmethod
 def call_api_get(endpoint, data):
     try:
-        response = requests.get(endpoint, params=data, headers={
-                                "Referer": "https://cse437s.yufeim.com/api"})
+        response = requests.get(endpoint, params=data,
+                                headers={"Referer": "https://cse437s.yufeim.com/api"})
     except Exception as ex:
         raise RuntimeError(json.dumps(ex))
     result = response.json()

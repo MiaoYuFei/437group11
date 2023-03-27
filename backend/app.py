@@ -422,8 +422,8 @@ def proxyPolygon() -> Response:
         responseObj.headers[key] = value
     return responseObj
 
-@app.route("/api/news/getnewstop", methods=["POST"])
-def getNewsTop() -> Response:
+@app.route("/api/news/getnewslatest", methods=["POST"])
+def getNewsLatest() -> Response:
     requestData = {}
     if "page" in request.form:
         requestData["offset"] = (int(request.form["page"]) - 1) * 10
@@ -435,7 +435,7 @@ def getNewsTop() -> Response:
     }
 
     try:
-        result = newsdata_helper.get_news_top(requestData["offset"])
+        result = newsdata_helper.get_news_latest(requestData["offset"])
     except Exception as ex:
         print(ex)
         responseData["code"] = "403"

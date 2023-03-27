@@ -10,6 +10,7 @@ export default {
       newsPageCurrent: 1,
       newsTotalCount: 0,
       newsError: false,
+      newsErrorMessage: "",
     };
   },
   computed: {
@@ -44,7 +45,7 @@ export default {
       const apiData = {
         page: this.newsPageCurrent,
       };
-      handleApi("post", "/api/news/getnewstop", apiData).then((response) => {
+      handleApi("post", "/api/news/getnewslatest", apiData).then((response) => {
         const code = parseInt(response.data.code);
         const data = response.data.data;
         if (code === 200) {
@@ -53,10 +54,14 @@ export default {
             this.newsTotalCount = data.total_count;
           }
           if (callback !== undefined) {
-            callback();
+            callback(true);
           }
         } else {
           this.newsError = true;
+          this.newsErrorMessage = data.reason;
+          if (callback !== undefined) {
+            callback(false);
+          }
         }
       });
     },
@@ -93,6 +98,14 @@ export default {
       </div>
     </div>
     <div v-if="!newsLoading" class="container my-3">
+      <div v-if="newsError" class="card">
+        <div class="card-header"><h5>Error</h5></div>
+        <div class="card-body">
+          <p class="card-text" style="text-align: justify">
+            Failed to get news. Please try again later. ({{ newsErrorMessage }})
+          </p>
+        </div>
+      </div>
       <div v-if="!newsError && news_list.length > 0">
         <h4 class="mb-3">Home - Latest News</h4>
       </div>

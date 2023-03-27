@@ -11,7 +11,7 @@ api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
 class newsdata_helper:
 
     @staticmethod
-    def get_news_top(offset: int = 0):
+    def get_news_latest(offset: int = 0):
         sql_cnx = get_sql_connection()
         sql_cursor = sql_cnx.cursor()
         if offset == 0:

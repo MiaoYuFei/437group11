@@ -68,11 +68,14 @@ export default {
               this.newsTotalCount = data.total_count;
             }
             if (callback !== undefined) {
-              callback();
+              callback(true);
             }
           } else {
             this.newsError = true;
-            this.newsErrorMessage = response.data.data.reason;
+            this.newsErrorMessage = data.reason;
+            if (callback !== undefined) {
+              callback(false);
+            }
           }
         }
       );
@@ -153,20 +156,3 @@ export default {
     </div>
   </div>
 </template>
-<style scoped>
-.card {
-  border: none;
-  box-shadow: 0 7px 14px 0 rgba(65, 69, 88, 0.1),
-    0 3px 6px 0 rgba(0, 0, 0, 0.07);
-}
-
-.card .card-header {
-  border: none;
-  background-color: rgb(249, 250, 253);
-}
-
-.card .card-header *,
-.card .card-title * {
-  margin-bottom: 0;
-}
-</style>

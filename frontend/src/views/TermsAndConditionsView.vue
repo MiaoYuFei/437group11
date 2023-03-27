@@ -306,9 +306,3 @@ export default {};
     </div>
   </div>
 </template>
-<style scoped>
-.card .card-header *,
-.card .card-title * {
-  margin-bottom: 0;
-}
-</style>

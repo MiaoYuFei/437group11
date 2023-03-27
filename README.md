@@ -18,6 +18,48 @@ Python: v3+ required, v3.10 recommended.
 
 NOTICE: The local development server will monitor all changes to the project. You do not need to reload the server.
 
+## Database
+
+This project uses MySQL 8.0 for database.
+
+- database: stocknews
+
+- username: stocknews
+
+- password: Cse@437s
+
+- tables:
+
+  - ticker: all tickers information
+
+  - news: all news information
+
+  - news_tickers: relationship between news and tickers
+
+### Database Installation
+
+Refer to online resource. Be sure to use version 8.0+. Also install MySQL Workbench.
+
+Remember your root user password. You need to log in MySQL Workbench with root user not stocknews user.
+
+### Database User
+
+Run the `database\user.sql` file to create the stocknews user.
+
+### Database Data Import
+
+Run `database\data.sql` to create tables and import data.
+
+### Notice
+
+If you created a new table, be sure to incldue introduction here.
+
+To run an sql file:
+
+`mysql -u root -p stocknews < file.sql`
+
+and then enter your root password.
+
 ## Frontend
 
 Vite, Vue 3, TypeScript
@@ -38,9 +80,9 @@ NOTICE: Please run `npm run lint` prior to each commit and resolve all issues if
 
 ## API
 
-The backend provides following api to the frontend. All apis must be called using post method. 
+The backend provides following api to the frontend. All apis must be called using post method.
 
-### `/api/user/signin`:
+### `/api/user/signin`
 
 Signs the user in with email and password.
 
@@ -54,7 +96,7 @@ Response:
 
 - code: number, 200 if sign in successful, 403 if invalid credentials.
 
-### `/api/user/register`:
+### `/api/user/register`
 
 Registers a new user with email and password.
 
@@ -68,49 +110,49 @@ Response:
 
 - code: number, 200 if register successful, 403 if restricted by security policies.
 
-### `/api/user/status`:
+### `/api/user/status`
 
 Gets the status of the user. Can be used to check if the session has signed in, get email address, check if the user has verified its email address, and get user id.
 
-#### Request:
+#### Request
 
 None. The backend will check the session.
 
-#### Response:
+#### Response
 
 - code: number, 200 if successful, 403 if not signed in.
 
 - data: array
 
-    - id: string
+  - id: string
 
-    - name: string
+  - name: string
 
-    - email: string
+  - email: string
 
-    - emailVerified: boolean
+  - emailVerified: boolean
 
-### `/api/user/verifyemail`:
+### `/api/user/verifyemail`
 
 Sends verification email to the user.
 
-#### Request:
+#### Request
 
 - requestType: "registration", sends verification email to the user to finish registration. "sign_in", sends email to user for signing in. "reset_password", sends email to user for resetting password.
 
-#### Response:
+#### Response
 
 - code: number, 200 if email sent successfuly, 403 if email already verified or restricted by security policies.
 
-### `/api/user/signout`:
+### `/api/user/signout`
 
 Signs the user out.
 
-#### Request:
+#### Request
 
 None. The backend will check the session.
 
-#### Response:
+#### Response
 
 - code: number, will always be 200 which indicates successful.
 
@@ -120,17 +162,17 @@ Note: If api fails, i.e. not 200 code, it will have following structure:
 
 - data: array
 
-    - reason: string, reason for the error, needs to be presented to the user on the UI.
+  - reason: string, reason for the error, needs to be presented to the user on the UI.
 
 ### `/api/user/update_account_info`
 
 Update the information associated with the account. Currently supported: name.
 
-#### Request:
+#### Request
 
 - displayName: string, shows as 'name' on profile page.
 
-#### Response:
+#### Response
 
 - code: number, 200 if update succeded, 403 if restricted by security policies.
 
@@ -138,15 +180,15 @@ Update the information associated with the account. Currently supported: name.
 
 Update the user preferences, which are ten boolean values.
 
-#### Request:
+#### Request
 
-- algriculture: boolean.
+- agriculture: boolean.
 
 - mining: boolean.
 
 - construction: boolean.
 
-- manufacuring: boolean.
+- manufacturing: boolean.
 
 - transportation: boolean.
 
@@ -160,7 +202,7 @@ Update the user preferences, which are ten boolean values.
 
 - public_administration: boolean.
 
-#### Response:
+#### Response
 
 - code: number, 200 if update succeded, 403 if restricted by security policies.
 
@@ -168,11 +210,11 @@ Update the user preferences, which are ten boolean values.
 
 Get the user preferences, which are ten boolean values.
 
-#### Request:
+#### Request
 
 - None
 
-#### Response:
+#### Response
 
 - code: number, 200 if get operation successfuly, 403 if restricted by security policies.
 
@@ -202,15 +244,123 @@ Get the user preferences, which are ten boolean values.
 
 Update the password of the user.
 
-#### Request:
+#### Request
 
 - currentPassword: string, current / old password.
 
 - newPassword: string, new password.
 
-#### Response:
+#### Response
 
 - code: number, 200 if update succeded, 403 if restricted by security policies.
+
+### `/api/stock/getprice`
+
+Get the stock price from polygon api.
+
+#### Request
+
+- ticker: the ticker requested
+
+- start_date: start date. format: 2023-01-01
+
+- end_date: end date. format: 2023-01-01
+
+#### Response
+
+- code: number, 200 if update succeded, 403 if restricted by security policies.
+
+- data:
+
+  - price: a list of price
+
+    - open: float
+
+    - close: float
+
+    - low: float
+
+    - hight: float
+
+### `/api/stock/gettickerinfo`
+
+Get details about a ticker.
+
+#### Request
+
+- ticker: the ticker requested
+
+#### Response
+
+- code: number, 200 if update succeded, 403 if restricted by security policies.
+
+- data: Ticker format. Refer to utilities.ts ITicker for format.
+
+### `/api/polygon/proxy`
+
+The ticker image is from polygon api and requires our api key. For security reasons, polygon api key should not be sent to the user. Use this api to proxy resources.
+
+NOTICE: This is a GET endpoint.
+
+#### Request
+
+- url: The requested url.
+
+#### Response
+
+The raw resource if successful.
+
+### `/api/news/getnewstop`
+
+#### Request
+
+- page: number of page. Optional. Default 1.
+
+#### Response
+
+- code: number, 200 if update succeded, 403 if restricted by security policies.
+
+- data:
+
+  - news_list: list of news. Refer to utilities.ts INews for news format.
+
+  - total_count: total number of news. Only returned for first page.
+
+### `/api/news/getnewsbyticker`
+
+#### Request
+
+- ticker: the ticker requested.
+
+- page: number of page. Optional. Default 1.
+
+#### Response
+
+- code: number, 200 if update succeded, 403 if restricted by security policies.
+
+- data:
+
+  - news_list: list of news. Refer to vue file for news format.
+
+  - total_count: total number of news. Only returned for first page.
+
+### `/api/news/getnewsbycategory`
+
+#### Request
+
+- category: the category code.
+
+- page: number of page. Optional. Default 1.
+
+#### Response
+
+- code: number, 200 if update succeded, 403 if restricted by security policies.
+
+- data:
+
+  - news_list: list of news. Refer to vue file for news format.
+
+  - total_count: total number of news. Only returned for first page.
 
 ## Calling API
 
@@ -278,25 +428,25 @@ Please call `then` function on it.
 
 `handleApi("method", "action", apiData).then(`
 
-`  (response) => {`
+`(response) => {`
 
-`    if (parseInt(response.data.code) === 200) {`
+`if (parseInt(response.data.code) === 200) {`
 
-`      // Api successful, you can acess response.data.data.`
+`// Api successful, you can acess response.data.data.`
 
-`    } else {`
+`} else {`
 
-`      // Api failed. Please show the error.message to user.`
+`// Api failed. Please show the error.message to user.`
 
-`    }`
+`}`
 
-`  },`
+`},`
 
-`  (error) => {`
+`(error) => {`
 
-`    // Error connecting to the api. Please show the error.message to the user.`
+`// Error connecting to the api. Please show the error.message to the user.`
 
-`  }`
+`}`
 
 `);`
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 import { RouterLink } from "vue-router";
-import { handleApi } from "@/utilities";
+import { getFormData, handleApi } from "@/utilities";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 export default {
   data: () => {
@@ -46,9 +47,13 @@ export default {
       });
     },
     search_click: function () {
-      if (this.searchText === "") {
+      const q = getFormData(this.$refs.searchForm as HTMLFormElement, ["q"])[
+        "q"
+      ];
+      if (q === "") {
         return false;
       }
+      this.searchText = q;
       window.open("/search?q=" + encodeURIComponent(this.searchText), "_blank");
     },
   },
@@ -58,9 +63,12 @@ export default {
   watch: {
     $route() {
       this.onUserStatus();
+      if (this.$route.path === "/search") {
+        this.searchText = this.$route.query.q as string;
+      }
     },
   },
-  components: { RouterLink },
+  components: { RouterLink, FontAwesomeIcon },
 };
 </script>
 <template>
@@ -125,71 +133,86 @@ export default {
             </a>
             <ul class="dropdown-menu dropdown-menu-dark" style="margin: 0">
               <li>
-                <RouterLink class="dropdown-item" to="/">
+                <RouterLink class="dropdown-item" to="/category?q=agriculture">
                   <span>Agriculture</span>
                 </RouterLink>
               </li>
               <li>
-                <RouterLink class="dropdown-item" to="/">
+                <RouterLink class="dropdown-item" to="/category?q=mining">
                   <span>Mining</span>
                 </RouterLink>
               </li>
               <li>
-                <RouterLink class="dropdown-item" to="/">
+                <RouterLink class="dropdown-item" to="/category?q=construction">
                   <span>Construction</span>
                 </RouterLink>
               </li>
               <li>
-                <RouterLink class="dropdown-item" to="/">
+                <RouterLink
+                  class="dropdown-item"
+                  to="/category?q=manufacturing"
+                >
                   <span>Manufacturing</span>
                 </RouterLink>
               </li>
               <li>
-                <RouterLink class="dropdown-item" to="/">
+                <RouterLink
+                  class="dropdown-item"
+                  to="/category?q=transportation"
+                >
                   <span>Transportation</span>
                 </RouterLink>
               </li>
               <li>
-                <RouterLink class="dropdown-item" to="/">
+                <RouterLink class="dropdown-item" to="/category?q=wholesale">
                   <span>Wholesale Trade</span>
                 </RouterLink>
               </li>
               <li>
-                <RouterLink class="dropdown-item" to="/">
+                <RouterLink class="dropdown-item" to="/category?q=retail">
                   <span>Retail Trade</span>
                 </RouterLink>
               </li>
               <li>
-                <RouterLink class="dropdown-item" to="/">
+                <RouterLink class="dropdown-item" to="/category?q=finance">
                   <span>Finance, Insurance, Real, Estate</span>
                 </RouterLink>
               </li>
               <li>
-                <RouterLink class="dropdown-item" to="/">
+                <RouterLink class="dropdown-item" to="/category?q=services">
                   <span>Services</span>
                 </RouterLink>
               </li>
               <li>
-                <RouterLink class="dropdown-item" to="/">
+                <RouterLink
+                  class="dropdown-item"
+                  to="/category?q=public_administration"
+                >
                   <span>Public Administration</span>
                 </RouterLink>
               </li>
             </ul>
           </li>
         </ul>
-        <!-- <form class="d-flex me-2" role="search" @submit.prevent="search_click">
+        <form
+          class="d-flex me-2"
+          role="search"
+          @submit.prevent="search_click"
+          ref="searchForm"
+        >
           <input
             class="form-control me-2"
             type="search"
+            name="q"
             placeholder="Search"
             aria-label="Search"
             required
-            v-model="searchText"
+            :value="searchText"
           />
           <button class="btn btn-outline-success" type="submit">
             <FontAwesomeIcon icon="fa-magnifying-glass" class="fs-5" />
           </button>
-        </form> -->
+        </form>
         <div>
           <ul v-if="!signedIn" class="navbar-nav mb-2 mb-lg-0">
             <li class="nav-item">
@@ -239,5 +262,9 @@ export default {
 <style scoped>
 .dropdown-menu-dark .dropdown-divider {
   border-top: 1px solid rgba(var(--bs-secondary-rgb), 0.675);
+}
+
+.nav-link.router-link-active {
+  color: #fff;
 }
 </style>

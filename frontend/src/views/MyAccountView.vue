@@ -333,6 +333,7 @@ export default {
                   name="displayName"
                   type="text"
                   class="form-control"
+                  maxlength="20"
                   :value="userDisplayName"
                 />
               </div>
@@ -495,10 +496,10 @@ export default {
               >
                 <div
                   v-for="(item, index) in [
-                    { key: 'algriculture', value: 'Agriculture' },
+                    { key: 'agriculture', value: 'Agriculture' },
                     { key: 'mining', value: 'Mining' },
                     { key: 'construction', value: 'Construction' },
-                    { key: 'manufacuring', value: 'Manufacturing' },
+                    { key: 'manufacturing', value: 'Manufacturing' },
                     { key: 'transportation', value: 'Transportation' },
                     { key: 'wholesale', value: 'Wholesale' },
                     { key: 'retail', value: 'Retail' },

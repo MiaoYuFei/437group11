@@ -215,7 +215,7 @@ export default {
                 />
                 <label class="form-check-label" for="inputTerms">
                   I agree to
-                  <RouterLink to="/" target="_blank"
+                  <RouterLink to="/termsandconditions" target="_blank"
                     >Terms &amp; Conditions</RouterLink
                   >.
                 </label>
@@ -278,10 +278,3 @@ export default {
     </div>
   </div>
 </template>
-<style scoped>
-.card {
-  border: none;
-  box-shadow: 0 7px 14px 0 rgba(65, 69, 88, 0.1),
-    0 3px 6px 0 rgba(0, 0, 0, 0.07);
-}
-</style>

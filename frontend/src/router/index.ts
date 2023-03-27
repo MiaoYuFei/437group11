@@ -1,14 +1,4 @@
 import { createRouter, createWebHistory } from "vue-router";
-import EmailSignInView from "@/views/EmailSignInView.vue";
-import HomeView from "@/views/HomeView.vue";
-import MyAccountView from "@/views/MyAccountView.vue";
-import MyReadingListView from "@/views/MyReadingListView.vue";
-import RegisterView from "@/views/RegisterView.vue";
-import SigninView from "@/views/SigninView.vue";
-import ResetPasswordView from "@/views/ResetPasswordView.vue";
-import SearchView from "@/views/SearchView.vue";
-import TickerView from "@/views/TickerView.vue";
-import VerifyEmailView from "@/views/VerifyEmailView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,52 +6,62 @@ const router = createRouter({
     {
       path: "/",
       name: "home",
-      component: HomeView,
+      component: () => import("@/views/HomeView.vue"),
     },
     {
       path: "/signin",
       name: "signin",
-      component: SigninView,
+      component: () => import("@/views/SigninView.vue"),
     },
     {
       path: "/emailsignin",
       name: "emailsignin",
-      component: EmailSignInView,
+      component: () => import("@/views/EmailSignInView.vue"),
     },
     {
       path: "/register",
       name: "register",
-      component: RegisterView,
+      component: () => import("@/views/RegisterView.vue"),
     },
     {
       path: "/verifyemail",
       name: "verifyemail",
-      component: VerifyEmailView,
+      component: () => import("@/views/VerifyEmailView.vue"),
     },
     {
       path: "/resetpassword",
       name: "resetpassword",
-      component: ResetPasswordView,
+      component: () => import("@/views/ResetPasswordView.vue"),
     },
     {
       path: "/myaccount",
       name: "myaccount",
-      component: MyAccountView,
+      component: () => import("@/views/MyAccountView.vue"),
     },
     {
       path: "/myreadinglist",
       name: "myreadinglist",
-      component: MyReadingListView,
+      component: () => import("@/views/MyReadingListView.vue"),
     },
     {
       path: "/search",
       name: "search",
-      component: SearchView,
+      component: () => import("@/views/SearchView.vue"),
     },
     {
       path: "/ticker",
       name: "ticker",
-      component: TickerView,
+      component: () => import("@/views/TickerView.vue"),
+    },
+    {
+      path: "/category",
+      name: "category",
+      component: () => import("@/views/CategoryView.vue"),
+    },
+    {
+      path: "/termsandconditions",
+      name: "termsandconditions",
+      component: () => import("@/views/TermsAndConditionsView.vue"),
     },
   ],
 });

@@ -172,7 +172,7 @@ export default {
           @click="onSetNewsSource"
         />
         <label class="btn btn-outline-primary" for="btnMyFavorites"
-          >My favorites</label
+          >My Collections</label
         >
       </div>
       <div

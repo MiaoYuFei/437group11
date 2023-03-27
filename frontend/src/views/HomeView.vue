@@ -1,59 +1,124 @@
 <script lang="ts">
 import NewsContainer from "@/components/NewsContainer.vue";
-import { parseDatetime } from "@/utilities";
+import { handleApi, type INews } from "@/utilities";
 
 export default {
   data() {
     return {
-      news_string:
-        '[{"article": {"title": "Invest Like Warren Buffett, Not Carl Icahn", "description": "Warren Buffett and Carl Icahn are two of the most successful investors of the past century. But Buffett is a superior model for investors to follow because of his patient style and focus on finding great businesses.", "keywords": ["investing"], "datetime": "2017-04-10T00:24:00Z", "url": "https://www.fool.com/investing/2017/04/09/invest-like-warren-buffett-not-carl-icahn.aspx"}, "cover_image": {"url": "https://g.foolcdn.com/editorial/images/435736/warren-buffett3_tmf.jpg"}, "publisher": {"name": "The Motley Fool", "homepage": {"url": "https://www.fool.com/"}, "logo": {"url": "https://s3.polygon.io/public/assets/news/logos/themotleyfool.svg"}}, "tickers": ["BRK.B", "IEP", "BRK.A", "AAPL", "NFLX"]}, \
-        {"article": {"title": "NASDAQ Rebounds While Waiting for Big Tech Reports", "description": "NASDAQ Rebounds While Waiting for Big Tech Reports", "keywords": "", "datetime": "2020-07-31T14:15:00Z", "url": "https://www.zacks.com/registration/ultimatetrader/welcome/eoffer/30c3?adid=ZU_CONTENT_SYND&cid=CS-ZC-FT-zucommentary-26169"}, "cover_image": {"url": "https://staticx-tuner.zacks.com/woas/adv/services/images/charts/zu/ZU-SR-MSFT-gain-chart.png"}, "publisher": {"name": "Zacks Investment Research", "homepage": {"url": "https://www.zacks.com/"}, "logo": {"url": "https://s3.polygon.io/public/assets/news/logos/zacks.png"}}, "tickers": ["JELD", "NXPI", "FB", "CINF", "NKE", "KEY", "ALGT", "TRST", "CME", "FB", "AAPL", "AMZN", "GOOG"]}, \
-        {"article": {"title": "July Marks Four Straight Months of Gains", "description": "July Marks Four Straight Months of Gains", "keywords": "", "datetime": "2020-08-03T14:15:00Z", "url": "https://www.zacks.com/registration/ultimatetrader/welcome/eoffer/30c3?adid=ZU_CONTENT_SYND&cid=CS-ZC-FT-zucommentary-26191"}, "cover_image": {"url": "https://staticx-tuner.zacks.com/woas/adv/services/images/charts/zu/ZU-SR-GOOG-gain-chart.png"}, "publisher": {"name": "Zacks Investment Research", "homepage": {"url": "https://www.zacks.com/"}, "logo": {"url": "https://s3.polygon.io/public/assets/news/logos/zacks.png"}}, "tickers": ["INTC", "MDC", "BTG", "PINS", "BNFT", "MXL", "FB", "AMZN", "AAPL", "GOOG", "SLP"]}]',
-      news_list: [
-        {
-          id: String,
-          article: {
-            title: String,
-            description: String,
-            keywords: [String],
-            datetime: String,
-            url: String,
-          },
-          cover_image: {
-            url: String,
-          },
-          publisher: {
-            name: String,
-            homepage: {
-              url: String,
-            },
-            logo: {
-              url: String,
-            },
-          },
-          tickers: [String],
-        },
-      ],
+      news_list: [] as INews[],
+      newsLoading: true,
+      newsPageCurrent: 1,
+      newsTotalCount: 0,
+      newsError: false,
+      newsErrorMessage: "",
     };
   },
+  computed: {
+    newsTotalPage() {
+      return Math.ceil(this.newsTotalCount / 10);
+    },
+    newsFirstPage() {
+      return Math.max(1, this.newsPageCurrent - 2);
+    },
+    newsLastPage() {
+      return Math.min(this.newsTotalPage, this.newsPageCurrent + 2);
+    },
+  },
+  watch: {
+    $route: {
+      handler: function (to: any, from: any) {
+        if (
+          to.query !== undefined &&
+          (from === undefined ||
+            (from !== undefined &&
+              from.query !== undefined &&
+              to.query.q !== from.query.q))
+        ) {
+          this.onNewsSwitchToPage(1);
+        }
+      },
+      immediate: true,
+    },
+  },
   methods: {
-    parseDatetime,
+    onGetTopNews(callback: Function | undefined = undefined) {
+      const apiData = {
+        page: this.newsPageCurrent,
+      };
+      handleApi("post", "/api/news/getnewslatest", apiData).then((response) => {
+        const code = parseInt(response.data.code);
+        const data = response.data.data;
+        if (code === 200) {
+          this.news_list = data.news_list;
+          if (data.total_count !== undefined) {
+            this.newsTotalCount = data.total_count;
+          }
+          if (callback !== undefined) {
+            callback(true);
+          }
+        } else {
+          this.newsError = true;
+          this.newsErrorMessage = data.reason;
+          if (callback !== undefined) {
+            callback(false);
+          }
+        }
+      });
+    },
+    onNewsSwitchToPage(page: number) {
+      this.newsError = false;
+      this.newsPageCurrent = page;
+      this.newsLoading = true;
+      this.onGetTopNews(() => {
+        this.newsLoading = false;
+      });
+    },
   },
   created() {
     document.title = "Home - " + (this as any).$projectName;
   },
-  mounted() {
-    this.news_list = JSON.parse(this.news_string);
-  },
+  mounted() {},
   components: {
     NewsContainer,
   },
 };
 </script>
 <template>
-  <div style="overflow: auto">
-    <div class="container my-3">
-      <NewsContainer :newsData="news_list" />
+  <div class="overflow-auto">
+    <div
+      class="flex-fill justify-content-center align-items-center h-100"
+      :class="{ 'd-flex': newsLoading, 'd-none': !newsLoading }"
+    >
+      <div
+        class="spinner-border text-primary"
+        role="status"
+        style="width: 4rem; height: 4rem"
+      >
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <div v-if="!newsLoading" class="container my-3">
+      <div v-if="newsError" class="card">
+        <div class="card-header"><h5>Error</h5></div>
+        <div class="card-body">
+          <p class="card-text" style="text-align: justify">
+            Failed to get news. Please try again later. ({{ newsErrorMessage }})
+          </p>
+        </div>
+      </div>
+      <div v-if="!newsError && news_list.length > 0">
+        <h4 class="mb-3">Home - Latest News</h4>
+      </div>
+      <NewsContainer
+        :newsData="news_list"
+        :newsTotalPage="newsTotalPage"
+        :newsTotalCount="newsTotalCount"
+        :newsPageCurrent="newsPageCurrent"
+        :newsFirstPage="newsFirstPage"
+        :newsLastPage="newsLastPage"
+        :newsLoading="newsLoading"
+        @newsSwitchToPage="onNewsSwitchToPage"
+      />
     </div>
   </div>
 </template>

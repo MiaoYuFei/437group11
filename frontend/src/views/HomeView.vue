@@ -117,7 +117,6 @@ export default {
         :newsFirstPage="newsFirstPage"
         :newsLastPage="newsLastPage"
         :newsLoading="newsLoading"
-        :newsError="newsError"
         @newsSwitchToPage="onNewsSwitchToPage"
       />
     </div>

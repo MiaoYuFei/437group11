@@ -109,10 +109,10 @@ export default {
       const source = $("input[name='btnNewsSource']:checked").val() as string;
       if (source === "recommendations") {
         this.newsSource = NewsSource.Recommendations;
-        window.location.hash = "#recommendations";
+        this.$router.push({ query: { source: "recommendations" } });
       } else if (source === "mycollections") {
         this.newsSource = NewsSource.Collections;
-        window.location.hash = "#mycollections";
+        this.$router.push({ query: { source: "mycollections" } });
       }
     },
   },
@@ -121,23 +121,29 @@ export default {
       handler: function (to: any, from: any) {
         this.onGetUserStatus(() => {
           if (
-            to.hash !== undefined &&
-            (from === undefined ||
-              (from !== undefined &&
-                from.hash !== undefined &&
-                to.hash !== from.hash))
+            to.query.source === undefined ||
+            to.query.source === null ||
+            to.query.source === ""
           ) {
-            if (to.hash === "#recommendations") {
-              this.newsSource = NewsSource.Recommendations;
-              this.onNewsSwitchToPage(1);
-              $("#btnMyCollections").prop("checked", false);
-              $("#btnRecommendations").prop("checked", true);
-            } else if (to.hash === "#mycollections") {
-              this.newsSource = NewsSource.Collections;
-              this.onNewsSwitchToPage(1);
-              $("#btnRecommendations").prop("checked", false);
-              $("#btnMyCollections").prop("checked", true);
+            if (this.newsSource === NewsSource.Recommendations) {
+              this.$router.push({ query: { source: "recommendations" } });
+            } else if (this.newsSource === NewsSource.Collections) {
+              this.$router.push({ query: { source: "mycollections" } });
             }
+          }
+          if (from !== undefined && to.query.source === from.query.source) {
+            return;
+          }
+          if (to.query.source === "recommendations") {
+            this.newsSource = NewsSource.Recommendations;
+            this.onNewsSwitchToPage(1);
+            $("#btnMyCollections").prop("checked", false);
+            $("#btnRecommendations").prop("checked", true);
+          } else if (to.query.source === "mycollections") {
+            this.newsSource = NewsSource.Collections;
+            this.onNewsSwitchToPage(1);
+            $("#btnRecommendations").prop("checked", false);
+            $("#btnMyCollections").prop("checked", true);
           }
         });
       },
@@ -146,15 +152,6 @@ export default {
   },
   created() {
     document.title = "My Reading List - " + (this as any).$projectName;
-  },
-  mounted() {
-    if (
-      window.location.hash === undefined ||
-      window.location.hash === null ||
-      window.location.hash === ""
-    ) {
-      window.location.hash = "#recommendations";
-    }
   },
   components: {
     NewsContainer,

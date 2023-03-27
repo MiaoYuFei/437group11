@@ -38,13 +38,13 @@ This project uses MySQL 8.0 for database.
 
 ### Database Installation
 
-Refer to online resource. Be sure to use version 8.0+. Also install MySQL Workbench.
+Refer to online resource. Be sure to use version 8.0+. Also install MySQL Workbench. MySQL Workbench is not required but may help you to go through the database.
 
 Remember your root user password. You need to log in MySQL Workbench with root user not stocknews user.
 
 ### Database User
 
-Run the `database\user.sql` file to create the stocknews user.
+Run `database\user.sql` file to create the stocknews user. This user is used by the program not human.
 
 ### Database Data Import
 
@@ -55,6 +55,8 @@ Run `database\data.sql` to create tables and import data.
 If you created a new table, be sure to incldue introduction here.
 
 To run an sql file:
+
+In a terminal:
 
 `mysql -u root -p stocknews < file.sql`
 

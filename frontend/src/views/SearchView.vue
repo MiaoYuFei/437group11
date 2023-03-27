@@ -23,22 +23,6 @@ export default {
       return Math.min(this.newsTotalPage, this.newsPageCurrent + 2);
     },
   },
-  watch: {
-    $route: {
-      handler: function (to: any, from: any) {
-        if (
-          to.query !== undefined &&
-          (from === undefined ||
-            (from !== undefined &&
-              from.query !== undefined &&
-              to.query.q !== from.query.q))
-        ) {
-          this.onNewsSwitchToPage(1);
-        }
-      },
-      immediate: true,
-    },
-  },
   methods: {
     onGetTopNews(callback: Function | undefined = undefined) {
       const apiData = {
@@ -70,10 +54,25 @@ export default {
       });
     },
   },
+  watch: {
+    $route: {
+      handler: function (to: any, from: any) {
+        if (
+          to.query !== undefined &&
+          (from === undefined ||
+            (from !== undefined &&
+              from.query !== undefined &&
+              to.query.q !== from.query.q))
+        ) {
+          this.onNewsSwitchToPage(1);
+        }
+      },
+      immediate: true,
+    },
+  },
   created() {
     document.title = "Search - " + (this as any).$projectName;
   },
-  mounted() {},
   components: {
     NewsContainer,
   },

@@ -1,32 +1,40 @@
 <script lang="ts">
 import $ from "jquery";
 import NewsContainer from "@/components/NewsContainer.vue";
-import { handleApi, parseDatetime } from "@/utilities";
+import { handleApi, type INews } from "@/utilities";
+
+enum NewsSource {
+  Recommendations,
+  Collections,
+}
 
 export default {
   data() {
     return {
-      news_list: [],
+      news_list: [] as INews[],
       email: "",
       signedIn: false,
       emailVerified: false,
-      loading: true,
-      firstPage: 1,
-      lastPage: 3,
-      currentPage: 1,
+      newsLoading: true,
+      newsPageCurrent: 1,
+      newsTotalCount: 0,
+      newsError: false,
+      newsErrorMessage: "",
+      newsSource: NewsSource.Recommendations,
     };
   },
-  watch: {
-    loading: function (newValue: boolean) {
-      if (newValue) {
-        $(this.$refs.newsContainer as Element).fadeOut();
-      } else {
-        $(this.$refs.newsContainer as Element).fadeIn();
-      }
+  computed: {
+    newsTotalPage() {
+      return Math.ceil(this.newsTotalCount / 10);
+    },
+    newsFirstPage() {
+      return Math.max(1, this.newsPageCurrent - 2);
+    },
+    newsLastPage() {
+      return Math.min(this.newsTotalPage, this.newsPageCurrent + 2);
     },
   },
   methods: {
-    parseDatetime,
     onGetUserStatus: function (callback: Function | undefined = undefined) {
       handleApi("post", "/api/user/status", []).then(
         (response) => {
@@ -58,83 +66,95 @@ export default {
         }
       );
     },
-    onGetPreferences(callback: Function | undefined = undefined) {
-      handleApi("post", "/api/user/getpreferences", []).then((response) => {
+    onGetNews(callback: Function | undefined = undefined) {
+      const apiData = {
+        page: this.newsPageCurrent,
+      };
+      let apiEndpoint = "";
+      if (this.newsSource === NewsSource.Collections) {
+        apiEndpoint = "/api/news/getnewscollection";
+      } else if (this.newsSource === NewsSource.Recommendations) {
+        apiEndpoint = "/api/news/getnewsrecommendation";
+      }
+      apiEndpoint = "/api/news/getnewslatest"; // TODO: Remove this line after testing
+      handleApi("post", apiEndpoint, apiData).then((response) => {
         const code = parseInt(response.data.code);
         const data = response.data.data;
         if (code == 200) {
-          let preferencesAllFalse = true;
-          for (const key in data.preferences) {
-            const value =
-              data.preferences[key].toString().toLowerCase() === "true";
-            if (value) {
-              preferencesAllFalse = false;
-              break;
-            }
+          this.news_list = data.news_list;
+          if (data.total_count !== undefined) {
+            this.newsTotalCount = data.total_count;
           }
-          if (preferencesAllFalse) {
-            this.$router.push("/myaccount?showSetPreferences=true#preferences");
-          } else {
-            if (callback !== undefined) {
-              callback();
-            }
+          if (callback !== undefined) {
+            callback(true);
           }
         } else {
-          // TODO: Handle error
+          this.newsError = true;
+          this.newsErrorMessage = data.reason;
+          if (callback !== undefined) {
+            callback(false);
+          }
         }
       });
     },
-    onGetRecommendationNews() {
-      this.loading = true;
-      const apiData = {
-        requestType: "recommendations",
-      };
-      handleApi("post", "/api/news/getnews", apiData).then((response) => {
-        const code = parseInt(response.data.code);
-        const data = response.data.data;
-        if (code == 200) {
-          this.news_list = data.news;
-          this.loading = false;
-        } else {
-          // TODO: Handle error
-        }
-      });
-    },
-    onGetMyFavoriteNews() {
-      this.loading = true;
-      const apiData = {
-        requestType: "myfavorites",
-      };
-      handleApi("post", "/api/news/getnews", apiData).then((response) => {
-        const code = parseInt(response.data.code);
-        const data = response.data.data;
-        if (code == 200) {
-          this.news_list = data.news;
-          this.loading = false;
-        } else {
-          // TODO: Handle error
-        }
+    onNewsSwitchToPage(page: number) {
+      this.newsError = false;
+      this.newsPageCurrent = page;
+      this.newsLoading = true;
+      this.onGetNews(() => {
+        this.newsLoading = false;
       });
     },
     onSetNewsSource() {
       const source = $("input[name='btnNewsSource']:checked").val() as string;
       if (source === "recommendations") {
-        this.onGetRecommendationNews();
-      } else if (source === "myfavorites") {
-        this.onGetMyFavoriteNews();
+        this.newsSource = NewsSource.Recommendations;
+        window.location.hash = "#recommendations";
+      } else if (source === "mycollections") {
+        this.newsSource = NewsSource.Collections;
+        window.location.hash = "#mycollections";
       }
+    },
+  },
+  watch: {
+    $route: {
+      handler: function (to: any, from: any) {
+        this.onGetUserStatus(() => {
+          if (
+            to.hash !== undefined &&
+            (from === undefined ||
+              (from !== undefined &&
+                from.hash !== undefined &&
+                to.hash !== from.hash))
+          ) {
+            if (to.hash === "#recommendations") {
+              this.newsSource = NewsSource.Recommendations;
+              this.onNewsSwitchToPage(1);
+              $("#btnMyCollections").prop("checked", false);
+              $("#btnRecommendations").prop("checked", true);
+            } else if (to.hash === "#mycollections") {
+              this.newsSource = NewsSource.Collections;
+              this.onNewsSwitchToPage(1);
+              $("#btnRecommendations").prop("checked", false);
+              $("#btnMyCollections").prop("checked", true);
+            }
+          }
+        });
+      },
+      immediate: true,
     },
   },
   created() {
     document.title = "My Reading List - " + (this as any).$projectName;
   },
   mounted() {
-    this.loading = true;
-    this.onGetUserStatus(() => {
-      this.onGetPreferences(() => {
-        this.onGetRecommendationNews();
-      });
-    });
+    if (
+      window.location.hash === undefined ||
+      window.location.hash === null ||
+      window.location.hash === ""
+    ) {
+      window.location.hash = "#recommendations";
+    }
   },
   components: {
     NewsContainer,
@@ -143,11 +163,23 @@ export default {
 </script>
 <template>
   <div style="overflow: auto">
-    <div class="container d-flex flex-column h-100 my-3">
+    <div
+      class="flex-fill justify-content-center align-items-center h-100"
+      :class="{ 'd-flex': newsLoading, 'd-none': !newsLoading }"
+    >
+      <div
+        class="spinner-border text-primary"
+        role="status"
+        style="width: 4rem; height: 4rem"
+      >
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <div v-show="!newsLoading" class="container my-3">
       <div
         class="d-block btn-group mb-3"
         role="group"
-        aria-label="Basic radio toggle button group"
+        aria-label="Toggle news source between recommendations and my collections"
       >
         <input
           type="radio"
@@ -166,50 +198,35 @@ export default {
           type="radio"
           class="btn-check"
           name="btnNewsSource"
-          id="btnMyFavorites"
-          value="myfavorites"
+          id="btnMyCollections"
+          value="mycollections"
           autocomplete="off"
           @click="onSetNewsSource"
         />
-        <label class="btn btn-outline-primary" for="btnMyFavorites"
+        <label class="btn btn-outline-primary" for="btnMyCollections"
           >My Collections</label
         >
       </div>
-      <div
-        class="flex-fill justify-content-center align-items-center mb-3"
-        :class="{ 'd-flex': loading, 'd-none': !loading }"
-      >
-        <div
-          class="spinner-border text-primary"
-          role="status"
-          style="width: 4rem; height: 4rem"
-        >
-          <span class="visually-hidden">Loading...</span>
+      <div v-if="newsError" class="card">
+        <div class="card-header"><h5>Error</h5></div>
+        <div class="card-body">
+          <p class="card-text" style="text-align: justify">
+            Failed to get news. Please try again later. ({{ newsErrorMessage }})
+          </p>
         </div>
       </div>
-      <NewsContainer
-        :newsData="news_list"
-        class="mb-3"
-        :class="{ 'd-block': !loading, 'd-none': loading }"
-        ref="newsContainer"
-      />
-      <nav
-        class="mb-3"
-        :class="{ 'd-none': loading, 'd-block': !loading }"
-        aria-label="Page navigation"
-      >
-        <ul class="pagination justify-content-center">
-          <li class="page-item" href="#" :class="{ disabled: firstPage === 2 }">
-            <a class="page-link">Previous</a>
-          </li>
-          <li v-for="i in lastPage - firstPage + 1" :key="i" class="page-item">
-            <a class="page-link" href="#">{{ i + firstPage - 1 }}</a>
-          </li>
-          <li class="page-item">
-            <a class="page-link" href="#">Next</a>
-          </li>
-        </ul>
-      </nav>
+      <div v-show="!newsLoading">
+        <NewsContainer
+          :newsData="news_list"
+          :newsTotalPage="newsTotalPage"
+          :newsTotalCount="newsTotalCount"
+          :newsPageCurrent="newsPageCurrent"
+          :newsFirstPage="newsFirstPage"
+          :newsLastPage="newsLastPage"
+          :newsLoading="newsLoading"
+          @newsSwitchToPage="onNewsSwitchToPage"
+        />
+      </div>
     </div>
   </div>
 </template>

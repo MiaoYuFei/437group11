@@ -536,5 +536,33 @@ def searchNews() -> Response:
 
     return make_response(jsonify(responseData), 200)
 
+@app.route("/api/news/getnewsrecommendation", methods=["POST"])
+def getNewsRecommendation() -> Response:
+    requestData = {}
+    if "page" in request.form:
+        requestData["offset"] = (int(request.form["page"]) - 1) * 10
+    else:
+        requestData["offset"] = 0
+    responseData = {
+        "code": "200",
+        "data": {}
+    }
+
+    return make_response(jsonify(responseData), 200)
+
+@app.route("/api/news/getnewscollection", methods=["POST"])
+def getNewsCollection() -> Response:
+    requestData = {}
+    if "page" in request.form:
+        requestData["offset"] = (int(request.form["page"]) - 1) * 10
+    else:
+        requestData["offset"] = 0
+    responseData = {
+        "code": "200",
+        "data": {}
+    }
+
+    return make_response(jsonify(responseData), 200)
+
 if __name__ == "__main__":
     app.run(port=8081, use_reloader=True)

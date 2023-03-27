@@ -28,22 +28,6 @@ export default {
       return Math.min(this.newsTotalPage, this.newsPageCurrent + 2);
     },
   },
-  watch: {
-    $route: {
-      handler: function (to: any, from: any) {
-        if (
-          to.query !== undefined &&
-          (from === undefined ||
-            (from !== undefined &&
-              from.query !== undefined &&
-              to.query.q !== from.query.q))
-        ) {
-          this.onNewsSwitchToPage(1);
-        }
-      },
-      immediate: true,
-    },
-  },
   methods: {
     onNewsSwitchToPage(page: number) {
       this.newsError = false;
@@ -82,10 +66,25 @@ export default {
     },
     translate_sic_category_code_to_sic_category_name,
   },
+  watch: {
+    $route: {
+      handler: function (to: any, from: any) {
+        if (
+          to.query !== undefined &&
+          (from === undefined ||
+            (from !== undefined &&
+              from.query !== undefined &&
+              to.query.q !== from.query.q))
+        ) {
+          this.onNewsSwitchToPage(1);
+        }
+      },
+      immediate: true,
+    },
+  },
   created() {
     document.title = "Category - " + (this as any).$projectName;
   },
-  mounted() {},
   components: {
     NewsContainer,
   },

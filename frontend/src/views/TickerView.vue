@@ -29,22 +29,6 @@ export default {
       return Math.min(this.newsTotalPage, this.newsPageCurrent + 2);
     },
   },
-  watch: {
-    $route: {
-      handler: function (to: any, from: any) {
-        if (
-          to.query !== undefined &&
-          (from === undefined ||
-            (from !== undefined &&
-              from.query !== undefined &&
-              to.query.q !== from.query.q))
-        ) {
-          this.onNewsSwitchToPage(1);
-        }
-      },
-      immediate: true,
-    },
-  },
   methods: {
     onGetTickerInfo(callback: Function | undefined = undefined) {
       const apiData = {
@@ -178,6 +162,22 @@ export default {
         },
       };
       chartObj.setOption(chartOption);
+    },
+  },
+  watch: {
+    $route: {
+      handler: function (to: any, from: any) {
+        if (
+          to.query !== undefined &&
+          (from === undefined ||
+            (from !== undefined &&
+              from.query !== undefined &&
+              to.query.q !== from.query.q))
+        ) {
+          this.onNewsSwitchToPage(1);
+        }
+      },
+      immediate: true,
     },
   },
   created() {
@@ -386,6 +386,39 @@ export default {
             <div class="card-header"><h5>Price</h5></div>
             <div class="card-body">
               <div class="card-text">
+                <div
+                  class="d-block btn-group mb-3"
+                  role="group"
+                  aria-label="Basic radio toggle button group"
+                >
+                  <input
+                    type="radio"
+                    class="btn-check"
+                    name="btnPriceChartType"
+                    id="btnPriceChartStandard"
+                    value="pricechartstandard"
+                    autocomplete="off"
+                    checked
+                  />
+                  <label
+                    class="btn btn-outline-primary"
+                    for="btnPriceChartStandard"
+                    >Standard</label
+                  >
+                  <input
+                    type="radio"
+                    class="btn-check"
+                    name="btnPriceChartType"
+                    id="btnPriceChartAdvanced"
+                    value="pricechartadvanced"
+                    autocomplete="off"
+                  />
+                  <label
+                    class="btn btn-outline-primary"
+                    for="btnPriceChartAdvanced"
+                    >Advanced</label
+                  >
+                </div>
                 <div
                   style="width: 100%; min-height: 30rem"
                   ref="chart_stockprice_advanced"

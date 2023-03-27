@@ -294,7 +294,7 @@ Get details about a ticker.
 
 - code: number, 200 if update succeded, 403 if restricted by security policies.
 
-- data: Ticker format. Refer to TickerView.vue for format.
+- data: Ticker format. Refer to utilities.ts ITicker for format.
 
 ### `/api/polygon/proxy`
 
@@ -322,7 +322,7 @@ The raw resource if successful.
 
 - data:
 
-  - news_list: list of news. Refer to vue file for news format.
+  - news_list: list of news. Refer to utilities.ts INews for news format.
 
   - total_count: total number of news. Only returned for first page.
 

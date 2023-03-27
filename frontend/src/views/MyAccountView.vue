@@ -333,6 +333,7 @@ export default {
                   name="displayName"
                   type="text"
                   class="form-control"
+                  maxlength="20"
                   :value="userDisplayName"
                 />
               </div>

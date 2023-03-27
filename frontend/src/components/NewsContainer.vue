@@ -3,80 +3,190 @@ import { parseDatetime } from "@/utilities";
 
 export default {
   props: {
-    newsData: Object,
+    newsData: null,
+    newsTotalPage: {
+      type: Number,
+      required: true,
+    },
+    newsPageCurrent: {
+      type: Number,
+      required: true,
+    },
+    newsLoading: {
+      type: Boolean,
+      required: true,
+    },
+    newsFirstPage: {
+      type: Number,
+      required: true,
+    },
+    newsLastPage: {
+      type: Number,
+      required: true,
+    },
+    newsTotalCount: {
+      type: Number,
+      required: true,
+    },
   },
   methods: {
     parseDatetime,
+    onNewsSwitchToPage(page: number) {
+      this.$emit("newsSwitchToPage", page);
+    },
   },
-  mounted: function () {},
 };
 </script>
 <template>
-  <ul class="list-group">
-    <li class="list-group-item" v-for="(news, index) in newsData" :key="index">
-      <div class="card container p-2 border-0 m-0" style="box-shadow: none">
-        <div class="row">
-          <div class="col-12 col-lg-3">
-            <img
-              :src="news.cover_image.url"
-              class="img-thumbnail border-0"
-              style="height: fit-content"
-              alt="cover image"
-            />
-          </div>
-          <div class="card-body py-0 col-12 col-lg-9">
-            <a
-              class="text-decoration-none fw-bold"
-              :href="news.article.url"
-              target="_blank"
-            >
-              <h5 class="card-title stocknews-article-title">
-                <strong>{{ news.article.title }}</strong>
-              </h5>
-            </a>
-            <p class="card-text stocknews-article-description">
-              {{ news.article.description }}
-            </p>
-            <span class="d-flex align-items-center stocknews-article-publisher">
-              <div
-                class="d-flex gap-1 align-items-center pe-2"
-                style="border-right: 1px solid rgb(var(--bs-dark-rgb))"
+  <div>
+    <ul class="list-group">
+      <li
+        class="list-group-item"
+        v-for="(news, index) in newsData"
+        :key="index"
+      >
+        <div class="card container p-2 border-0 m-0" style="box-shadow: none">
+          <div class="row">
+            <div class="col-12 col-lg-3">
+              <img
+                :src="news.cover_image.url"
+                class="img-thumbnail border-0"
+                style="height: fit-content"
+                alt="cover image"
+              />
+            </div>
+            <div class="card-body py-0 col-12 col-lg-9">
+              <a
+                class="text-decoration-none fw-bold"
+                :href="news.article.url"
+                target="_blank"
               >
-                <span>From</span>
-                <img :src="news.publisher.logo.url" alt="publisher logo" />
-                <a
-                  class="fst-italic"
-                  :href="news.publisher.homepage.url"
-                  target="_blank"
+                <h5 class="card-title stocknews-article-title">
+                  <strong>{{ news.article.title }}</strong>
+                </h5>
+              </a>
+              <p class="card-text stocknews-article-description">
+                {{ news.article.description }}
+              </p>
+              <span
+                class="d-flex align-items-center stocknews-article-publisher"
+              >
+                <div
+                  class="d-flex gap-1 align-items-center pe-2"
+                  style="border-right: 1px solid rgb(var(--bs-dark-rgb))"
                 >
-                  {{ news.publisher.name }}</a
-                >
+                  <span>From</span>
+                  <img :src="news.publisher.logo.url" alt="publisher logo" />
+                  <a
+                    class="fst-italic"
+                    :href="news.publisher.homepage.url"
+                    target="_blank"
+                  >
+                    {{ news.publisher.name }}</a
+                  >
+                </div>
+                <span class="ps-2">{{
+                  parseDatetime(news.article.datetime as unknown as string)
+                }}</span>
+              </span>
+              <div>
+                <ul class="list-group list-group-horizontal flex-wrap">
+                  <li
+                    class="list-group-item border-0 p-0 me-2"
+                    v-for="(ticker, index) of news.tickers"
+                    :key="index"
+                  >
+                    <RouterLink :to="'/ticker?q=' + ticker" target="_blank">
+                      <span
+                        class="badge rounded-pill text-bg-secondary stocknews-ticker"
+                        >{{ ticker }}</span
+                      >
+                    </RouterLink>
+                  </li>
+                </ul>
               </div>
-              <span class="ps-2">{{
-                parseDatetime(news.article.datetime as unknown as string)
-              }}</span>
-            </span>
-            <div>
-              <ul class="list-group list-group-horizontal flex-wrap">
-                <li
-                  class="list-group-item border-0 p-0 me-2"
-                  v-for="(ticker, index) of news.tickers.slice(0, 5)"
-                  :key="index"
-                >
-                  <RouterLink :to="'/ticker?q=' + ticker" target="_blank">
-                    <span
-                      class="badge rounded-pill text-bg-secondary stocknews-ticker"
-                      >{{ ticker }}</span
-                    >
-                  </RouterLink>
-                </li>
-              </ul>
+              <div>
+                <ul class="list-group list-group-horizontal flex-wrap">
+                  <li
+                    class="list-group-item border-0 p-0 me-2"
+                    v-for="(category, index) of news.categories"
+                    :key="index"
+                  >
+                    <RouterLink :to="'/category?q=' + category" target="_blank">
+                      <span
+                        class="badge rounded-pill text-bg-secondary stocknews-category"
+                        >{{ category }}</span
+                      >
+                    </RouterLink>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </li>
-  </ul>
+      </li>
+    </ul>
+    <nav
+      v-if="newsTotalPage > 1"
+      class="user-select-none my-3"
+      :class="{ 'd-none': newsLoading, 'd-block': !newsLoading }"
+      aria-label="Page navigation"
+    >
+      <ul class="pagination justify-content-center">
+        <li class="page-item" :class="{ disabled: newsPageCurrent === 1 }">
+          <a
+            class="page-link"
+            href="#"
+            @click="onNewsSwitchToPage(newsPageCurrent - 1)"
+            >Previous</a
+          >
+        </li>
+        <li v-if="newsFirstPage !== 1" class="page-item">
+          <a class="page-link" href="#" @click="onNewsSwitchToPage(1)">1</a>
+        </li>
+        <li v-if="newsFirstPage !== 1" class="page-item disabled">
+          <a class="page-link">...</a>
+        </li>
+        <li
+          v-for="i in newsLastPage - newsFirstPage + 1"
+          :key="i"
+          class="page-item"
+          :class="{
+            active: i + newsFirstPage - 1 === newsPageCurrent,
+          }"
+        >
+          <a
+            class="page-link"
+            href="#"
+            @click="onNewsSwitchToPage(i + newsFirstPage - 1)"
+            >{{ i + newsFirstPage - 1 }}</a
+          >
+        </li>
+        <li v-if="newsLastPage !== newsTotalPage" class="page-item disabled">
+          <a class="page-link">...</a>
+        </li>
+        <li v-if="newsLastPage !== newsTotalPage" class="page-item">
+          <a
+            class="page-link"
+            href="#"
+            @click="onNewsSwitchToPage(newsTotalPage)"
+            >{{ newsTotalPage }}</a
+          >
+        </li>
+        <li
+          class="page-item"
+          :class="{ disabled: newsPageCurrent === newsTotalPage }"
+        >
+          <a
+            class="page-link"
+            href="#"
+            @click="onNewsSwitchToPage(newsPageCurrent + 1)"
+            >Next</a
+          >
+        </li>
+      </ul>
+    </nav>
+  </div>
 </template>
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Newsreader");
@@ -104,6 +214,7 @@ export default {
 
 .stocknews-article-description {
   font-size: 1.2em;
+  text-align: justify;
   font-optical-sizing: auto;
   font-family: "Newsreader rev=1";
   font-weight: 300;
@@ -139,7 +250,8 @@ export default {
   width: auto;
 }
 
-.stocknews-ticker {
+.stocknews-ticker,
+.stocknews-category {
   font-size: 0.7em;
   font-weight: 400;
 }

@@ -495,10 +495,10 @@ export default {
               >
                 <div
                   v-for="(item, index) in [
-                    { key: 'algriculture', value: 'Agriculture' },
+                    { key: 'agriculture', value: 'Agriculture' },
                     { key: 'mining', value: 'Mining' },
                     { key: 'construction', value: 'Construction' },
-                    { key: 'manufacuring', value: 'Manufacturing' },
+                    { key: 'manufacturing', value: 'Manufacturing' },
                     { key: 'transportation', value: 'Transportation' },
                     { key: 'wholesale', value: 'Wholesale' },
                     { key: 'retail', value: 'Retail' },

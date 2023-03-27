@@ -1,8 +1,10 @@
 .ipynb_checkpoints
 __pycache__
-.idea
 flask_session
 
+.idea
+Pipfile
+Pipfile.lock
 logs
 knn_ticker.npy
 local_snapshot_us_equity

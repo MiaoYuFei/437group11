@@ -215,7 +215,7 @@ export default {
                 />
                 <label class="form-check-label" for="inputTerms">
                   I agree to
-                  <RouterLink to="/" target="_blank"
+                  <RouterLink to="/termsandconditions" target="_blank"
                     >Terms &amp; Conditions</RouterLink
                   >.
                 </label>

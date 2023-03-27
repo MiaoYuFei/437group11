@@ -1,72 +1,48 @@
 <script lang="ts">
 import NewsContainer from "@/components/NewsContainer.vue";
-import { handleApi } from "@/utilities";
+import { handleApi, type ITicker, type INews } from "@/utilities";
 import * as echarts from "echarts";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 export default {
   data() {
     return {
-      tickerInfo: {
-        active: false,
-        address: {
-          address1: "",
-          city: "",
-          postal_code: "",
-          state: "",
-        },
-        branding: {
-          icon_url: "",
-          logo_url: "",
-        },
-        cik: "",
-        composite_figi: "",
-        currency_name: "",
-        description: "",
-        homepage_url: "",
-        list_date: "",
-        locale: "",
-        market: "",
-        market_cap: 0,
-        name: "",
-        phone_number: "",
-        primary_exchange: "",
-        round_lot: 0,
-        share_class_figi: "",
-        share_class_shares_outstanding: 0,
-        sic_code: "",
-        sic_description: "",
-        ticker: "",
-        ticker_root: "",
-        total_employees: 0,
-        type: "",
-        weighted_shares_outstanding: 0,
-      },
-      news_list: [] as {
-        id: string;
-        article: {
-          title: string;
-          description: string;
-          datetime: string;
-          url: string;
-        };
-        cover_image: {
-          url: string;
-        };
-        publisher: {
-          name: string;
-          homepage: {
-            url: string;
-          };
-          logo: {
-            url: string;
-          };
-        };
-        tickers: string[];
-      }[],
+      tickerInfo: null as ITicker | null,
+      news_list: [] as INews[],
       stockPriceResizeObserver: null as null | ResizeObserver,
       pageLoading: true,
+      newsLoading: true,
+      newsPageCurrent: 1,
+      newsTotalCount: 0,
+      newsError: false,
     };
+  },
+  computed: {
+    newsTotalPage() {
+      return Math.ceil(this.newsTotalCount / 10);
+    },
+    newsFirstPage() {
+      return Math.max(1, this.newsPageCurrent - 2);
+    },
+    newsLastPage() {
+      return Math.min(this.newsTotalPage, this.newsPageCurrent + 2);
+    },
+  },
+  watch: {
+    $route: {
+      handler: function (to: any, from: any) {
+        if (
+          to.query !== undefined &&
+          (from === undefined ||
+            (from !== undefined &&
+              from.query !== undefined &&
+              to.query.q !== from.query.q))
+        ) {
+          this.onNewsSwitchToPage(1);
+        }
+      },
+      immediate: true,
+    },
   },
   methods: {
     onGetTickerInfo(callback: Function | undefined = undefined) {
@@ -87,8 +63,9 @@ export default {
       );
     },
     onGetPrice(callback: Function | undefined = undefined) {
-      const endDate = new Date();
-      const startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
+      // TODO: change to real trading date.
+      // const endDate = new Date();
+      // const startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
       handleApi("post", "/api/stock/getprice", {
         ticker: this.$route.query.q,
         start_date: "2023-03-17",
@@ -99,16 +76,17 @@ export default {
         const code = parseInt(response.data.code);
         const data = response.data.data;
         if (code === 200) {
-          this.drawPriceChart(data.price);
+          this.drawPriceChartAdvanced(data.price);
           if (callback !== undefined) {
             callback();
           }
         }
       });
     },
-    onGetTickerNews() {
+    onGetTickerNews(callback: Function | undefined = undefined) {
       const apiData = {
         ticker: this.$route.query.q,
+        page: this.newsPageCurrent,
       };
       handleApi("post", "/api/news/getnewsbyticker", apiData).then(
         (response) => {
@@ -116,11 +94,27 @@ export default {
           const data = response.data.data;
           if (code === 200) {
             this.news_list = data.news_list;
+            if (data.total_count !== undefined) {
+              this.newsTotalCount = data.total_count;
+            }
+            if (callback !== undefined) {
+              callback();
+            }
+          } else {
+            this.newsError = true;
           }
         }
       );
     },
-    drawPriceChart(
+    onNewsSwitchToPage(page: number) {
+      this.newsError = false;
+      this.newsPageCurrent = page;
+      this.newsLoading = true;
+      this.onGetTickerNews(() => {
+        this.newsLoading = false;
+      });
+    },
+    drawPriceChartAdvanced(
       data: {
         timestamp: number;
         open: number;
@@ -130,13 +124,13 @@ export default {
       }[]
     ) {
       const chartObj = echarts.init(
-        this.$refs.chart_stockprice as HTMLDivElement
+        this.$refs.chart_stockprice_advanced as HTMLDivElement
       );
       this.stockPriceResizeObserver = new ResizeObserver(() =>
         chartObj.resize()
       );
       this.stockPriceResizeObserver.observe(
-        this.$refs.chart_stockprice as Element
+        this.$refs.chart_stockprice_advanced as Element
       );
       const chartOption: echarts.EChartsOption = {
         tooltip: {
@@ -152,6 +146,14 @@ export default {
         yAxis: {
           type: "value",
           scale: true,
+          axisLabel: {
+            margin: 20,
+          },
+          name: this.tickerInfo?.currency_name,
+          nameTextStyle: {
+            padding: [0, 60, 0, 0],
+            align: "center",
+          },
         },
         series: {
           type: "candlestick",
@@ -182,11 +184,10 @@ export default {
         this.pageLoading = false;
       });
     });
-    this.onGetTickerNews();
   },
-  unmounted() {
+  beforeUnmount() {
     this.stockPriceResizeObserver?.unobserve(
-      this.$refs.chart_stockprice as Element
+      this.$refs.chart_stockprice_advanced as Element
     );
   },
   components: {
@@ -210,14 +211,17 @@ export default {
       </div>
     </div>
     <div v-show="!pageLoading" class="container">
-      <div class="my-3 row gap-3">
+      <div v-if="tickerInfo" class="my-3 row gap-3">
         <div class="col-12">
           <div class="card">
             <div class="card-body">
               <div class="card-title mb-3">
                 <div class="d-flex align-items-center gap-2">
                   <img
-                    v-if="tickerInfo.branding.logo_url !== undefined"
+                    v-if="
+                      tickerInfo.branding.logo_url !== undefined &&
+                      tickerInfo.branding.logo_url !== null
+                    "
                     :src="tickerInfo.branding.logo_url"
                     alt="brand logo"
                     style="max-height: 3em; width: auto"
@@ -227,13 +231,21 @@ export default {
               </div>
               <div class="card-text">
                 <h6 class="text-muted">
-                  {{ $route.query.q + ", " + tickerInfo.sic_description }}
+                  {{
+                    tickerInfo.ticker +
+                    (tickerInfo.sic_description !== undefined &&
+                    tickerInfo.sic_description !== null
+                      ? ", " + tickerInfo.sic_description
+                      : "")
+                  }}
                 </h6>
                 <div>
                   <span
                     v-if="
                       tickerInfo.address.city !== undefined &&
-                      tickerInfo.address.state !== undefined
+                      tickerInfo.address.state !== undefined &&
+                      tickerInfo.address.city !== null &&
+                      tickerInfo.address.state !== null
                     "
                     class="text-muted"
                     >{{
@@ -241,7 +253,12 @@ export default {
                     }}</span
                   >
                 </div>
-                <div v-if="tickerInfo.homepage_url !== undefined">
+                <div
+                  v-if="
+                    tickerInfo.homepage_url !== undefined &&
+                    tickerInfo.homepage_url !== null
+                  "
+                >
                   <a
                     :href="tickerInfo.homepage_url"
                     target="_blank"
@@ -253,12 +270,24 @@ export default {
                     >Home Page</a
                   >
                 </div>
-                <div v-if="tickerInfo.phone_number !== undefined">
-                  <FontAwesomeIcon
-                    icon="fa-phone"
-                    class="me-1"
-                  ></FontAwesomeIcon>
-                  {{ tickerInfo.phone_number }}
+                <div
+                  v-if="
+                    tickerInfo.phone_number !== undefined &&
+                    tickerInfo.phone_number !== null
+                  "
+                >
+                  <a
+                    :href="
+                      'tel:' + tickerInfo.phone_number.replace(/[^0-9]/g, '')
+                    "
+                    class="stocknews-link"
+                  >
+                    <FontAwesomeIcon
+                      icon="fa-phone"
+                      class="me-1"
+                    ></FontAwesomeIcon>
+                    {{ tickerInfo.phone_number }}
+                  </a>
                 </div>
               </div>
             </div>
@@ -281,7 +310,16 @@ export default {
               <div class="card-text">
                 <table class="table table-striped">
                   <tbody>
-                    <tr v-if="tickerInfo.sic_code !== undefined">
+                    <tr>
+                      <td>Category</td>
+                      <td>{{ tickerInfo.category }}</td>
+                    </tr>
+                    <tr
+                      v-if="
+                        tickerInfo.sic_code !== undefined &&
+                        tickerInfo.sic_code !== null
+                      "
+                    >
                       <td>SIC Code</td>
                       <td>{{ tickerInfo.sic_code }}</td>
                     </tr>
@@ -318,7 +356,7 @@ export default {
               <div class="card-text">
                 <div
                   style="width: 100%; min-height: 30rem"
-                  ref="chart_stockprice"
+                  ref="chart_stockprice_advanced"
                 ></div>
               </div>
             </div>
@@ -326,10 +364,33 @@ export default {
         </div>
         <div class="col-12">
           <div class="card">
-            <div class="card-header"><h5>News</h5></div>
+            <div class="card-header">
+              <h5>Latest News</h5>
+            </div>
             <div class="card-body">
               <div class="card-text">
-                <NewsContainer :newsData="news_list" />
+                <div
+                  v-if="newsLoading"
+                  class="d-flex align-items-center justify-content-center gap-2 my-2"
+                >
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  Loading news...
+                </div>
+                <div v-show="!newsLoading">
+                  <NewsContainer
+                    :newsData="news_list"
+                    :newsTotalPage="newsTotalPage"
+                    :newsTotalCount="newsTotalCount"
+                    :newsPageCurrent="newsPageCurrent"
+                    :newsFirstPage="newsFirstPage"
+                    :newsLastPage="newsLastPage"
+                    :newsLoading="newsLoading"
+                    :newsError="newsError"
+                    @newsSwitchToPage="onNewsSwitchToPage"
+                  />
+                </div>
               </div>
             </div>
           </div>

@@ -113,13 +113,14 @@ class PolyUrlFactory:
             return url
 
         @staticmethod
-        def news(self, ticker: str, sort_asc: bool = True, limit: int = 1000, sort: str = "published_utc"):
+        def news(self, ticker: str, sort_asc: bool = True, limit: int = 1000, sort: str = "published_utc", publish_utc_gte: str=None):
             """Generate the url for news data."""
             version = "v2"
             data_path = "reference"
             sort_order = "asc" if sort_asc else "desc"
             req_url = f"{version}/{data_path}/news?ticker={ticker}"
             optional_url = f"&order={sort_order}&limit={str(limit)}&sort={sort}"
+            optional_url += f"&published_utc.gte={str(publish_utc_gte)}" if publish_utc_gte else ""
             url = f"{self.BASE_URL}{req_url}{optional_url}&{self.api_url}"
             return url
 

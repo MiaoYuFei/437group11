@@ -57,9 +57,6 @@ export default {
       window.open("/search?q=" + encodeURIComponent(this.searchText), "_blank");
     },
   },
-  mounted() {
-    this.onUserStatus();
-  },
   watch: {
     $route() {
       this.onUserStatus();
@@ -79,6 +76,7 @@ export default {
     <div class="container-fluid">
       <button
         class="navbar-toggler"
+        :class="{ 'd-none': !($route.path === '/myaccount') }"
         type="button"
         data-bs-toggle="offcanvas"
         data-bs-target="#offcanvas"
@@ -86,7 +84,7 @@ export default {
         aria-expanded="false"
         aria-label="Toggle navigation"
       >
-        <span class="navbar-toggler-icon"></span>
+        <FontAwesomeIcon icon="fa-table-list" />
       </button>
       <RouterLink class="navbar-brand d-flex align-items-center gap-1" to="/">
         <img
@@ -107,7 +105,7 @@ export default {
         aria-expanded="false"
         aria-label="Toggle navigation"
       >
-        <span class="navbar-toggler-icon"></span>
+        <FontAwesomeIcon icon="fa-bars" />
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">

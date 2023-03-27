@@ -2,14 +2,23 @@
 
 import base64
 import json
-import os
-import requests
 import mysql.connector
+import os
+import platform
+import requests
 
 if os.name == "nt":
     cnxconfig = {
         "host": "127.0.0.1",
         "port": 3306,
+        "user": "stocknews",
+        "password": "Cse@437s",
+        "database": "stocknews",
+        "pool_size": 32
+    }
+elif platform.system() == "Darwin":
+    cnxconfig = {
+        "unix_socket": "/tmp/mysql.sock",
         "user": "stocknews",
         "password": "Cse@437s",
         "database": "stocknews",
@@ -23,6 +32,7 @@ else:
         "database": "stocknews",
         "pool_size": 32
     }
+
 cnxpool = mysql.connector.pooling.MySQLConnectionPool(**cnxconfig)
 
 @staticmethod

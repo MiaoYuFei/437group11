@@ -6,11 +6,11 @@ export default {
     newsData: null,
     newsTotalPage: {
       type: Number,
-      required: true,
+      required: false,
     },
     newsPageCurrent: {
       type: Number,
-      required: true,
+      required: false,
     },
     newsLoading: {
       type: Boolean,
@@ -18,15 +18,11 @@ export default {
     },
     newsFirstPage: {
       type: Number,
-      required: true,
+      required: false,
     },
     newsLastPage: {
       type: Number,
-      required: true,
-    },
-    newsTotalCount: {
-      type: Number,
-      required: true,
+      required: false,
     },
   },
   methods: {
@@ -117,7 +113,7 @@ export default {
                   parseDatetime(news.article.datetime as unknown as string)
                 }}</span>
               </span>
-              <div>
+              <div class="mb-1">
                 <ul class="list-group list-group-horizontal flex-wrap">
                   <li
                     class="list-group-item border-0 p-0 me-2"
@@ -133,7 +129,7 @@ export default {
                   </li>
                 </ul>
               </div>
-              <div>
+              <div class="mb-1">
                 <ul class="list-group list-group-horizontal flex-wrap">
                   <li
                     class="list-group-item border-0 p-0 me-2"
@@ -149,7 +145,7 @@ export default {
                   </li>
                 </ul>
               </div>
-              <div>
+              <div class="mb-1">
                 <div class="d-inline me-1">
                   <a href="#" @click="onLikeClick(news)">
                     <img
@@ -189,7 +185,13 @@ export default {
       </li>
     </ul>
     <nav
-      v-if="newsTotalPage > 1"
+      v-if="
+        newsPageCurrent !== undefined &&
+        newsFirstPage !== undefined &&
+        newsLastPage !== undefined &&
+        newsTotalPage !== undefined &&
+        newsTotalPage > 1
+      "
       class="user-select-none my-3"
       :class="{ 'd-none': newsLoading, 'd-block': !newsLoading }"
       aria-label="Page navigation"
@@ -199,7 +201,7 @@ export default {
           <a
             class="page-link"
             href="#"
-            @click="onNewsSwitchToPage(newsPageCurrent - 1)"
+            @click="onNewsSwitchToPage(newsPageCurrent! - 1)"
             >Previous</a
           >
         </li>
@@ -220,7 +222,7 @@ export default {
           <a
             class="page-link"
             href="#"
-            @click="onNewsSwitchToPage(i + newsFirstPage - 1)"
+            @click="onNewsSwitchToPage(i + newsFirstPage! - 1)"
             >{{ i + newsFirstPage - 1 }}</a
           >
         </li>
@@ -231,7 +233,7 @@ export default {
           <a
             class="page-link"
             href="#"
-            @click="onNewsSwitchToPage(newsTotalPage)"
+            @click="onNewsSwitchToPage(newsTotalPage!)"
             >{{ newsTotalPage }}</a
           >
         </li>
@@ -242,7 +244,7 @@ export default {
           <a
             class="page-link"
             href="#"
-            @click="onNewsSwitchToPage(newsPageCurrent + 1)"
+            @click="onNewsSwitchToPage(newsPageCurrent! + 1)"
             >Next</a
           >
         </li>

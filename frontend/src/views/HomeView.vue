@@ -5,24 +5,13 @@ import { handleApi, type INews } from "@/utilities";
 export default {
   data() {
     return {
-      news_list: [] as INews[],
+      newsList: [] as INews[],
       newsLoading: true,
+      newsNeedMore: true,
       newsPageCurrent: 1,
-      newsTotalCount: 0,
       newsError: false,
       newsErrorMessage: "",
     };
-  },
-  computed: {
-    newsTotalPage() {
-      return Math.ceil(this.newsTotalCount / 10);
-    },
-    newsFirstPage() {
-      return Math.max(1, this.newsPageCurrent - 2);
-    },
-    newsLastPage() {
-      return Math.min(this.newsTotalPage, this.newsPageCurrent + 2);
-    },
   },
   methods: {
     onGetTopNews(callback: Function | undefined = undefined) {
@@ -32,11 +21,9 @@ export default {
       handleApi("post", "/api/news/getnewslatest", apiData).then((response) => {
         const code = parseInt(response.data.code);
         const data = response.data.data;
+        this.newsNeedMore = false;
         if (code === 200) {
-          this.news_list = data.news_list;
-          if (data.total_count !== undefined) {
-            this.newsTotalCount = data.total_count;
-          }
+          this.newsList = this.newsList.concat(data.news_list);
           if (callback !== undefined) {
             callback(true);
           }
@@ -49,13 +36,29 @@ export default {
         }
       });
     },
-    onNewsSwitchToPage(page: number) {
+    onNewsInfinitScroll(page: number | undefined = undefined) {
       this.newsError = false;
-      this.newsPageCurrent = page;
+      if (page !== undefined) {
+        this.newsPageCurrent = page;
+      } else {
+        this.newsPageCurrent += 1;
+      }
       this.newsLoading = true;
       this.onGetTopNews(() => {
         this.newsLoading = false;
       });
+    },
+    onScroll(event: Event) {
+      const scrollSoucre = event.target as HTMLElement;
+      if (
+        scrollSoucre.scrollTop + scrollSoucre.clientHeight >=
+        0.9 * scrollSoucre.scrollHeight
+      ) {
+        if (!this.newsNeedMore) {
+          this.newsNeedMore = true;
+          this.onNewsInfinitScroll();
+        }
+      }
     },
   },
   watch: {
@@ -68,7 +71,7 @@ export default {
               from.query !== undefined &&
               to.query.q !== from.query.q))
         ) {
-          this.onNewsSwitchToPage(1);
+          this.onNewsInfinitScroll(1);
         }
       },
       immediate: true,
@@ -84,20 +87,8 @@ export default {
 };
 </script>
 <template>
-  <div class="overflow-auto">
-    <div
-      class="flex-fill justify-content-center align-items-center h-100"
-      :class="{ 'd-flex': newsLoading, 'd-none': !newsLoading }"
-    >
-      <div
-        class="spinner-border text-primary"
-        role="status"
-        style="width: 4rem; height: 4rem"
-      >
-        <span class="visually-hidden">Loading...</span>
-      </div>
-    </div>
-    <div v-if="!newsLoading" class="container my-3">
+  <div class="overflow-auto" @scroll="onScroll">
+    <div class="container my-3">
       <div v-if="newsError" class="card">
         <div class="card-header"><h5>Error</h5></div>
         <div class="card-body">
@@ -106,19 +97,28 @@ export default {
           </p>
         </div>
       </div>
-      <div v-if="!newsError && news_list.length > 0">
+      <div v-if="!newsError">
         <h4 class="mb-3">Home - Latest News</h4>
       </div>
       <NewsContainer
-        :newsData="news_list"
-        :newsTotalPage="newsTotalPage"
-        :newsTotalCount="newsTotalCount"
+        :newsData="newsList"
         :newsPageCurrent="newsPageCurrent"
-        :newsFirstPage="newsFirstPage"
-        :newsLastPage="newsLastPage"
         :newsLoading="newsLoading"
-        @newsSwitchToPage="onNewsSwitchToPage"
+        class="mb-3"
       />
+      <div
+        class="flex-fill justify-content-center align-items-center h-100"
+        :class="{ 'd-flex': newsLoading, 'd-none': !newsLoading }"
+      >
+        <div
+          class="spinner-border text-primary me-1"
+          role="status"
+          style="width: 3rem; height: 3rem"
+        >
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        Loading news...
+      </div>
     </div>
   </div>
 </template>

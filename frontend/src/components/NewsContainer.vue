@@ -1,5 +1,5 @@
 <script lang="ts">
-import { parseDatetime } from "@/utilities";
+import { handleApi, parseDatetime } from "@/utilities";
 
 export default {
   props: {
@@ -31,6 +31,34 @@ export default {
   },
   methods: {
     parseDatetime,
+    onLikeClick(item: any) {
+      item.liked = !item.liked;
+      const apiData = {
+        news_id: item.id,
+        liked: item.liked,
+      };
+      handleApi("post", "/api/news/setnewslike", apiData).then((response) => {
+        const code = parseInt(response.data.code);
+        if (code === 200) {
+          // Currently do nothing
+        }
+      });
+    },
+    onCollectClick(item: any) {
+      item.collected = !item.collected;
+      const apiData = {
+        news_id: item.id,
+        collected: item.collected,
+      };
+      handleApi("post", "/api/news/setnewscollect", apiData).then(
+        (response) => {
+          const code = parseInt(response.data.code);
+          if (code === 200) {
+            // Currently do nothing
+          }
+        }
+      );
+    },
     onNewsSwitchToPage(page: number) {
       this.$emit("newsSwitchToPage", page);
     },
@@ -120,6 +148,40 @@ export default {
                     </RouterLink>
                   </li>
                 </ul>
+              </div>
+              <div>
+                <div class="d-inline me-1">
+                  <a href="#" @click="onLikeClick(news)">
+                    <img
+                      v-show="news.liked"
+                      src="img/like.png"
+                      alt="Unlike"
+                      style="height: 2em"
+                    />
+                    <img
+                      v-show="!news.liked"
+                      src="img/no_like.png"
+                      alt="Like"
+                      style="height: 2em"
+                    />
+                  </a>
+                </div>
+                <div class="d-inline">
+                  <a href="#" @click="onCollectClick(news)">
+                    <img
+                      v-show="news.collected"
+                      src="img/collect.png"
+                      alt="Uncollect"
+                      style="height: 2em"
+                    />
+                    <img
+                      v-show="!news.collected"
+                      src="img/no_collect.png"
+                      alt="Collect"
+                      style="height: 2em"
+                    />
+                  </a>
+                </div>
               </div>
             </div>
           </div>

@@ -564,5 +564,43 @@ def getNewsCollection() -> Response:
 
     return make_response(jsonify(responseData), 200)
 
+@app.route("/api/news/setnewslike", methods=["POST"])
+def setNewsLike() -> Response:
+    requestData = {
+      "newsid": request.form["newsid"],
+      "liked": request.form["liked"],
+    }
+    responseData = {
+        "code": "200",
+        "data": {}
+    }
+
+    if is_session_user_set():
+        requestData["userid"] = session["user"]["idToken"]
+        
+    else:
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
+@app.route("/api/news/setnewscollect", methods=["POST"])
+def setNewsCollect() -> Response:
+    requestData = {
+      "newsid": request.form["newsid"],
+      "collected": request.form["collected"],
+    }
+    responseData = {
+        "code": "200",
+        "data": {}
+    }
+
+    if is_session_user_set():
+        requestData["userid"] = session["user"]["idToken"]
+        
+    else:
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
 if __name__ == "__main__":
     app.run(port=8081, use_reloader=True)

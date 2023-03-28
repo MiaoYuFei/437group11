@@ -567,7 +567,7 @@ def getNewsCollection() -> Response:
 @app.route("/api/news/setnewslike", methods=["POST"])
 def setNewsLike() -> Response:
     requestData = {
-      "newsid": request.form["newsid"],
+      "newsId": request.form["newsId"],
       "liked": request.form["liked"],
     }
     responseData = {
@@ -576,7 +576,7 @@ def setNewsLike() -> Response:
     }
 
     if is_session_user_set():
-        requestData["userid"] = session["user"]["idToken"]
+        requestData["userId"] = session["user"]["idToken"]
         
     else:
         responseData["code"] = "403"
@@ -586,7 +586,7 @@ def setNewsLike() -> Response:
 @app.route("/api/news/setnewscollect", methods=["POST"])
 def setNewsCollect() -> Response:
     requestData = {
-      "newsid": request.form["newsid"],
+      "newsId": request.form["newsId"],
       "collected": request.form["collected"],
     }
     responseData = {
@@ -595,7 +595,7 @@ def setNewsCollect() -> Response:
     }
 
     if is_session_user_set():
-        requestData["userid"] = session["user"]["idToken"]
+        requestData["userId"] = session["user"]["idToken"]
         
     else:
         responseData["code"] = "403"

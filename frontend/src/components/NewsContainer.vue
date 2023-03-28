@@ -30,7 +30,7 @@ export default {
     onLikeClick(item: any) {
       item.liked = !item.liked;
       const apiData = {
-        news_id: item.id,
+        newsId: item.id,
         liked: item.liked,
       };
       handleApi("post", "/api/news/setnewslike", apiData).then((response) => {
@@ -43,7 +43,7 @@ export default {
     onCollectClick(item: any) {
       item.collected = !item.collected;
       const apiData = {
-        news_id: item.id,
+        newsId: item.id,
         collected: item.collected,
       };
       handleApi("post", "/api/news/setnewscollect", apiData).then(

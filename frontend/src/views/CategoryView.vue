@@ -9,7 +9,7 @@ import {
 export default {
   data() {
     return {
-      news_list: [] as INews[],
+      newsList: [] as INews[],
       newsLoading: true,
       newsPageCurrent: 1,
       newsTotalCount: 0,
@@ -47,7 +47,7 @@ export default {
           const code = parseInt(response.data.code);
           const data = response.data.data;
           if (code === 200) {
-            this.news_list = data.newsList;
+            this.newsList = data.newsList;
             if (data.total_count !== undefined) {
               this.newsTotalCount = data.total_count;
             }
@@ -113,7 +113,7 @@ export default {
           </p>
         </div>
       </div>
-      <div v-if="!newsError && news_list.length <= 0" class="card">
+      <div v-if="!newsError && newsList.length <= 0" class="card">
         <div class="card-header"><h5>Info</h5></div>
         <div class="card-body">
           <p class="card-text" style="text-align: justify">
@@ -129,7 +129,7 @@ export default {
           </p>
         </div>
       </div>
-      <div v-if="!newsError && news_list.length > 0">
+      <div v-if="!newsError && newsList.length > 0">
         <h4 class="mb-3">
           News for:
           <strong>
@@ -142,7 +142,7 @@ export default {
         </h4>
       </div>
       <NewsContainer
-        :newsData="news_list"
+        :newsData="newsList"
         :newsTotalPage="newsTotalPage"
         :newsTotalCount="newsTotalCount"
         :newsPageCurrent="newsPageCurrent"

@@ -11,7 +11,7 @@ enum NewsSource {
 export default {
   data() {
     return {
-      news_list: [] as INews[],
+      newsList: [] as INews[],
       email: "",
       signedIn: false,
       emailVerified: false,
@@ -81,7 +81,7 @@ export default {
         const code = parseInt(response.data.code);
         const data = response.data.data;
         if (code == 200) {
-          this.news_list = data.news_list;
+          this.newsList = data.newsList;
           if (data.total_count !== undefined) {
             this.newsTotalCount = data.total_count;
           }
@@ -214,9 +214,8 @@ export default {
       </div>
       <div v-show="!newsLoading">
         <NewsContainer
-          :newsData="news_list"
+          :newsData="newsList"
           :newsTotalPage="newsTotalPage"
-          :newsTotalCount="newsTotalCount"
           :newsPageCurrent="newsPageCurrent"
           :newsFirstPage="newsFirstPage"
           :newsLastPage="newsLastPage"

@@ -362,7 +362,7 @@ The raw resource if successful.
 
 - data:
 
-  - news_list: list of news. Refer to utilities.ts INews for news format.
+  - newsList: list of news. Refer to utilities.ts INews for news format.
 
   - total_count: total number of news. Only returned for first page.
 
@@ -380,7 +380,7 @@ The raw resource if successful.
 
 - data:
 
-  - news_list: list of news. Refer to vue file for news format.
+  - newsList: list of news. Refer to vue file for news format.
 
   - total_count: total number of news. Only returned for first page.
 
@@ -398,7 +398,7 @@ The raw resource if successful.
 
 - data:
 
-  - news_list: list of news. Refer to vue file for news format.
+  - newsList: list of news. Refer to vue file for news format.
 
   - total_count: total number of news. Only returned for first page.
 

@@ -154,13 +154,13 @@ export default {
                   <a href="#" @click="onLikeClick(news)">
                     <img
                       v-show="news.liked"
-                      src="img/like.png"
+                      src="/src/assets/icon/like.png"
                       alt="Unlike"
                       style="height: 2em"
                     />
                     <img
                       v-show="!news.liked"
-                      src="img/no_like.png"
+                      src="/src/assets/icon/no_like.png"
                       alt="Like"
                       style="height: 2em"
                     />
@@ -170,13 +170,13 @@ export default {
                   <a href="#" @click="onCollectClick(news)">
                     <img
                       v-show="news.collected"
-                      src="img/collect.png"
+                      src="/src/assets/icon/collect.png"
                       alt="Uncollect"
                       style="height: 2em"
                     />
                     <img
                       v-show="!news.collected"
-                      src="img/no_collect.png"
+                      src="/src/assets/icon/no_collect.png"
                       alt="Collect"
                       style="height: 2em"
                     />

@@ -158,6 +158,11 @@ export interface INews {
   categories: string[];
 }
 
+export enum ChartType {
+  Basic,
+  Advanced,
+}
+
 export {
   getFormData,
   handleApi,

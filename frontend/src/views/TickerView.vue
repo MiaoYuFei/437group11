@@ -1,28 +1,30 @@
 <script lang="ts">
 import $ from "jquery";
 import NewsContainer from "@/components/NewsContainer.vue";
-import { handleApi, type ITicker, type INews } from "@/utilities";
+import { handleApi, type ITicker, type INews, ChartType } from "@/utilities";
 import * as echarts from "echarts";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-
-enum ChartType {
-  Basic,
-  Advanced,
-}
+import { shallowRef } from "vue";
 
 export default {
   data() {
     return {
       tickerInfo: null as ITicker | null,
-      news_list: [] as INews[],
-      stockPriceResizeObserver: null as null | ResizeObserver,
+      newsList: [] as INews[],
       pageLoading: true,
       newsLoading: true,
       newsPageCurrent: 1,
       newsTotalCount: 0,
       newsError: false,
       newsErrorMessage: "",
-      pricaeChartObj: null as echarts.ECharts | null,
+      priceData: [] as {
+        timestamp: number;
+        open: number;
+        close: number;
+        low: number;
+        high: number;
+      }[],
+      priceChartObj: shallowRef<echarts.ECharts | null>(null),
       priceChartType: ChartType.Basic,
     };
   },
@@ -55,14 +57,6 @@ export default {
         }
       );
     },
-    onSetPriceChartType() {
-      const chartType = $("input[name='btnPriceChartType']:checked").val();
-      if (chartType === "charttypebasic") {
-        this.priceChartType = ChartType.Basic;
-      } else if (chartType === "charttypeadvanced") {
-        this.priceChartType = ChartType.Advanced;
-      }
-    },
     onGetPrice(callback: Function | undefined = undefined) {
       // TODO: change to real trading date.
       // const endDate = new Date();
@@ -77,7 +71,7 @@ export default {
         const code = parseInt(response.data.code);
         const data = response.data.data;
         if (code === 200) {
-          this.drawPriceChartAdvanced(data.price);
+          this.priceData = data.price;
           if (callback !== undefined) {
             callback();
           }
@@ -94,7 +88,7 @@ export default {
           const code = parseInt(response.data.code);
           const data = response.data.data;
           if (code === 200) {
-            this.news_list = data.news_list;
+            this.newsList = data.news_list;
             if (data.total_count !== undefined) {
               this.newsTotalCount = data.total_count;
             }
@@ -119,6 +113,71 @@ export default {
         this.newsLoading = false;
       });
     },
+    onSwitchPriceChartType() {
+      if ($("#btnPriceChartBasic").prop("checked") === true) {
+        this.priceChartType = ChartType.Basic;
+        this.drawPriceChartBasic(this.priceData);
+      } else {
+        this.priceChartType = ChartType.Advanced;
+        this.drawPriceChartAdvanced(this.priceData);
+      }
+    },
+    drawPriceChartBasic(
+      data: {
+        timestamp: number;
+        open: number;
+        close: number;
+        low: number;
+        high: number;
+      }[]
+    ) {
+      if (this.priceChartObj !== null) {
+        this.priceChartObj.dispose();
+      }
+      this.priceChartObj = echarts.init(
+        this.$refs.chart_stockprice as HTMLDivElement
+      );
+      const chartOption: echarts.EChartsOption = {
+        tooltip: {
+          trigger: "axis",
+          axisPointer: {
+            type: "cross",
+          },
+          formatter: (params: any) => {
+            const item = params[0];
+            const timestamp = item.axisValueLabel;
+            const price = item.data[1];
+            return `<strong>${timestamp}</strong><p>price: ${this.tickerInfo?.currency_name} ${price}</p>`;
+          },
+        },
+        xAxis: {
+          type: "time",
+          scale: true,
+        },
+        yAxis: {
+          type: "value",
+          scale: true,
+          axisLabel: {
+            margin: 20,
+          },
+          name: this.tickerInfo?.currency_name,
+          nameTextStyle: {
+            padding: [0, 60, 0, 0],
+            align: "center",
+          },
+        },
+        series: {
+          type: "line",
+          data: data.map((item) => [item.timestamp, item.close]),
+        },
+      };
+      this.priceChartObj.setOption(chartOption);
+      $(window)
+        .off("resize.echarts")
+        .on("resize.echarts", () => {
+          this.priceChartObj?.resize();
+        });
+    },
     drawPriceChartAdvanced(
       data: {
         timestamp: number;
@@ -128,6 +187,12 @@ export default {
         high: number;
       }[]
     ) {
+      if (this.priceChartObj !== null) {
+        this.priceChartObj.dispose();
+      }
+      this.priceChartObj = echarts.init(
+        this.$refs.chart_stockprice as HTMLDivElement
+      );
       const chartOption: echarts.EChartsOption = {
         tooltip: {
           trigger: "axis",
@@ -168,7 +233,12 @@ export default {
           },
         },
       };
-      this.pricaeChartObj?.setOption(chartOption);
+      this.priceChartObj.setOption(chartOption);
+      $(window)
+        .off("resize.echarts")
+        .on("resize.echarts", () => {
+          this.priceChartObj?.resize();
+        });
     },
   },
   watch: {
@@ -186,11 +256,6 @@ export default {
       },
       immediate: true,
     },
-    priceChartType: function (to: ChartType, from: ChartType) {
-      if (to !== from) {
-        console.log("priceChartType changed to: " + to);
-      }
-    },
   },
   created() {
     document.title = "Ticker - " + (this as any).$projectName;
@@ -198,23 +263,12 @@ export default {
   mounted() {
     this.onGetTickerInfo(() => {
       this.onGetPrice(() => {
-        this.pricaeChartObj = echarts.init(
-          this.$refs.chart_stockprice as HTMLDivElement
-        );
-        this.stockPriceResizeObserver = new ResizeObserver(() =>
-          this.pricaeChartObj?.resize()
-        );
-        this.stockPriceResizeObserver.observe(
-          this.$refs.chart_stockprice as Element
-        );
+        $(() => {
+          this.drawPriceChartBasic(this.priceData);
+        });
         this.pageLoading = false;
       });
     });
-  },
-  beforeUnmount() {
-    this.stockPriceResizeObserver?.unobserve(
-      this.$refs.chart_stockprice as Element
-    );
   },
   components: {
     NewsContainer,
@@ -417,10 +471,10 @@ export default {
                     class="btn-check"
                     name="btnPriceChartType"
                     id="btnPriceChartBasic"
-                    value="charttypebasic"
+                    value="pricechartbasic"
                     autocomplete="off"
                     checked
-                    @click="onSetPriceChartType"
+                    @click="onSwitchPriceChartType"
                   />
                   <label
                     class="btn btn-outline-primary"
@@ -432,9 +486,9 @@ export default {
                     class="btn-check"
                     name="btnPriceChartType"
                     id="btnPriceChartAdvanced"
-                    value="charttypeadvanced"
+                    value="pricechartadvanced"
                     autocomplete="off"
-                    @click="onSetPriceChartType"
+                    @click="onSwitchPriceChartType"
                   />
                   <label
                     class="btn btn-outline-primary"
@@ -443,7 +497,7 @@ export default {
                   >
                 </div>
                 <div
-                  style="width: 100%; min-height: 30rem"
+                  style="width: 100%; height: 30rem"
                   ref="chart_stockprice"
                 ></div>
               </div>
@@ -478,7 +532,7 @@ export default {
                 </div>
                 <div v-show="!newsLoading">
                   <NewsContainer
-                    :newsData="news_list"
+                    :newsData="newsList"
                     :newsTotalPage="newsTotalPage"
                     :newsTotalCount="newsTotalCount"
                     :newsPageCurrent="newsPageCurrent"

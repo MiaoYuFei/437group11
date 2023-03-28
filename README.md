@@ -491,3 +491,19 @@ Please call `then` function on it.
 `);`
 
 Notice: Don't forget parseInt on code as the data from backend is all string. Don't forget response.data.data (two data).
+
+
+#backend data update rules:
+
+1. when user like or dislike, use the user hash id, locate the user ticker pref dict in user_ticker_pref collection on firestore
+ * for each ticker in the tickers filed in that new article, located in industry_data/{industry_name}/
+ * find news article by news_hash_id (doc_name),
+ * then find tickers field. 
+ * use ticker_hash collection to map ticker to ticker_hash_id
+ * then use ticker_hash_id to update (+1 or -1) for that user's user ticker pref dict in user_ticker_pref collection on firestore.
+
+2. when user want news feed, locate user news ranking by:
+ * go to preferences_scores_user_rank collection on firestore
+ * locate doc by using user_hash_id as key
+ * get all data in that doc
+ * rank the dictionary with key=new_hash_id and value=score, rank from max score to min score.

@@ -88,7 +88,7 @@ export default {
       </button>
       <RouterLink class="navbar-brand d-flex align-items-center gap-1" to="/">
         <img
-          src="/src/assets/icon/big_stocknews.svg"
+          src="/src/assets/icon/logo.svg"
           alt="Logo"
           width="30"
           height="24"

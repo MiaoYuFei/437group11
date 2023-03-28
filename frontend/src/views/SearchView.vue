@@ -5,7 +5,7 @@ import { handleApi, type INews } from "@/utilities";
 export default {
   data() {
     return {
-      news_list: [] as INews[],
+      newsList: [] as INews[],
       newsLoading: true,
       newsPageCurrent: 1,
       newsTotalCount: 0,
@@ -33,7 +33,7 @@ export default {
         const code = parseInt(response.data.code);
         const data = response.data.data;
         if (code === 200) {
-          this.news_list = data.news_list;
+          this.newsList = data.newsList;
           if (data.total_count !== undefined) {
             this.newsTotalCount = data.total_count;
           }
@@ -93,18 +93,18 @@ export default {
       </div>
     </div>
     <div v-if="!newsLoading" class="container my-3">
-      <div v-if="!newsError && news_list.length > 0">
+      <div v-if="!newsError && newsList.length > 0">
         <h4 class="mb-3">
           Search results for <strong>{{ $route.query.q }}</strong
           >:
         </h4>
       </div>
-      <span v-if="news_list.length <= 0">
+      <span v-if="newsList.length <= 0">
         No news found for <strong>{{ $route.query.q }}</strong
         >.
       </span>
       <NewsContainer
-        :newsData="news_list"
+        :newsData="newsList"
         :newsTotalPage="newsTotalPage"
         :newsTotalCount="newsTotalCount"
         :newsPageCurrent="newsPageCurrent"

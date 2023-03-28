@@ -88,7 +88,7 @@ export default {
           const code = parseInt(response.data.code);
           const data = response.data.data;
           if (code === 200) {
-            this.newsList = data.news_list;
+            this.newsList = data.newsList;
             if (data.total_count !== undefined) {
               this.newsTotalCount = data.total_count;
             }

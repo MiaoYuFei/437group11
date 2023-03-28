@@ -285,8 +285,8 @@ class newsdata_helper:
             FROM `news` n \
             INNER JOIN `news_tickers` nt ON n.`id` = nt.`news_id` \
             INNER JOIN `ticker` t ON nt.`ticker_id` = t.`id` \
-            WHERE n.`article_title` LIKE %s OR n.`article_description` LIKE %s"
-            sql_cursor.execute(sql_query, [sql_search_query, sql_search_query])
+            WHERE n.`article_title` LIKE %s OR n.`article_description` LIKE %s OR t.`ticker` LIKE %s;"
+            sql_cursor.execute(sql_query, [sql_search_query, sql_search_query, sql_search_query])
             news_total_count = sql_cursor.fetchone()[0]
         else:
             news_total_count = None
@@ -305,11 +305,11 @@ class newsdata_helper:
             FROM `news` n \
             INNER JOIN `news_tickers` nt ON n.`id` = nt.`news_id` \
             INNER JOIN `ticker` t ON nt.`ticker_id` = t.`id` \
-            WHERE n.`article_title` LIKE %s OR n.`article_description` LIKE %s \
+            WHERE n.`article_title` LIKE %s OR n.`article_description` LIKE %s OR t.`ticker` LIKE %s\
             GROUP BY n.`id` \
             ORDER BY n.`article_datetime` DESC \
             LIMIT 10 OFFSET %s;"
-        sql_cursor.execute(sql_query, [sql_search_query, sql_search_query, offset])
+        sql_cursor.execute(sql_query, [sql_search_query, sql_search_query, sql_search_query, offset])
         news_rows = sql_cursor.fetchall()
         news_columns = [column[0] for column in sql_cursor.description]
         news_list = [dict(zip(news_columns, news_row)) for news_row in news_rows]

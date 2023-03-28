@@ -443,7 +443,7 @@ def getNewsLatest() -> Response:
         return make_response(jsonify(responseData), 200)
 
     responseData["code"] = "200"
-    responseData["data"]["news_list"] = result["results"]
+    responseData["data"]["newsList"] = result["results"]
     if "total_count" in result:
         responseData["data"]["total_count"] = result["total_count"]
 

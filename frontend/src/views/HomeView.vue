@@ -23,7 +23,7 @@ export default {
         const data = response.data.data;
         this.newsNeedMore = false;
         if (code === 200) {
-          this.newsList = this.newsList.concat(data.news_list);
+          this.newsList = this.newsList.concat(data.newsList);
           if (callback !== undefined) {
             callback(true);
           }
@@ -89,6 +89,9 @@ export default {
 <template>
   <div class="overflow-auto" @scroll="onScroll">
     <div class="container my-3">
+      <div>
+        <h4 class="mb-3">Home - Latest News</h4>
+      </div>
       <div v-if="newsError" class="card">
         <div class="card-header"><h5>Error</h5></div>
         <div class="card-body">
@@ -96,9 +99,6 @@ export default {
             Failed to get news. Please try again later. ({{ newsErrorMessage }})
           </p>
         </div>
-      </div>
-      <div v-if="!newsError">
-        <h4 class="mb-3">Home - Latest News</h4>
       </div>
       <NewsContainer
         :newsData="newsList"

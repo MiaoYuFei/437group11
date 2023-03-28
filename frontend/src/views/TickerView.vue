@@ -1,8 +1,14 @@
 <script lang="ts">
+import $ from "jquery";
 import NewsContainer from "@/components/NewsContainer.vue";
 import { handleApi, type ITicker, type INews } from "@/utilities";
 import * as echarts from "echarts";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+
+enum ChartType {
+  Basic,
+  Advanced,
+}
 
 export default {
   data() {
@@ -16,6 +22,8 @@ export default {
       newsTotalCount: 0,
       newsError: false,
       newsErrorMessage: "",
+      pricaeChartObj: null as echarts.ECharts | null,
+      priceChartType: ChartType.Basic,
     };
   },
   computed: {
@@ -46,6 +54,14 @@ export default {
           }
         }
       );
+    },
+    onSetPriceChartType() {
+      const chartType = $("input[name='btnPriceChartType']:checked").val();
+      if (chartType === "charttypebasic") {
+        this.priceChartType = ChartType.Basic;
+      } else if (chartType === "charttypeadvanced") {
+        this.priceChartType = ChartType.Advanced;
+      }
     },
     onGetPrice(callback: Function | undefined = undefined) {
       // TODO: change to real trading date.
@@ -112,15 +128,6 @@ export default {
         high: number;
       }[]
     ) {
-      const chartObj = echarts.init(
-        this.$refs.chart_stockprice_advanced as HTMLDivElement
-      );
-      this.stockPriceResizeObserver = new ResizeObserver(() =>
-        chartObj.resize()
-      );
-      this.stockPriceResizeObserver.observe(
-        this.$refs.chart_stockprice_advanced as Element
-      );
       const chartOption: echarts.EChartsOption = {
         tooltip: {
           trigger: "axis",
@@ -161,7 +168,7 @@ export default {
           },
         },
       };
-      chartObj.setOption(chartOption);
+      this.pricaeChartObj?.setOption(chartOption);
     },
   },
   watch: {
@@ -179,6 +186,11 @@ export default {
       },
       immediate: true,
     },
+    priceChartType: function (to: ChartType, from: ChartType) {
+      if (to !== from) {
+        console.log("priceChartType changed to: " + to);
+      }
+    },
   },
   created() {
     document.title = "Ticker - " + (this as any).$projectName;
@@ -186,13 +198,22 @@ export default {
   mounted() {
     this.onGetTickerInfo(() => {
       this.onGetPrice(() => {
+        this.pricaeChartObj = echarts.init(
+          this.$refs.chart_stockprice as HTMLDivElement
+        );
+        this.stockPriceResizeObserver = new ResizeObserver(() =>
+          this.pricaeChartObj?.resize()
+        );
+        this.stockPriceResizeObserver.observe(
+          this.$refs.chart_stockprice as Element
+        );
         this.pageLoading = false;
       });
     });
   },
   beforeUnmount() {
     this.stockPriceResizeObserver?.unobserve(
-      this.$refs.chart_stockprice_advanced as Element
+      this.$refs.chart_stockprice as Element
     );
   },
   components: {
@@ -395,23 +416,25 @@ export default {
                     type="radio"
                     class="btn-check"
                     name="btnPriceChartType"
-                    id="btnPriceChartStandard"
-                    value="pricechartstandard"
+                    id="btnPriceChartBasic"
+                    value="charttypebasic"
                     autocomplete="off"
                     checked
+                    @click="onSetPriceChartType"
                   />
                   <label
                     class="btn btn-outline-primary"
-                    for="btnPriceChartStandard"
-                    >Standard</label
+                    for="btnPriceChartBasic"
+                    >Basic</label
                   >
                   <input
                     type="radio"
                     class="btn-check"
                     name="btnPriceChartType"
                     id="btnPriceChartAdvanced"
-                    value="pricechartadvanced"
+                    value="charttypeadvanced"
                     autocomplete="off"
+                    @click="onSetPriceChartType"
                   />
                   <label
                     class="btn btn-outline-primary"
@@ -421,7 +444,7 @@ export default {
                 </div>
                 <div
                   style="width: 100%; min-height: 30rem"
-                  ref="chart_stockprice_advanced"
+                  ref="chart_stockprice"
                 ></div>
               </div>
             </div>

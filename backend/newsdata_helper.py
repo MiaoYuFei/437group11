@@ -16,10 +16,8 @@ class newsdata_helper:
         sql_cursor = sql_cnx.cursor()
         if offset == 0:
             sql_query = \
-                "SELECT COUNT(DISTINCT n.`id`) as total_rows \
-                FROM `news` n \
-                INNER JOIN `news_tickers` nt ON n.`id` = nt.`news_id` \
-                INNER JOIN `ticker` t ON nt.`ticker_id` = t.`id`;"
+                "SELECT COUNT(*) \
+                FROM `news` n;"
             sql_cursor.execute(sql_query)
             news_total_count = sql_cursor.fetchone()[0]
         else:

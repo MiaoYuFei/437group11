@@ -14,7 +14,7 @@ export default {
     };
   },
   methods: {
-    onGetTopNews(callback: Function | undefined = undefined) {
+    onGetLatestNews(callback: Function | undefined = undefined) {
       const apiData = {
         page: this.newsPageCurrent,
       };
@@ -44,7 +44,7 @@ export default {
         this.newsPageCurrent += 1;
       }
       this.newsLoading = true;
-      this.onGetTopNews(() => {
+      this.onGetLatestNews(() => {
         this.newsLoading = false;
       });
     },
@@ -111,7 +111,7 @@ export default {
         :class="{ 'd-flex': newsLoading, 'd-none': !newsLoading }"
       >
         <div
-          class="spinner-border text-primary me-1"
+          class="spinner-border text-primary me-2"
           role="status"
           style="width: 3rem; height: 3rem"
         >

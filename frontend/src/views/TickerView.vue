@@ -507,7 +507,7 @@ export default {
         <div class="col-12">
           <div class="card">
             <div class="card-header">
-              <h5>Latest News</h5>
+              <h5>Related News</h5>
             </div>
             <div class="card-body">
               <div class="card-text">

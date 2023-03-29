@@ -91,25 +91,26 @@ def get_sic_category_code_from_sic_code(sic_code: str) -> str:
     if len(sic_code) < 2:
         return None
     sic_category = None
-    if sic_code[0] == "0":
+    sic_code_number = int(sic_code[0:2])
+    if sic_code_number >= 0 and sic_code_number <= 9:
         sic_category = "agriculture"
-    elif sic_code[0] == "1":
+    elif sic_code_number >= 10 and sic_code_number <= 14:
         sic_category = "mining"
-    elif sic_code[0] == "2":
+    elif sic_code_number >= 15 and sic_code_number <= 17:
         sic_category = "construction"
-    elif sic_code[0] == "3":
+    elif sic_code_number >= 20 and sic_code_number <= 39:
         sic_category = "manufacturing"
-    elif sic_code[0] == "4":
+    elif sic_code_number >= 40 and sic_code_number <= 49:
         sic_category = "transportation"
-    elif sic_code[0] == "5":
+    elif sic_code_number >= 50 and sic_code_number <= 51:
         sic_category = "wholesale"
-    elif sic_code[0] == "6":
+    elif sic_code_number >= 52 and sic_code_number <= 59:
         sic_category = "retail"
-    elif sic_code[0] == "7":
+    elif sic_code_number >= 60 and sic_code_number <= 67:
         sic_category = "finance"
-    elif sic_code[0] == "8":
+    elif sic_code_number >= 70 and sic_code_number <= 89:
         sic_category = "services"
-    elif sic_code[0] == "9":
+    elif sic_code_number >= 91 and sic_code_number <= 99:
         sic_category = "public_administration"
     return sic_category
 

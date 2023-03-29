@@ -23,20 +23,12 @@ class newsdata_helper:
         else:
             news_total_count = None
         sql_query = \
-            "SELECT n.*, ( \
-                SELECT GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') \
-                FROM `ticker` t \
-                INNER JOIN `news_tickers` nt ON nt.`ticker_id` = t.`id` \
-                WHERE nt.`news_id` = n.`id` \
-                ) AS categories, ( \
-                SELECT GROUP_CONCAT(DISTINCT t.`ticker` SEPARATOR ',') \
-                FROM `ticker` t \
-                INNER JOIN `news_tickers` nt ON nt.`ticker_id` = t.`id` \
-                WHERE nt.`news_id` = n.`id` \
-            ) AS tickers \
+            "SELECT n.*, \
+            GROUP_CONCAT(t.`ticker` SEPARATOR ',') AS tickers, \
+            GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories \
             FROM `news` n \
-            INNER JOIN `news_tickers` nt ON n.`id` = nt.`news_id` \
-            INNER JOIN `ticker` t ON nt.`ticker_id` = t.`id` \
+            LEFT JOIN `news_tickers` nt ON `n`.`id` = `nt`.`news_id` \
+            INNER JOIN `ticker` t ON nt.`ticker_id` = `t`.`id` \
             GROUP BY n.`id` \
             ORDER BY n.`article_datetime` DESC \
             LIMIT 10 OFFSET %s;"
@@ -102,30 +94,26 @@ class newsdata_helper:
         sql_cursor = sql_cnx.cursor()
         ticker_encoded = get_string_base64_encoded(ticker)
         if offset == 0:
-            sql_query = "SELECT count(*) \
-                FROM news n \
-                INNER JOIN `news_tickers` nt ON n.id = nt.news_id \
-                WHERE nt.ticker_id = %s;"
+            sql_query = \
+            "SELECT COUNT(*) \
+            FROM `news_tickers` \
+            WHERE `ticker_id` = %s;"
             sql_cursor.execute(sql_query, [ticker_encoded])
             news_total_count = sql_cursor.fetchone()[0]
         else:
             news_total_count = None
         sql_query = \
-            "SELECT n.*, ( \
-                SELECT GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') \
-                FROM `ticker` t \
-                INNER JOIN `news_tickers` nt ON nt.`ticker_id` = t.`id` \
-                WHERE nt.`news_id` = n.`id` \
-                ) AS categories, ( \
-                    SELECT GROUP_CONCAT(DISTINCT t.`ticker` SEPARATOR ',') \
-                    FROM `ticker` t \
-                    INNER JOIN `news_tickers` nt ON nt.`ticker_id` = t.`id` \
-                    WHERE nt.`news_id` = n.`id` \
-                ) AS tickers \
-            FROM news n \
-            INNER JOIN `news_tickers` nt ON n.`id` = nt.`news_id` \
-            INNER JOIN `ticker` t ON nt.`ticker_id` = t.`id` \
-            WHERE t.`id` = %s LIMIT 10 OFFSET %s;"
+        "SELECT n.*, \
+        GROUP_CONCAT(DISTINCT t2.`category` SEPARATOR ',') AS categories, \
+        GROUP_CONCAT(t2.`ticker` SEPARATOR ',') AS tickers \
+        FROM `ticker` t1 \
+        INNER JOIN `news_tickers` nt1 ON nt1.`ticker_id` = t1.`id` \
+        INNER JOIN `news` n ON n.`id` = nt1.`news_id` \
+        INNER JOIN `news_tickers` nt2 ON nt2.`news_id` = n.`id` \
+        INNER JOIN `ticker` t2 ON t2.`id` = nt2.`ticker_id` \
+        WHERE t1.`id` = %s \
+        GROUP BY n.`id` \
+        LIMIT 10 OFFSET %s;"
         sql_cursor.execute(sql_query, [ticker_encoded, offset])
         news_rows = sql_cursor.fetchall()
         news_columns = [column[0] for column in sql_cursor.description]
@@ -189,34 +177,27 @@ class newsdata_helper:
         sql_cursor = sql_cnx.cursor()
         if offset == 0:
             sql_query = \
-            "SELECT COUNT(DISTINCT n.id) as total_rows \
-            FROM `news` n \
-            INNER JOIN `news_tickers` nt ON n.`id` = nt.`news_id` \
-            INNER JOIN `ticker` t ON nt.`ticker_id` = t.`id` \
-            WHERE t.`category` = %s"
+            "SELECT COUNT(DISTINCT n.`id`) \
+            FROM `ticker` t \
+            INNER JOIN `news_tickers` nt ON nt.`ticker_id` = t.`id` \
+            INNER JOIN `news` n ON n.`id` = nt.`news_id` \
+            WHERE t.`category` = %s;"
             sql_cursor.execute(sql_query, [category])
             news_total_count = sql_cursor.fetchone()[0]
         else:
             news_total_count = None
         sql_query = \
-            "SELECT n.*, ( \
-                SELECT GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') \
-                FROM `ticker` t \
-                INNER JOIN `news_tickers` nt ON nt.`ticker_id` = t.`id` \
-                WHERE nt.`news_id` = n.`id` \
-                ) AS categories, ( \
-                SELECT GROUP_CONCAT(DISTINCT t.`ticker` SEPARATOR ',') \
-                FROM `ticker` t \
-                INNER JOIN `news_tickers` nt ON nt.`ticker_id` = t.`id` \
-                WHERE nt.`news_id` = n.`id` \
-            ) AS tickers \
-            FROM `news` n \
-            INNER JOIN `news_tickers` nt ON n.`id` = nt.`news_id` \
-            INNER JOIN `ticker` t ON nt.`ticker_id` = t.`id` \
-            WHERE t.`category` = %s \
-            GROUP BY n.`id` \
-            ORDER BY n.`article_datetime` DESC \
-            LIMIT 10 OFFSET %s;"
+        "SELECT n.*, \
+        GROUP_CONCAT(DISTINCT t2.`category` SEPARATOR ',') AS categories, \
+        GROUP_CONCAT(DISTINCT t2.`ticker` SEPARATOR ',') AS tickers \
+        FROM `ticker` t1 \
+        INNER JOIN `news_tickers` nt1 ON nt1.`ticker_id` = t1.`id` \
+        INNER JOIN `news` n ON n.`id` = nt1.`news_id` \
+        INNER JOIN `news_tickers` nt2 ON nt2.`news_id` = n.`id` \
+        INNER JOIN `ticker` t2 ON t2.`id` = nt2.`ticker_id` \
+        WHERE t1.`category` = %s \
+        GROUP BY n.`id` \
+        LIMIT 10 OFFSET %s;"
         sql_cursor.execute(sql_query, [category, offset])
         news_rows = sql_cursor.fetchall()
         news_columns = [column[0] for column in sql_cursor.description]
@@ -281,35 +262,27 @@ class newsdata_helper:
         sql_search_query = "%" + q + "%"
         if offset == 0:
             sql_query = \
-            "SELECT COUNT(DISTINCT(n.`id`)) as total_rows \
+            "SELECT COUNT(DISTINCT n.`id`) \
             FROM `news` n \
             INNER JOIN `news_tickers` nt ON n.`id` = nt.`news_id` \
             INNER JOIN `ticker` t ON nt.`ticker_id` = t.`id` \
-            WHERE n.`article_title` LIKE %s OR n.`article_description` LIKE %s OR t.`ticker` LIKE %s;"
-            sql_cursor.execute(sql_query, [sql_search_query, sql_search_query, sql_search_query])
+            WHERE n.`article_title` LIKE %s OR n.`article_description` LIKE %s OR t.`ticker` = %s;"
+            sql_cursor.execute(sql_query, [sql_search_query, sql_search_query, q])
             news_total_count = sql_cursor.fetchone()[0]
         else:
             news_total_count = None
         sql_query = \
-            "SELECT n.*, ( \
-                SELECT GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') \
-                FROM `ticker` t \
-                INNER JOIN `news_tickers` nt ON nt.`ticker_id` = t.`id` \
-                WHERE nt.`news_id` = n.`id` \
-                ) AS categories, ( \
-                SELECT GROUP_CONCAT(DISTINCT t.`ticker` SEPARATOR ',') \
-                FROM `ticker` t \
-                INNER JOIN `news_tickers` nt ON nt.`ticker_id` = t.`id` \
-                WHERE nt.`news_id` = n.`id` \
-            ) AS tickers \
+            "SELECT n.*, \
+            GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories, \
+			GROUP_CONCAT(DISTINCT t.`ticker` SEPARATOR ',') AS tickers \
             FROM `news` n \
             INNER JOIN `news_tickers` nt ON n.`id` = nt.`news_id` \
             INNER JOIN `ticker` t ON nt.`ticker_id` = t.`id` \
-            WHERE n.`article_title` LIKE %s OR n.`article_description` LIKE %s OR t.`ticker` LIKE %s\
+            WHERE n.`article_title` LIKE %s OR n.`article_description` LIKE %s OR t.`ticker` = %s \
             GROUP BY n.`id` \
             ORDER BY n.`article_datetime` DESC \
             LIMIT 10 OFFSET %s;"
-        sql_cursor.execute(sql_query, [sql_search_query, sql_search_query, sql_search_query, offset])
+        sql_cursor.execute(sql_query, [sql_search_query, sql_search_query, q, offset])
         news_rows = sql_cursor.fetchall()
         news_columns = [column[0] for column in sql_cursor.description]
         news_list = [dict(zip(news_columns, news_row)) for news_row in news_rows]

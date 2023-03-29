@@ -58,10 +58,12 @@ export default {
     },
   },
   watch: {
-    $route() {
-      this.onUserStatus();
-      if (this.$route.path === "/search") {
-        this.searchText = this.$route.query.q as string;
+    $route(to: any, from: any) {
+      if (to?.path === "/search") {
+        this.searchText = to.query.q as string;
+      }
+      if (to?.path !== from?.path) {
+        this.onUserStatus();
       }
     },
   },

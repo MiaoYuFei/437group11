@@ -337,3 +337,99 @@ class newsdata_helper:
             responseData["status"] = "error"
         
         return responseData
+
+    @staticmethod
+    def set_user_news_like(news_id: str, user_id: str, liked: bool):
+        sql_cnx = get_sql_connection()
+        sql_cursor = sql_cnx.cursor()
+        sql_query = \
+            "SELECT * \
+            FROM `news_likecollect` \
+            WHERE `news_id` = %s AND `user_id` = %s;"
+        sql_cursor.execute(sql_query, [news_id, user_id])
+        data_row = sql_cursor.fetchone()
+        if data_row is None:
+            sql_query = \
+                "INSERT INTO `news_likecollect` (`news_id`, `user_id`, `liked`, `collected`) \
+                VALUES (%s, %s, %s, %s);"
+            sql_cursor.execute(sql_query, [news_id, user_id, 1 if liked else 0, 0])
+        else:
+            data_columns = [column[0] for column in sql_cursor.description]
+            data_dict = dict(zip(data_columns, data_row))
+            if liked == True:
+                sql_query = \
+                    "UPDATE `news_likecollect` \
+                    SET `liked` = %s \
+                    WHERE `id` = %s;"
+                sql_cursor.execute(sql_query, [1, data_dict["id"]])
+            else:
+                if data_dict["collected"] == 0:
+                    sql_query = \
+                        "DELETE FROM `news_likecollect` \
+                        WHERE `id` = %s;"
+                    sql_cursor.execute(sql_query, [data_dict["id"]])
+                else:
+                    sql_query = \
+                        "UPDATE `news_likecollect` \
+                        SET `liked` = %s \
+                        WHERE `id` = %s;"
+                    sql_cursor.execute(sql_query, [0, data_dict["id"]])
+        sql_cnx.commit()
+        sql_cursor.close()
+        sql_cnx.close()
+        
+        responseData = {}
+        if data_row is not None:
+            responseData["status"] = "ok"
+        else:
+            responseData["status"] = "error"
+        
+        return responseData
+
+    @staticmethod
+    def set_user_news_collect(news_id: str, user_id: str, collected: bool):
+        sql_cnx = get_sql_connection()
+        sql_cursor = sql_cnx.cursor()
+        sql_query = \
+            "SELECT * \
+            FROM `news_likecollect` \
+            WHERE `news_id` = %s AND `user_id` = %s;"
+        sql_cursor.execute(sql_query, [news_id, user_id])
+        data_row = sql_cursor.fetchone()
+        if data_row is None:
+            sql_query = \
+                "INSERT INTO `news_likecollect` (`news_id`, `user_id`, `liked`, `collected`) \
+                VALUES (%s, %s, %s, %s);"
+            sql_cursor.execute(sql_query, [news_id, user_id, 0, 1 if collected else 0])
+        else:
+            data_columns = [column[0] for column in sql_cursor.description]
+            data_dict = dict(zip(data_columns, data_row))
+            if collected == True:
+                sql_query = \
+                    "UPDATE `news_likecollect` \
+                    SET `collected` = %s \
+                    WHERE `id` = %s;"
+                sql_cursor.execute(sql_query, [1, data_dict["id"]])
+            else:
+                if data_dict["liked"] == 0:
+                    sql_query = \
+                        "DELETE FROM `news_likecollect` \
+                        WHERE `id` = %s;"
+                    sql_cursor.execute(sql_query, [data_dict["id"]])
+                else:
+                    sql_query = \
+                        "UPDATE `news_likecollect` \
+                        SET `collected` = %s \
+                        WHERE `id` = %s;"
+                    sql_cursor.execute(sql_query, [0, data_dict["id"]])
+        sql_cnx.commit()
+        sql_cursor.close()
+        sql_cnx.close()
+        
+        responseData = {}
+        if data_row is not None:
+            responseData["status"] = "ok"
+        else:
+            responseData["status"] = "error"
+        
+        return responseData

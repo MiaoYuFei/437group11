@@ -333,6 +333,8 @@ def updatePassword() -> Response:
             responseData["data"]["reason"] = "Invalid current password."
             return make_response(jsonify(responseData), 200)
     responseData["code"] = "200"
+    clear_session_user() # TODO: Ask frontend to redirect to sign in page
+
     return make_response(jsonify(responseData), 200)
 
 @app.route("/api/stock/getprice", methods=["POST"])
@@ -568,7 +570,7 @@ def getNewsCollection() -> Response:
 def setNewsLike() -> Response:
     requestData = {
       "newsId": request.form["newsId"],
-      "liked": request.form["liked"],
+      "liked": request.form["liked"].lower() == "true" or request.form["liked"] == "1",
     }
     responseData = {
         "code": "200",
@@ -577,7 +579,15 @@ def setNewsLike() -> Response:
 
     if is_session_user_set():
         requestData["userId"] = session["user"]["idToken"]
-        
+        try:
+            newsdata_helper.set_user_news_like(requestData["newsId"], requestData["userId"], requestData["liked"])
+        except Exception as ex:
+            print(ex)
+            responseData["code"] = "403"
+            responseData["data"]["reason"] = "Access denied."
+            return make_response(jsonify(responseData), 200)
+        responseData["code"] = "200"
+        return make_response(jsonify(responseData), 200)
     else:
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
@@ -587,7 +597,7 @@ def setNewsLike() -> Response:
 def setNewsCollect() -> Response:
     requestData = {
       "newsId": request.form["newsId"],
-      "collected": request.form["collected"],
+      "collected": request.form["collected"].lower() == "true" or request.form["collected"] == "1",
     }
     responseData = {
         "code": "200",
@@ -596,7 +606,15 @@ def setNewsCollect() -> Response:
 
     if is_session_user_set():
         requestData["userId"] = session["user"]["idToken"]
-        
+        try:
+            newsdata_helper.set_user_news_collect(requestData["newsId"], requestData["userId"], requestData["collected"])
+        except Exception as ex:
+            print(ex)
+            responseData["code"] = "403"
+            responseData["data"]["reason"] = "Access denied."
+            return make_response(jsonify(responseData), 200)
+        responseData["code"] = "200"
+        return make_response(jsonify(responseData), 200)
     else:
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."

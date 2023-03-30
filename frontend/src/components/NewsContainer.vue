@@ -75,7 +75,7 @@ export default {
               <img
                 :src="news.cover_image.url"
                 class="img-thumbnail border-0"
-                style="height: fit-content; align-self: flex-start"
+                style="height: auto; width: 100%"
                 alt="cover image"
               />
             </div>
@@ -145,7 +145,7 @@ export default {
                   </li>
                 </ul>
               </div>
-              <div class="mb-1">
+              <div>
                 <div class="d-inline me-1">
                   <a href="#" @click="onLikeClick(news)">
                     <img

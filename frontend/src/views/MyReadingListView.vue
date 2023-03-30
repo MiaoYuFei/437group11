@@ -35,37 +35,6 @@ export default {
     },
   },
   methods: {
-    onGetUserStatus: function (callback: Function | undefined = undefined) {
-      handleApi("post", "/api/user/status", []).then(
-        (response) => {
-          if (parseInt(response.data.code) === 200) {
-            this.email = response.data.data.email;
-            this.signedIn = true;
-            this.emailVerified =
-              (response.data.data.emailVerified as string).toLowerCase() ===
-              "true"
-                ? true
-                : false;
-            if (!this.emailVerified) {
-              this.$router.push("/verifyemail");
-            } else {
-              if (callback !== undefined) {
-                callback();
-              }
-            }
-          } else {
-            this.signedIn = false;
-            this.emailVerified = false;
-            this.$router.push("/signin");
-          }
-        },
-        () => {
-          this.signedIn = false;
-          this.emailVerified = false;
-          this.$router.push("/signin");
-        }
-      );
-    },
     onGetNews(callback: Function | undefined = undefined) {
       const apiData = {
         page: this.newsPageCurrent,
@@ -119,33 +88,31 @@ export default {
   watch: {
     $route: {
       handler: function (to: any, from: any) {
-        this.onGetUserStatus(() => {
-          if (
-            to.query.source === undefined ||
-            to.query.source === null ||
-            to.query.source === ""
-          ) {
-            if (this.newsSource === NewsSource.Recommendations) {
-              this.$router.push({ query: { source: "recommendations" } });
-            } else if (this.newsSource === NewsSource.Collections) {
-              this.$router.push({ query: { source: "mycollections" } });
-            }
+        if (
+          to.query.source === undefined ||
+          to.query.source === null ||
+          to.query.source === ""
+        ) {
+          if (this.newsSource === NewsSource.Recommendations) {
+            this.$router.push({ query: { source: "recommendations" } });
+          } else if (this.newsSource === NewsSource.Collections) {
+            this.$router.push({ query: { source: "mycollections" } });
           }
-          if (from !== undefined && to.query.source === from.query.source) {
-            return;
-          }
-          if (to.query.source === "recommendations") {
-            this.newsSource = NewsSource.Recommendations;
-            this.onNewsSwitchToPage(1);
-            $("#btnMyCollections").prop("checked", false);
-            $("#btnRecommendations").prop("checked", true);
-          } else if (to.query.source === "mycollections") {
-            this.newsSource = NewsSource.Collections;
-            this.onNewsSwitchToPage(1);
-            $("#btnRecommendations").prop("checked", false);
-            $("#btnMyCollections").prop("checked", true);
-          }
-        });
+        }
+        if (from !== undefined && to.query.source === from.query.source) {
+          return;
+        }
+        if (to.query.source === "recommendations") {
+          this.newsSource = NewsSource.Recommendations;
+          this.onNewsSwitchToPage(1);
+          $("#btnMyCollections").prop("checked", false);
+          $("#btnRecommendations").prop("checked", true);
+        } else if (to.query.source === "mycollections") {
+          this.newsSource = NewsSource.Collections;
+          this.onNewsSwitchToPage(1);
+          $("#btnRecommendations").prop("checked", false);
+          $("#btnMyCollections").prop("checked", true);
+        }
       },
       immediate: true,
     },

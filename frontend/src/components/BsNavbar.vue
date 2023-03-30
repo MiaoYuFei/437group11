@@ -1,4 +1,5 @@
 <script lang="ts">
+import $ from "jquery";
 import { RouterLink } from "vue-router";
 import { getFormData, handleApi } from "@/utilities";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
@@ -14,7 +15,7 @@ export default {
     };
   },
   methods: {
-    onUserStatus: function () {
+    onUserStatus: function (callback: Function | undefined = undefined) {
       handleApi("post", "/api/user/status", []).then(
         (response) => {
           const code = parseInt(response.data.code);
@@ -28,14 +29,23 @@ export default {
               "true"
                 ? true
                 : false;
+            if (callback !== undefined) {
+              callback(true);
+            }
           } else {
             this.signedIn = false;
             this.emailVerified = false;
+            if (callback !== undefined) {
+              callback(false);
+            }
           }
         },
         () => {
           this.signedIn = false;
           this.emailVerified = false;
+          if (callback !== undefined) {
+            callback(false);
+          }
         }
       );
     },
@@ -62,6 +72,23 @@ export default {
       if (to?.path === "/search") {
         this.searchText = to.query.q as string;
       }
+      if (to?.path === "/myaccount") {
+        $(this.$refs.sidebarToggle as HTMLButtonElement).removeClass("d-none");
+      } else {
+        $(this.$refs.sidebarToggle as HTMLButtonElement).addClass("d-none");
+      }
+      const protectedPages = ["/myreadinglist", "/myaccount"];
+      if (protectedPages.includes(to?.path)) {
+        this.onUserStatus((signedIn: boolean) => {
+          if (!signedIn) {
+            this.$router.push("/signin");
+          } else {
+            if (!this.emailVerified) {
+              this.$router.push("/verifyemail");
+            }
+          }
+        });
+      }
       if (to?.path !== from?.path) {
         this.onUserStatus();
       }
@@ -78,13 +105,13 @@ export default {
     <div class="container-fluid">
       <button
         class="navbar-toggler"
-        :class="{ 'd-none': !($route.path === '/myaccount') }"
         type="button"
         data-bs-toggle="offcanvas"
         data-bs-target="#offcanvas"
         aria-controls="offcanvas"
         aria-expanded="false"
         aria-label="Toggle navigation"
+        ref="sidebarToggle"
       >
         <FontAwesomeIcon icon="fa-table-list" />
       </button>

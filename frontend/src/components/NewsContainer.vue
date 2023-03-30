@@ -75,7 +75,7 @@ export default {
               <img
                 :src="news.cover_image.url"
                 class="img-thumbnail border-0"
-                style="height: fit-content"
+                style="height: fit-content; align-self: flex-start"
                 alt="cover image"
               />
             </div>

@@ -163,6 +163,13 @@ export enum ChartType {
   Advanced,
 }
 
+export enum ChartTimeSpan {
+  OneDay,
+  OneMonth,
+  ThreeMonths,
+  OneYear,
+}
+
 export {
   getFormData,
   handleApi,

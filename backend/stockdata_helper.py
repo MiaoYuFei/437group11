@@ -13,9 +13,15 @@ api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
 class stockdata_helper:
 
     @staticmethod
-    def get_aggregates(ticker: str, start_date: str, end_date: str):
-        endpoint = "https://api.polygon.io/v2/aggs/ticker/{0}/range/1/hour/{1}/{2}".format(ticker, start_date, end_date)
+    def get_aggregates(ticker: str, start_date: str, end_date: str, mode: str):
+        endpoint = "https://api.polygon.io/v2/aggs/ticker/{0}/range/1/{1}/{2}/{3}".format(ticker, mode, start_date, end_date)
         requestData = {"apiKey": api_key, "adjusted": "true", "sort": "desc", "limit": "1000"}
+        return call_api_get(endpoint, requestData)
+
+    @staticmethod
+    def get_last_trading_date(ticker: str):
+        endpoint = "https://api.polygon.io/v2/last/trade/{0}".format(ticker)
+        requestData = {"apiKey": api_key, "stocksTicker": ticker}
         return call_api_get(endpoint, requestData)
 
     @staticmethod

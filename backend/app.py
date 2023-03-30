@@ -333,7 +333,7 @@ def updatePassword() -> Response:
             responseData["data"]["reason"] = "Invalid current password."
             return make_response(jsonify(responseData), 200)
     responseData["code"] = "200"
-    clear_session_user() # TODO: Ask frontend to redirect to sign in page
+    clear_session_user()
 
     return make_response(jsonify(responseData), 200)
 
@@ -342,7 +342,8 @@ def getPrice() -> Response:
     requestData = {
         "ticker": request.form["ticker"],
         "start_date": request.form["start_date"],
-        "end_date": request.form["end_date"]
+        "end_date": request.form["end_date"],
+        "mode": request.form["mode"]
     }
     responseData = {
         "code": "200",
@@ -350,12 +351,18 @@ def getPrice() -> Response:
     }
 
     try:
-        result = stockdata_helper.get_aggregates(requestData["ticker"], requestData["start_date"], requestData["end_date"])
+        result = stockdata_helper.get_aggregates(requestData["ticker"], requestData["start_date"], requestData["end_date"], requestData["mode"])
     except Exception as ex:
         print(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
+    
+    if result["status"].lower() != "ok":
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
     if result["resultsCount"] <= 0:
         responseData["code"] = "404"
         responseData["data"]["reason"] = "No data found."
@@ -619,6 +626,37 @@ def setNewsCollect() -> Response:
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
+
+@app.route("/api/stock/getlasttradingdate", methods=["POST"])
+def getLastTradeDate() -> Response:
+    requestData = {
+        "ticker": request.form["ticker"]
+    }
+    responseData = {
+        "code": "200",
+        "data": {}
+    }
+
+    try:
+        result = stockdata_helper.get_last_trading_date(requestData["ticker"])
+    except Exception as ex:
+        print(ex)
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
+    if result["status"].lower() != "ok":
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+    
+    timestamp = int(result["results"]["t"] / 1000000000)
+    utc_datetime = datetime.datetime.utcfromtimestamp(timestamp)
+
+    responseData["code"] = "200"
+    responseData["data"]["lastTradingDate"] = utc_datetime.strftime("%Y-%m-%d")
+
+    return make_response(jsonify(responseData), 200)
 
 if __name__ == "__main__":
     app.run(port=8081, use_reloader=True)

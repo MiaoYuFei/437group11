@@ -1,7 +1,13 @@
 <script lang="ts">
 import $ from "jquery";
 import NewsContainer from "@/components/NewsContainer.vue";
-import { handleApi, type ITicker, type INews, ChartType } from "@/utilities";
+import {
+  handleApi,
+  type ITicker,
+  type INews,
+  ChartType,
+  ChartTimeSpan,
+} from "@/utilities";
 import * as echarts from "echarts";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { shallowRef } from "vue";
@@ -26,9 +32,18 @@ export default {
       }[],
       priceChartObj: shallowRef<echarts.ECharts | null>(null),
       priceChartType: ChartType.Basic,
+      priceChartTimeSpan: ChartTimeSpan.OneDay,
+      priceEndDate: new Date().toISOString().split("T")[0],
+      priceChartLoading: true,
     };
   },
   computed: {
+    $() {
+      return $;
+    },
+    ChartTimeSpan() {
+      return ChartTimeSpan;
+    },
     newsTotalPage() {
       return Math.ceil(this.newsTotalCount / 10);
     },
@@ -38,11 +53,51 @@ export default {
     newsLastPage() {
       return Math.min(this.newsTotalPage, this.newsPageCurrent + 2);
     },
+    priceStartDate() {
+      const priceEndDateObj = new Date(this.priceEndDate + "T00:00:00Z");
+      if (this.priceChartTimeSpan === ChartTimeSpan.OneDay) {
+        return this.priceEndDate;
+      } else if (this.priceChartTimeSpan === ChartTimeSpan.OneMonth) {
+        priceEndDateObj.setUTCMonth(priceEndDateObj.getUTCMonth() - 1);
+        return priceEndDateObj.toISOString().slice(0, 10);
+      } else if (this.priceChartTimeSpan === ChartTimeSpan.ThreeMonths) {
+        priceEndDateObj.setUTCMonth(priceEndDateObj.getUTCMonth() - 3);
+        return priceEndDateObj.toISOString().slice(0, 10);
+      } else if (this.priceChartTimeSpan === ChartTimeSpan.OneYear) {
+        priceEndDateObj.setUTCFullYear(priceEndDateObj.getUTCFullYear() - 1);
+        return priceEndDateObj.toISOString().slice(0, 10);
+      } else {
+        return new Date().toISOString().split("T")[0];
+      }
+    },
+    priceChartTitle() {
+      if (this.priceStartDate === this.priceEndDate) {
+        return `${this.tickerInfo?.ticker} Price Chart (${this.priceStartDate})`;
+      } else {
+        return `${this.tickerInfo?.ticker} Price Chart (${this.priceStartDate} - ${this.priceEndDate})`;
+      }
+    },
+    ticker() {
+      return this.$route.query.q;
+    },
   },
   methods: {
+    getPriceChartTimeSpanText(timeSpan: ChartTimeSpan) {
+      if (timeSpan === ChartTimeSpan.OneDay) {
+        return "Day View";
+      } else if (timeSpan === ChartTimeSpan.OneMonth) {
+        return "Month View";
+      } else if (timeSpan === ChartTimeSpan.ThreeMonths) {
+        return "3 Months View";
+      } else if (timeSpan === ChartTimeSpan.OneYear) {
+        return "1 Year View";
+      } else {
+        return "N/A";
+      }
+    },
     onGetTickerInfo(callback: Function | undefined = undefined) {
       const apiData = {
-        ticker: this.$route.query.q,
+        ticker: this.ticker,
       };
       handleApi("post", "/api/stock/gettickerinfo", apiData).then(
         (response) => {
@@ -57,16 +112,31 @@ export default {
         }
       );
     },
+    onGetLastTradingDate(callback: Function | undefined = undefined) {
+      handleApi("post", "/api/stock/getlasttradingdate", {
+        ticker: this.ticker,
+      }).then((response) => {
+        const code = parseInt(response.data.code);
+        const data = response.data.data;
+        if (code === 200) {
+          this.priceEndDate = data.lastTradingDate;
+          if (callback !== undefined) {
+            callback(true);
+          }
+        } else {
+          this.priceEndDate = new Date().toISOString().split("T")[0];
+          if (callback !== undefined) {
+            callback(false);
+          }
+        }
+      });
+    },
     onGetPrice(callback: Function | undefined = undefined) {
-      // TODO: change to real trading date.
-      // const endDate = new Date();
-      // const startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
       handleApi("post", "/api/stock/getprice", {
-        ticker: this.$route.query.q,
-        start_date: "2023-03-17",
-        end_date: "2023-03-17",
-        // start_date: Math.round(startDate.getTime() / 1000),
-        // end_date: Math.round(endDate.getTime() / 1000),
+        ticker: this.ticker,
+        start_date: this.priceStartDate,
+        end_date: this.priceEndDate,
+        mode: this.priceStartDate === this.priceEndDate ? "hour" : "day",
       }).then((response) => {
         const code = parseInt(response.data.code);
         const data = response.data.data;
@@ -80,7 +150,7 @@ export default {
     },
     onGetTickerNews(callback: Function | undefined = undefined) {
       const apiData = {
-        ticker: this.$route.query.q,
+        ticker: this.ticker,
         page: this.newsPageCurrent,
       };
       handleApi("post", "/api/news/getnewsbyticker", apiData).then(
@@ -138,6 +208,13 @@ export default {
         this.$refs.chart_stockprice as HTMLDivElement
       );
       const chartOption: echarts.EChartsOption = {
+        title: {
+          text: this.priceChartTitle,
+          textStyle: {
+            fontWeight: "bold",
+          },
+          left: "center",
+        },
         tooltip: {
           trigger: "axis",
           axisPointer: {
@@ -194,6 +271,13 @@ export default {
         this.$refs.chart_stockprice as HTMLDivElement
       );
       const chartOption: echarts.EChartsOption = {
+        title: {
+          text: this.priceChartTitle,
+          textStyle: {
+            fontWeight: "bold",
+          },
+          left: "center",
+        },
         tooltip: {
           trigger: "axis",
           axisPointer: {
@@ -240,6 +324,16 @@ export default {
           this.priceChartObj?.resize();
         });
     },
+    onSetPriceChartTimeSpan(timeSpan: ChartTimeSpan) {
+      this.priceChartTimeSpan = timeSpan;
+      this.onGetPrice(() => {
+        if (this.priceChartType === ChartType.Basic) {
+          this.drawPriceChartBasic(this.priceData);
+        } else {
+          this.drawPriceChartAdvanced(this.priceData);
+        }
+      });
+    },
   },
   watch: {
     $route: {
@@ -262,11 +356,14 @@ export default {
   },
   mounted() {
     this.onGetTickerInfo(() => {
+      this.pageLoading = false;
+    });
+    this.onGetLastTradingDate(() => {
       this.onGetPrice(() => {
         $(() => {
           this.drawPriceChartBasic(this.priceData);
         });
-        this.pageLoading = false;
+        this.priceChartLoading = false;
       });
     });
   },
@@ -284,11 +381,12 @@ export default {
     >
       <div
         role="status"
-        class="spinner-border text-primary"
+        class="spinner-border text-primary me-2"
         style="width: 3rem; height: 3rem"
       >
         <span class="visually-hidden">Loading...</span>
       </div>
+      Loading ticker details...
     </div>
     <div v-show="!pageLoading" class="container">
       <div v-if="tickerInfo" class="my-3 row gap-3">
@@ -458,11 +556,25 @@ export default {
         </div>
         <div class="col-12">
           <div class="card">
-            <div class="card-header"><h5>Price</h5></div>
+            <div class="card-header"><h5>Price Chart</h5></div>
             <div class="card-body">
-              <div class="card-text">
+              <div v-if="priceChartLoading" class="card-text">
                 <div
-                  class="d-block btn-group mb-3"
+                  class="w-100 h-100 d-flex justify-content-center align-items-center"
+                >
+                  <div
+                    role="status"
+                    class="spinner-border text-primary me-2"
+                    style="width: 3rem; height: 3rem"
+                  >
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  Loading ticker price...
+                </div>
+              </div>
+              <div v-if="!priceChartLoading" class="card-text">
+                <div
+                  class="btn-group me-2"
                   role="group"
                   aria-label="Basic radio toggle button group"
                 >
@@ -495,6 +607,73 @@ export default {
                     for="btnPriceChartAdvanced"
                     >Advanced</label
                   >
+                </div>
+                <div class="btn-group" role="group">
+                  <button
+                    class="btn btn-primary dropdown-toggle"
+                    type="button"
+                    name="btnPriceChartTimeSpan"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    {{ getPriceChartTimeSpanText(priceChartTimeSpan) }}
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a
+                        class="dropdown-item"
+                        :class="{
+                          active: priceChartTimeSpan === ChartTimeSpan.OneDay,
+                        }"
+                        @click="onSetPriceChartTimeSpan(ChartTimeSpan.OneDay)"
+                        href="#"
+                      >
+                        {{ getPriceChartTimeSpanText(ChartTimeSpan.OneDay) }}</a
+                      >
+                    </li>
+                    <li>
+                      <a
+                        class="dropdown-item"
+                        :class="{
+                          active: priceChartTimeSpan === ChartTimeSpan.OneMonth,
+                        }"
+                        @click="onSetPriceChartTimeSpan(ChartTimeSpan.OneMonth)"
+                        href="#"
+                        >{{
+                          getPriceChartTimeSpanText(ChartTimeSpan.OneMonth)
+                        }}</a
+                      >
+                    </li>
+                    <li>
+                      <a
+                        class="dropdown-item"
+                        :class="{
+                          active:
+                            priceChartTimeSpan === ChartTimeSpan.ThreeMonths,
+                        }"
+                        @click="
+                          onSetPriceChartTimeSpan(ChartTimeSpan.ThreeMonths)
+                        "
+                        href="#"
+                        >{{
+                          getPriceChartTimeSpanText(ChartTimeSpan.ThreeMonths)
+                        }}</a
+                      >
+                    </li>
+                    <li>
+                      <a
+                        class="dropdown-item"
+                        :class="{
+                          active: priceChartTimeSpan === ChartTimeSpan.OneYear,
+                        }"
+                        @click="onSetPriceChartTimeSpan(ChartTimeSpan.OneYear)"
+                        href="#"
+                        >{{
+                          getPriceChartTimeSpanText(ChartTimeSpan.OneYear)
+                        }}</a
+                      >
+                    </li>
+                  </ul>
                 </div>
                 <div
                   style="width: 100%; height: 30rem"

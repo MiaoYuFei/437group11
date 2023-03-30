@@ -108,6 +108,7 @@ export default {
             (this.$refs.formSecurity as any).reset();
             this.formSecurityAlertMessage = "Password updated successfully.";
             this.formSecuritySetLoading = false;
+            this.$router.push("/signin");
           } else {
             this.formSecurityAlertMessage = response.data.data.reason;
             this.formSecuritySetLoading = false;

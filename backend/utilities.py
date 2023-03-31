@@ -2,7 +2,7 @@
 
 import base64
 import json
-import mysql.connector
+#import mysql.connector
 import os
 import platform
 import requests
@@ -33,7 +33,7 @@ else:
         "pool_size": 32
     }
 
-cnxpool = mysql.connector.pooling.MySQLConnectionPool(**cnxconfig)
+#cnxpool = mysql.connector.pooling.MySQLConnectionPool(**cnxconfig)
 
 @staticmethod
 def call_api_post(endpoint, data):

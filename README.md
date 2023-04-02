@@ -204,7 +204,7 @@ Note: If api fails, i.e. not 200 code, it will have following structure:
 
   - reason: string, reason for the error, needs to be presented to the user on the UI.
 
-### `/api/user/update_account_info`
+### `/api/user/updateaccountinfo`
 
 Update the information associated with the account. Currently supported: name.
 
@@ -350,9 +350,13 @@ NOTICE: This is a GET endpoint.
 
 The raw resource if successful.
 
-### `/api/news/getnewstop`
+### `/api/news/getnews`
+
+Get news (latest, by ticker, by category, search, recommendation for user, and user's collection)
 
 #### Request
+
+- requestType: News source.
 
 - page: number of page. Optional. Default 1.
 
@@ -364,43 +368,19 @@ The raw resource if successful.
 
   - newsList: list of news. Refer to utilities.ts INews for news format.
 
-  - total_count: total number of news. Only returned for first page.
+  - totalCount: total number of news. Only returned for first page.
 
-### `/api/news/getnewsbyticker`
+### `/api/news/setnewsuseraction`
 
-#### Request
-
-- ticker: the ticker requested.
-
-- page: number of page. Optional. Default 1.
-
-#### Response
-
-- code: number, 200 if update succeded, 403 if restricted by security policies.
-
-- data:
-
-  - newsList: list of news. Refer to vue file for news format.
-
-  - total_count: total number of news. Only returned for first page.
-
-### `/api/news/getnewsbycategory`
+Set user's action for news: like/un-like, collect/un-collect
 
 #### Request
 
-- category: the category code.
+- news_id: News id.
 
-- page: number of page. Optional. Default 1.
+- liked: 1 if liked 0 otherwise.
 
-#### Response
-
-- code: number, 200 if update succeded, 403 if restricted by security policies.
-
-- data:
-
-  - newsList: list of news. Refer to vue file for news format.
-
-  - total_count: total number of news. Only returned for first page.
+- collected: 1 if liked 0 otherwise.
 
 ## Calling API
 
@@ -492,8 +472,7 @@ Please call `then` function on it.
 
 Notice: Don't forget parseInt on code as the data from backend is all string. Don't forget response.data.data (two data).
 
-
-#backend data update rules:
+## backend data update rules
 
 1. when user like or dislike, use the user hash id, locate the user ticker pref dict in user_ticker_pref collection on firestore
  * now we have the user_ticker_pref_dict for that user, now we need to update it.

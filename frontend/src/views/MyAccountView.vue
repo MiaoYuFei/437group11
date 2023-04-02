@@ -56,7 +56,7 @@ export default {
   methods: {
     OnSetProfile() {
       const apiData = getFormData(this.$refs.formProfile, ["displayName"]);
-      handleApi("post", "/api/user/update_account_info", apiData).then(
+      handleApi("post", "/api/user/updateaccountinfo", apiData).then(
         (response) => {
           this.formProfileInEdit = false;
           if (parseInt(response.data.code) === 200) {

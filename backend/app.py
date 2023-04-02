@@ -228,8 +228,8 @@ def signOut() -> Response:
     clear_session_user()
     return make_response(jsonify(responseData), 200)
 
-@app.route("/api/user/update_account_info", methods=["POST"])
-def update_account_info() -> Response:
+@app.route("/api/user/updateaccountinfo", methods=["POST"])
+def updateAccountInfo() -> Response:
     displayName = request.form["displayName"].strip()
     responseData = {
         "code": "200",

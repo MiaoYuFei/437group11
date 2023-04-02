@@ -9,7 +9,7 @@ api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
 class newsdata_helper:
 
     @staticmethod
-    def get_news_latest(userId: str, offset: int = 0):
+    def get_news_latest(userId: str, offset: int = 0) -> dict:
         sql_cnx = get_sql_connection()
         sql_cursor = sql_cnx.cursor()
         if offset == 0:
@@ -61,7 +61,7 @@ class newsdata_helper:
         return responseData
 
     @staticmethod
-    def get_news_by_ticker(ticker: str, userId: str, offset: int = 0):
+    def get_news_by_ticker(ticker: str, userId: str, offset: int = 0) -> dict:
         sql_cnx = get_sql_connection()
         sql_cursor = sql_cnx.cursor()
         ticker_encoded = get_string_base64_encoded(ticker)
@@ -119,7 +119,7 @@ class newsdata_helper:
         return responseData
 
     @staticmethod
-    def get_news_by_category(category: str, userId: str, offset: int = 0):
+    def get_news_by_category(category: str, userId: str, offset: int = 0) -> dict:
         sql_cnx = get_sql_connection()
         sql_cursor = sql_cnx.cursor()
         if offset == 0:
@@ -177,7 +177,7 @@ class newsdata_helper:
         return responseData
 
     @staticmethod
-    def search_news(q: str, userId: str, offset: int = 0):
+    def search_news(q: str, userId: str, offset: int = 0) -> dict:
         sql_cnx = get_sql_connection()
         sql_cursor = sql_cnx.cursor()
         sql_search_query = "%" + q + "%"
@@ -277,6 +277,7 @@ class newsdata_helper:
 
     @staticmethod
     def set_user_news_like_firebase(news_id: str, user_id: str, liked: bool):
+
         print("set_user_news_like_firebase")
 
     @staticmethod
@@ -321,9 +322,10 @@ class newsdata_helper:
         sql_cnx.close()
 
     @staticmethod
-    def get_user_news_recommendation(user_id: str, offset: int = 0):
-        data_total_count = 0
-        news_list = []
+    def get_user_news_recommendation(user_id: str, offset: int = 0) -> dict:
+        result = newsdata_helper.get_user_news_recommendation_firebase(user_id, offset)
+        news_list = result["newsList"]
+        data_total_count = result["totalCount"]
 
         responseData = {}
         responseData["newsList"] = news_list
@@ -333,7 +335,16 @@ class newsdata_helper:
         return responseData
 
     @staticmethod
-    def get_user_news_collection(user_id: str, offset: int = 0):
+    def get_user_news_recommendation_firebase(user_id: str, offset: int = 0) -> dict:
+        print("get_user_news_recommendation_firebase")
+
+        return {
+            "newsList": [],
+            "totalCount": 0
+        }
+
+    @staticmethod
+    def get_user_news_collection(user_id: str, offset: int = 0) -> dict:
         sql_cnx = get_sql_connection()
         sql_cursor = sql_cnx.cursor()
         if offset == 0:

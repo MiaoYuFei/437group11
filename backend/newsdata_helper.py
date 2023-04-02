@@ -56,7 +56,7 @@ class newsdata_helper:
         responseData = {}
         responseData["newsList"] = news_list
         if news_total_count is not None:
-            responseData["total_count"] = news_total_count
+            responseData["totalCount"] = news_total_count
 
         return responseData
 
@@ -114,7 +114,7 @@ class newsdata_helper:
         responseData = {}
         responseData["newsList"] = news_list
         if news_total_count is not None:
-            responseData["total_count"] = news_total_count
+            responseData["totalCount"] = news_total_count
 
         return responseData
 
@@ -172,7 +172,7 @@ class newsdata_helper:
         responseData = {}
         responseData["newsList"] = news_list
         if news_total_count is not None:
-            responseData["total_count"] = news_total_count
+            responseData["totalCount"] = news_total_count
 
         return responseData
 
@@ -230,7 +230,7 @@ class newsdata_helper:
         responseData = {}
         responseData["newsList"] = news_list
         if news_total_count is not None:
-            responseData["total_count"] = news_total_count
+            responseData["totalCount"] = news_total_count
 
         return responseData
 
@@ -323,7 +323,7 @@ class newsdata_helper:
         responseData = {}
         responseData["newsList"] = news_list
         if data_total_count is not None:
-            responseData["total_count"] = data_total_count
+            responseData["totalCount"] = data_total_count
 
         return responseData
 
@@ -371,6 +371,6 @@ class newsdata_helper:
         responseData = {}
         responseData["newsList"] = news_list
         if data_total_count is not None:
-            responseData["total_count"] = data_total_count
+            responseData["totalCount"] = data_total_count
 
         return responseData

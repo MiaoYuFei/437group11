@@ -55,8 +55,8 @@ export default {
         const data = response.data.data;
         if (code === 200) {
           this.newsList = data.newsList;
-          if (data.total_count !== undefined) {
-            this.newsTotalCount = data.total_count;
+          if (data.totalCount !== undefined) {
+            this.newsTotalCount = data.totalCount;
           }
           if (callback !== undefined) {
             callback(true);

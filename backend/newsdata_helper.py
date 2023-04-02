@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import datetime
-
+import firebase_helper
 from utilities import get_sql_connection, get_string_base64_encoded, process_news_response
 
 api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
@@ -324,8 +324,16 @@ class newsdata_helper:
     @staticmethod
     def get_user_news_recommendation(user_id: str, offset: int = 0) -> dict:
         result = newsdata_helper.get_user_news_recommendation_firebase(user_id, offset)
-        news_list = result["newsList"]
+        news_id_list = result["newsIdList"]
         data_total_count = result["totalCount"]
+
+        news_list = []
+
+        for news_id in news_id_list:
+            news_item = {
+                "newsId": news_id,
+            }
+            news_list.append(news_item)
 
         responseData = {}
         responseData["newsList"] = news_list
@@ -339,7 +347,7 @@ class newsdata_helper:
         print("get_user_news_recommendation_firebase")
 
         return {
-            "newsList": [],
+            "newsIdList": [],
             "totalCount": 0
         }
 

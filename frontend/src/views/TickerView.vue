@@ -211,8 +211,14 @@ export default {
         title: {
           text:
             this.priceStartDate === this.priceEndDate
-              ? `${this.tickerInfo?.ticker} Price Chart (${this.priceStartDate})`
-              : `${this.tickerInfo?.ticker} Price Chart (${this.priceStartDate} - ${this.priceEndDate})`,
+              ? `${this.tickerInfo?.ticker} Price Chart (${new Date(
+                  this.priceStartDate + "T00:00:00Z"
+                ).toLocaleDateString()})`
+              : `${this.tickerInfo?.ticker} Price Chart (${new Date(
+                  this.priceStartDate + "T00:00:00Z"
+                ).toLocaleDateString()} - ${new Date(
+                  this.priceEndDate + "T00:00:00Z"
+                ).toLocaleDateString()})`,
           textStyle: {
             fontWeight: "bold",
           },
@@ -227,6 +233,7 @@ export default {
         xAxis: {
           type: "time",
           scale: true,
+          name: this.priceStartDate === this.priceEndDate ? "Time" : "Date",
         },
         yAxis: {
           type: "value",

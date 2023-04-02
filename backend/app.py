@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 
 import datetime
-from firebase_helper import firebase_helper
 from flask import Flask, Response, jsonify, make_response, request, session
 from flask_session import Session
 import json
 import urllib.parse
 
+import firebase_helper
 from newsdata_helper import newsdata_helper
 from stockdata_helper import stockdata_helper
-from utilities import verify_recaptcha, get_sic_category_code_from_sic_code
-
-fb = firebase_helper()
+from utilities import get_sic_category_code_from_sic_code, verify_recaptcha
 
 app = Flask("stocknews")
 app.config["SESSION_PERMANENT"] = False
@@ -50,9 +48,9 @@ def signin() -> Response:
 
     try:
         if requestType == "email_password":
-            result = fb.verify_email_and_password(request.form["email"], request.form["password"])
+            result = firebase_helper.verify_email_and_password(request.form["email"], request.form["password"])
         elif requestType == "email_link":
-            result = fb.verify_email_sign_in_code(request.form["email"], request.form["oobCode"])
+            result = firebase_helper.verify_email_sign_in_code(request.form["email"], request.form["oobCode"])
         else:
             responseData["code"] = "403"
             responseData["data"]["reason"] = "Sign in type not supported."
@@ -86,7 +84,7 @@ def register() -> Response:
         return make_response(jsonify(responseData), 200)
 
     try:
-        result = fb.sign_up_with_email_and_password(email, password)
+        result = firebase_helper.sign_up_with_email_and_password(email, password)
     except RuntimeError as ex:
         print(ex)
         responseData["code"] = "403"
@@ -104,7 +102,7 @@ def register() -> Response:
         return make_response(jsonify(responseData), 200)
     set_session_user(result)
     try:
-        fb.update_account_info(result["localId"], result["idToken"], name)
+        firebase_helper.update_account_info(result["localId"], result["idToken"], name)
     except Exception:
         print(ex)
         responseData["code"] = "403"
@@ -122,7 +120,7 @@ def status() -> Response:
 
     if is_session_user_set():
         try:
-            result = fb.get_account_info(session["user"]["idToken"]) # TODO: check token expiry
+            result = firebase_helper.get_account_info(session["user"]["idToken"]) # TODO: check token expiry
         except:
             responseData["code"] = "403"
             responseData["data"]["reason"] = "Access denied."
@@ -153,7 +151,7 @@ def verifyEmail() -> Response:
     if requestType == "registration":
         if is_session_user_set():
             try:
-                result = fb.get_account_info(session["user"]["idToken"])
+                result = firebase_helper.get_account_info(session["user"]["idToken"])
             except Exception as ex:
                 print(ex)
                 responseData["code"] = "403"
@@ -161,7 +159,7 @@ def verifyEmail() -> Response:
                 return make_response(jsonify(responseData), 200)
             if (not result["users"][0]["emailVerified"]):
                 try:
-                    fb.send_email_verification_email(session["user"]["idToken"], session["user"]["email"])
+                    firebase_helper.send_email_verification_email(session["user"]["idToken"], session["user"]["email"])
                 except Exception as ex:
                     print(ex)
                     responseData["code"] = "403"
@@ -180,7 +178,7 @@ def verifyEmail() -> Response:
     elif requestType == "sign_in":
         email = request.form["email"]
         try:
-            fb.send_email_sign_in_email(email)
+            firebase_helper.send_email_sign_in_email(email)
         except Exception as ex:
             ex_json = json.loads(str(ex))
             if ex_json["error"]["message"].upper().startswith("QUOTA_EXCEEDED"):
@@ -196,7 +194,7 @@ def verifyEmail() -> Response:
     elif requestType == "reset_password":
         email = request.form["email"]
         try:
-            fb.send_password_reset_email(email)
+            firebase_helper.send_password_reset_email(email)
         except RuntimeError:
             responseData["code"] = "403"
             responseData["data"]["reason"] = "Access denied."
@@ -243,7 +241,7 @@ def updateAccountInfo() -> Response:
     localId = session["user"]["localId"]
     idToken = session["user"]["idToken"]
     try:
-        fb.update_account_info(localId, idToken, displayName)
+        firebase_helper.update_account_info(localId, idToken, displayName)
     except Exception as ex:
         print(ex)
         responseData["code"] = "403"
@@ -274,7 +272,7 @@ def updatePreferences() -> Response:
         return make_response(jsonify(responseData), 200)
     localId = session["user"]["localId"]
     try:
-        fb.update_preferences(localId, agriculture, mining, construction, manufacturing, transportation, wholesale, retail, finance, services, public_administration)
+        firebase_helper.update_preferences(localId, agriculture, mining, construction, manufacturing, transportation, wholesale, retail, finance, services, public_administration)
     except Exception as ex:
         print(ex)
         responseData["code"] = "403"
@@ -296,7 +294,7 @@ def getPreferences() -> Response:
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
     try:
-        preferences = fb.get_preferences(session["user"]["localId"])
+        preferences = firebase_helper.get_preferences(session["user"]["localId"])
         responseData["data"]["preferences"] = preferences
     except Exception as ex:
         print(ex)
@@ -328,7 +326,7 @@ def updatePassword() -> Response:
         return make_response(jsonify(responseData), 200)
     email = session["user"]["email"]
     try:
-        fb.update_password(email, currentPassword, newPassword)
+        firebase_helper.update_password(email, currentPassword, newPassword)
     except RuntimeError as ex:
         print(ex)
         responseData["code"] = "403"

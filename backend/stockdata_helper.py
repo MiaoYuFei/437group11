@@ -2,7 +2,7 @@
 
 import requests
 
-from utilities import get_string_base64_encoded, get_sql_connection, call_api_get
+from utilities import call_api_get, get_string_base64_encoded, get_sql_connection
 
 api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
 

@@ -157,6 +157,9 @@ export interface INews {
   };
   tickers: string[];
   categories: string[];
+  liked: boolean;
+  collected: boolean;
+  collect_datetime: string;
 }
 
 export {

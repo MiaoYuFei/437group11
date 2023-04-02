@@ -1,9 +1,16 @@
 <script lang="ts">
-import { handleApi, parseDatetime } from "@/utilities";
+import { handleApi, parseDatetime, type INews } from "@/utilities";
 
 export default {
   props: {
-    newsData: null,
+    newsData: {
+      type: Array as () => INews[],
+      required: true,
+    },
+    userSignedIn: {
+      type: Boolean,
+      required: true,
+    },
     newsTotalPage: {
       type: Number,
       required: false,
@@ -20,10 +27,6 @@ export default {
       type: Number,
       required: false,
     },
-    userSignedIn: {
-      type: Boolean,
-      required: true,
-    },
   },
   methods: {
     parseDatetime,
@@ -34,14 +37,7 @@ export default {
         newsId: item.id,
         liked: item.liked,
       };
-      handleApi("post", "/api/news/setnewsuseraction", apiData).then(
-        (response) => {
-          const code = parseInt(response.data.code);
-          if (code === 200) {
-            // Currently do nothing
-          }
-        }
-      );
+      handleApi("post", "/api/news/setnewsuseraction", apiData);
     },
     onCollectClick(item: any) {
       item.collected = !item.collected;
@@ -50,16 +46,9 @@ export default {
         newsId: item.id,
         collected: item.collected,
       };
-      handleApi("post", "/api/news/setnewsuseraction", apiData).then(
-        (response) => {
-          const code = parseInt(response.data.code);
-          if (code === 200) {
-            // Currently do nothing
-          }
-        }
-      );
+      handleApi("post", "/api/news/setnewsuseraction", apiData);
     },
-    onNewsSwitchToPage(page: number) {
+    onNewsSwitchPage(page: number) {
       this.$emit("newsSwitchToPage", page);
     },
   },
@@ -222,12 +211,12 @@ export default {
           <a
             class="page-link"
             href="#"
-            @click="onNewsSwitchToPage(newsPageCurrent! - 1)"
+            @click="onNewsSwitchPage(newsPageCurrent! - 1)"
             >Previous</a
           >
         </li>
         <li v-if="newsFirstPage !== 1" class="page-item">
-          <a class="page-link" href="#" @click="onNewsSwitchToPage(1)">1</a>
+          <a class="page-link" href="#" @click="onNewsSwitchPage(1)">1</a>
         </li>
         <li v-if="newsFirstPage !== 1" class="page-item disabled">
           <a class="page-link">...</a>
@@ -243,7 +232,7 @@ export default {
           <a
             class="page-link"
             href="#"
-            @click="onNewsSwitchToPage(i + newsFirstPage! - 1)"
+            @click="onNewsSwitchPage(i + newsFirstPage! - 1)"
             >{{ i + newsFirstPage - 1 }}</a
           >
         </li>
@@ -254,7 +243,7 @@ export default {
           <a
             class="page-link"
             href="#"
-            @click="onNewsSwitchToPage(newsTotalPage!)"
+            @click="onNewsSwitchPage(newsTotalPage!)"
             >{{ newsTotalPage }}</a
           >
         </li>
@@ -265,7 +254,7 @@ export default {
           <a
             class="page-link"
             href="#"
-            @click="onNewsSwitchToPage(newsPageCurrent! + 1)"
+            @click="onNewsSwitchPage(newsPageCurrent! + 1)"
             >Next</a
           >
         </li>

@@ -6,6 +6,7 @@ export default {
   data: () => ({
     userStatus: {
       signedIn: false,
+      id: "",
       email: "",
       emailVerified: false,
       name: "",
@@ -19,6 +20,7 @@ export default {
           const data = response.data.data;
           if (code === 200) {
             this.userStatus.signedIn = true;
+            this.userStatus.id = data.id;
             this.userStatus.email = data.email;
             this.userStatus.name = data.name;
             this.userStatus.emailVerified =
@@ -28,6 +30,7 @@ export default {
                 : false;
           } else {
             this.userStatus.signedIn = false;
+            this.userStatus.id = "";
             this.userStatus.email = "";
             this.userStatus.name = "";
             this.userStatus.emailVerified = false;
@@ -38,6 +41,7 @@ export default {
         },
         () => {
           this.userStatus.signedIn = false;
+          this.userStatus.id = "";
           this.userStatus.email = "";
           this.userStatus.name = "";
           this.userStatus.emailVerified = false;

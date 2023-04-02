@@ -1,4 +1,5 @@
 <script lang="ts">
+import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import NewsContainer from "@/components/NewsContainer.vue";
 import { handleApi, type INews } from "@/utilities";
 
@@ -89,6 +90,7 @@ export default {
   },
   mounted() {},
   components: {
+    LoadingIndicator,
     NewsContainer,
   },
 };
@@ -113,17 +115,7 @@ export default {
         :userSignedIn="userStatus.signedIn"
         class="mb-3"
       />
-      <div
-        class="flex-fill justify-content-center align-items-center h-100"
-        :class="{ 'd-flex': newsLoading, 'd-none': !newsLoading }"
-      >
-        <div
-          class="spinner-border text-primary me-2"
-          role="status"
-          style="width: 3em; height: 3em"
-        ></div>
-        Loading news...
-      </div>
+      <LoadingIndicator :loading="newsLoading" message="Loading news..." />
     </div>
   </div>
 </template>

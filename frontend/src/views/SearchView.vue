@@ -1,4 +1,5 @@
 <script lang="ts">
+import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import NewsContainer from "@/components/NewsContainer.vue";
 import { handleApi, type INews } from "@/utilities";
 
@@ -81,23 +82,14 @@ export default {
     document.title = "Search - " + (this as any).$projectName;
   },
   components: {
+    LoadingIndicator,
     NewsContainer,
   },
 };
 </script>
 <template>
   <div class="overflow-auto">
-    <div
-      class="flex-fill justify-content-center align-items-center h-100"
-      :class="{ 'd-flex': newsLoading, 'd-none': !newsLoading }"
-    >
-      <div
-        class="spinner-border text-primary"
-        role="status"
-        style="width: 4em; height: 4em"
-      ></div>
-      Searching news...
-    </div>
+    <LoadingIndicator :loading="newsLoading" message="Searching news..." />
     <div v-if="!newsLoading" class="container my-3">
       <div v-if="!newsError && newsList.length > 0">
         <h4 class="mb-3">

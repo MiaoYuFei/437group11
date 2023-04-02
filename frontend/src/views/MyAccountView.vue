@@ -14,9 +14,9 @@ export default {
   name: "UserSettings",
   data() {
     return {
-      userId: "",
-      userDisplayName: "",
-      userEmail: "",
+      // userId: "",
+      // userDisplayName: "",
+      // userEmail: "",
       formProfileInEdit: false,
       formProfileGetLoading: false,
       formProfileSetLoading: false,
@@ -64,21 +64,6 @@ export default {
           }
         }
       );
-    },
-    onGetStatus() {
-      this.formProfileGetLoading = true;
-      handleApi("post", "/api/user/status", []).then((response) => {
-        const code = parseInt(response.data.code);
-        const data = response.data.data;
-        if (code == 200) {
-          this.formProfileGetLoading = false;
-          this.userId = data.id;
-          this.userDisplayName = data.name;
-          this.userEmail = data.email;
-        } else {
-          this.formProfileAlertMessage = data.reason;
-        }
-      });
     },
     onSetSecurity() {
       if (!this.formSecurityPasswordMatch) {
@@ -244,7 +229,6 @@ export default {
         window.location.hash = target;
       }
     });
-    this.onGetStatus();
     this.onGetPreferences();
   },
   components: {
@@ -320,7 +304,7 @@ export default {
                     class="placeholder col-8"
                     v-if="formProfileGetLoading"
                   ></span
-                  >{{ userId }}</label
+                  >{{ userStatus.id }}</label
                 >
               </div>
               <div class="mb-3">
@@ -333,7 +317,7 @@ export default {
                     v-if="formProfileGetLoading"
                     class="placeholder col-6"
                   ></span
-                  >{{ userDisplayName }}</label
+                  >{{ userStatus.name }}</label
                 >
                 <input
                   v-if="formProfileInEdit"
@@ -341,7 +325,7 @@ export default {
                   type="text"
                   class="form-control"
                   maxlength="20"
-                  :value="userDisplayName"
+                  :value="userStatus.name"
                 />
               </div>
               <div class="mb-3">
@@ -351,7 +335,7 @@ export default {
                     v-if="formProfileGetLoading"
                     class="placeholder col-6"
                   ></span
-                  >{{ userEmail }}</label
+                  >{{ userStatus.email }}</label
                 >
               </div>
               <hr />

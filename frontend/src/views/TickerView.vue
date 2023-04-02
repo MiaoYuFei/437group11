@@ -1,4 +1,5 @@
 <script lang="ts">
+import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import NewsContainer from "@/components/NewsContainer.vue";
 import { handleApi, type ITicker, type INews } from "@/utilities";
 import $ from "jquery";
@@ -298,6 +299,7 @@ export default {
     });
   },
   components: {
+    LoadingIndicator,
     NewsContainer,
     FontAwesomeIcon,
   },
@@ -305,19 +307,10 @@ export default {
 </script>
 <template>
   <div style="max-height: 100%; overflow: auto">
-    <div
-      v-if="pageLoading"
-      class="w-100 h-100 d-flex justify-content-center align-items-center"
-    >
-      <div
-        role="status"
-        class="spinner-border text-primary me-2"
-        style="width: 3rem; height: 3rem"
-      >
-        <span class="visually-hidden">Loading...</span>
-      </div>
-      Loading ticker details...
-    </div>
+    <LoadingIndicator
+      :loading="pageLoading"
+      message="Loading ticker details..."
+    />
     <div v-show="!pageLoading" class="container">
       <div v-if="tickerInfo" class="my-3 row gap-3">
         <div class="col-12">
@@ -489,18 +482,10 @@ export default {
             <div class="card-header"><h5>Price Chart</h5></div>
             <div class="card-body">
               <div v-if="priceChartLoading" class="card-text">
-                <div
-                  class="w-100 h-100 d-flex justify-content-center align-items-center"
-                >
-                  <div
-                    role="status"
-                    class="spinner-border text-primary me-2"
-                    style="width: 3rem; height: 3rem"
-                  >
-                    <span class="visually-hidden">Loading...</span>
-                  </div>
-                  Loading ticker price...
-                </div>
+                <LoadingIndicator
+                  :loading="true"
+                  message="Loading ticker price..."
+                />
               </div>
               <div v-if="!priceChartLoading" class="card-text">
                 <div
@@ -555,7 +540,9 @@ export default {
                         :class="{
                           active: priceChartTimeSpan === ChartTimeSpan.OneDay,
                         }"
-                        @click="onSwitchPriceChartTimeSpan(ChartTimeSpan.OneDay)"
+                        @click="
+                          onSwitchPriceChartTimeSpan(ChartTimeSpan.OneDay)
+                        "
                         href="#"
                       >
                         {{ getPriceChartTimeSpanText(ChartTimeSpan.OneDay) }}</a
@@ -567,7 +554,9 @@ export default {
                         :class="{
                           active: priceChartTimeSpan === ChartTimeSpan.OneMonth,
                         }"
-                        @click="onSwitchPriceChartTimeSpan(ChartTimeSpan.OneMonth)"
+                        @click="
+                          onSwitchPriceChartTimeSpan(ChartTimeSpan.OneMonth)
+                        "
                         href="#"
                         >{{
                           getPriceChartTimeSpanText(ChartTimeSpan.OneMonth)
@@ -596,7 +585,9 @@ export default {
                         :class="{
                           active: priceChartTimeSpan === ChartTimeSpan.OneYear,
                         }"
-                        @click="onSwitchPriceChartTimeSpan(ChartTimeSpan.OneYear)"
+                        @click="
+                          onSwitchPriceChartTimeSpan(ChartTimeSpan.OneYear)
+                        "
                         href="#"
                         >{{
                           getPriceChartTimeSpanText(ChartTimeSpan.OneYear)
@@ -620,15 +611,10 @@ export default {
             </div>
             <div class="card-body">
               <div class="card-text">
-                <div
-                  v-if="newsLoading"
-                  class="d-flex align-items-center justify-content-center gap-2 my-2"
-                >
-                  <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                  </div>
-                  Loading news...
-                </div>
+                <LoadingIndicator
+                  :loading="newsLoading"
+                  message="Loading news..."
+                />
                 <div v-if="newsError" class="card">
                   <div class="card-header"><h5>Error</h5></div>
                   <div class="card-body">

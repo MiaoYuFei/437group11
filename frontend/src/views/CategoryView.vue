@@ -35,40 +35,39 @@ export default {
     },
   },
   methods: {
-    onNewsSwitchToPage(page: number) {
+    onSwitchNewsPage(page: number) {
       this.newsError = false;
       this.newsPageCurrent = page;
       this.newsLoading = true;
-      this.onGetCategoryNews(() => {
+      this.onGetNews(() => {
         this.newsLoading = false;
       });
     },
-    onGetCategoryNews(callback: Function | undefined = undefined) {
+    onGetNews(callback: Function | undefined = undefined) {
       const apiData = {
+        requestType: "category",
         category: this.$route.query.q,
         page: this.newsPageCurrent,
       };
-      handleApi("post", "/api/news/getnewsbycategory", apiData).then(
-        (response) => {
-          const code = parseInt(response.data.code);
-          const data = response.data.data;
-          if (code === 200) {
-            this.newsList = data.newsList;
-            if (data.total_count !== undefined) {
-              this.newsTotalCount = data.total_count;
-            }
-            if (callback !== undefined) {
-              callback(true);
-            }
-          } else {
-            this.newsError = true;
-            this.newsErrorMessage = data.reason;
-            if (callback !== undefined) {
-              callback(false);
-            }
+      handleApi("post", "/api/news/getnews", apiData).then((response) => {
+        const code = parseInt(response.data.code);
+        const data = response.data.data;
+        if (code === 200) {
+          this.newsList = data.newsList;
+          if (data.total_count !== undefined) {
+            this.newsTotalCount = data.total_count;
+          }
+          if (callback !== undefined) {
+            callback(true);
+          }
+        } else {
+          this.newsError = true;
+          this.newsErrorMessage = data.reason;
+          if (callback !== undefined) {
+            callback(false);
           }
         }
-      );
+      });
     },
     translate_sic_category_code_to_sic_category_name,
   },
@@ -82,7 +81,7 @@ export default {
               from.query !== undefined &&
               to.query.q !== from.query.q))
         ) {
-          this.onNewsSwitchToPage(1);
+          this.onSwitchNewsPage(1);
         }
       },
       immediate: true,
@@ -154,9 +153,8 @@ export default {
         :newsPageCurrent="newsPageCurrent"
         :newsFirstPage="newsFirstPage"
         :newsLastPage="newsLastPage"
-        :newsLoading="newsLoading"
         :userSignedIn="userStatus.signedIn"
-        @newsSwitchToPage="onNewsSwitchToPage"
+        @newsSwitchToPage="onSwitchNewsPage"
       />
     </div>
   </div>

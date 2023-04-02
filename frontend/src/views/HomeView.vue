@@ -20,11 +20,12 @@ export default {
     };
   },
   methods: {
-    onGetLatestNews(callback: Function | undefined = undefined) {
+    onGetNews(callback: Function | undefined = undefined) {
       const apiData = {
+        requestType: "latest",
         page: this.newsPageCurrent,
       };
-      handleApi("post", "/api/news/getnewslatest", apiData).then((response) => {
+      handleApi("post", "/api/news/getnews", apiData).then((response) => {
         const code = parseInt(response.data.code);
         const data = response.data.data;
         this.newsNeedMore = false;
@@ -50,7 +51,7 @@ export default {
         this.newsPageCurrent += 1;
       }
       this.newsLoading = true;
-      this.onGetLatestNews(() => {
+      this.onGetNews(() => {
         this.newsLoading = false;
       });
     },
@@ -109,7 +110,6 @@ export default {
       <NewsContainer
         :newsData="newsList"
         :newsPageCurrent="newsPageCurrent"
-        :newsLoading="newsLoading"
         :userSignedIn="userStatus.signedIn"
         class="mb-3"
       />
@@ -120,10 +120,8 @@ export default {
         <div
           class="spinner-border text-primary me-2"
           role="status"
-          style="width: 3rem; height: 3rem"
-        >
-          <span class="visually-hidden">Loading...</span>
-        </div>
+          style="width: 3em; height: 3em"
+        ></div>
         Loading news...
       </div>
     </div>

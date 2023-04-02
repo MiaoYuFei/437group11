@@ -1,11 +1,10 @@
 <script lang="ts">
-import $ from "jquery";
 import NewsContainer from "@/components/NewsContainer.vue";
 import { handleApi, type INews } from "@/utilities";
 
 enum NewsSource {
-  Recommendations,
-  Collections,
+  Recommendation,
+  Collection,
 }
 
 export default {
@@ -23,7 +22,7 @@ export default {
       newsTotalCount: 0,
       newsError: false,
       newsErrorMessage: "",
-      newsSource: NewsSource.Recommendations,
+      newsSource: NewsSource.Recommendation,
     };
   },
   computed: {
@@ -43,15 +42,13 @@ export default {
   methods: {
     onGetNews(callback: Function | undefined = undefined) {
       const apiData = {
+        requestType:
+          this.newsSource === NewsSource.Collection
+            ? "collection"
+            : "recommendation",
         page: this.newsPageCurrent,
       };
-      let apiEndpoint = "";
-      if (this.newsSource === NewsSource.Collections) {
-        apiEndpoint = "/api/news/getnewscollection";
-      } else if (this.newsSource === NewsSource.Recommendations) {
-        apiEndpoint = "/api/news/getnewsrecommendation";
-      }
-      handleApi("post", apiEndpoint, apiData).then((response) => {
+      handleApi("post", "/api/news/getnews", apiData).then((response) => {
         const code = parseInt(response.data.code);
         const data = response.data.data;
         if (code == 200) {
@@ -71,7 +68,7 @@ export default {
         }
       });
     },
-    onNewsSwitchToPage(page: number) {
+    onSwitchNewsPage(page: number) {
       this.newsError = false;
       this.newsPageCurrent = page;
       this.newsLoading = true;
@@ -79,11 +76,11 @@ export default {
         this.newsLoading = false;
       });
     },
-    onSetNewsSource() {
-      const source = $("input[name='btnNewsSource']:checked").val() as string;
-      if (source === "recommendations") {
+    onSwitchNewsSource(newsSource: NewsSource) {
+      this.newsSource = newsSource;
+      if (newsSource === NewsSource.Recommendation) {
         this.$router.push({ query: { source: "recommendations" } });
-      } else if (source === "mycollections") {
+      } else if (newsSource === NewsSource.Collection) {
         this.$router.push({ query: { source: "mycollections" } });
       }
     },
@@ -96,16 +93,16 @@ export default {
           to.query.source === null ||
           to.query.source === ""
         ) {
-          this.$router.push({ query: { source: "recommendations" } });
+          this.$router.replace({ query: { source: "recommendations" } });
           return;
         }
         if (from !== undefined && to.query.source === from.query.source) {
           return;
         }
         if (to.query.source === "recommendations") {
-          this.newsSource = NewsSource.Recommendations;
+          this.newsSource = NewsSource.Recommendation;
         } else if (to.query.source === "mycollections") {
-          this.newsSource = NewsSource.Collections;
+          this.newsSource = NewsSource.Collection;
         }
       },
       immediate: true,
@@ -115,7 +112,7 @@ export default {
         if (to === from) {
           return;
         }
-        this.onNewsSwitchToPage(1);
+        this.onSwitchNewsPage(1);
       },
       immediate: true,
     },
@@ -155,8 +152,8 @@ export default {
           id="btnRecommendations"
           value="recommendations"
           autocomplete="off"
-          :checked="newsSource === NewsSource.Recommendations"
-          @click="onSetNewsSource"
+          :checked="newsSource === NewsSource.Recommendation"
+          @click="onSwitchNewsSource(NewsSource.Recommendation)"
         />
         <label class="btn btn-outline-primary" for="btnRecommendations"
           >Recommendations</label
@@ -168,8 +165,8 @@ export default {
           id="btnMyCollections"
           value="mycollections"
           autocomplete="off"
-          :checked="newsSource === NewsSource.Collections"
-          @click="onSetNewsSource"
+          :checked="newsSource === NewsSource.Collection"
+          @click="onSwitchNewsSource(NewsSource.Collection)"
         />
         <label class="btn btn-outline-primary" for="btnMyCollections"
           >My Collections</label
@@ -190,9 +187,8 @@ export default {
           :newsPageCurrent="newsPageCurrent"
           :newsFirstPage="newsFirstPage"
           :newsLastPage="newsLastPage"
-          :newsLoading="newsLoading"
           :userSignedIn="userStatus.signedIn"
-          @newsSwitchToPage="onNewsSwitchToPage"
+          @newsSwitchToPage="onSwitchNewsPage"
         />
       </div>
     </div>

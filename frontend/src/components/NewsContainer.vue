@@ -12,10 +12,6 @@ export default {
       type: Number,
       required: false,
     },
-    newsLoading: {
-      type: Boolean,
-      required: true,
-    },
     newsFirstPage: {
       type: Number,
       required: false,
@@ -215,7 +211,6 @@ export default {
         newsTotalPage > 1
       "
       class="user-select-none my-3"
-      :class="{ 'd-none': newsLoading, 'd-block': !newsLoading }"
       aria-label="Page navigation"
     >
       <ul class="pagination justify-content-center">

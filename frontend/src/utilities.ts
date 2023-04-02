@@ -132,6 +132,7 @@ export interface ITicker {
   type: string;
   weighted_shares_outstanding: number;
   category: string;
+  last_trading_date: string;
 }
 
 export interface INews {

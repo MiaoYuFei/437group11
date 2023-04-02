@@ -99,13 +99,9 @@ class newsdata_helper:
         sql_cnx.close()
 
         responseData = {}
-        if news_rows is not None:
-            responseData["status"] = "ok"
-            if news_total_count is not None:
-                responseData["total_count"] = news_total_count
-            responseData["results"] = news_list
-        else:
-            responseData["status"] = "error"
+        responseData["newsList"] = news_list
+        if news_total_count is not None:
+            responseData["total_count"] = news_total_count
 
         return responseData
 
@@ -204,14 +200,10 @@ class newsdata_helper:
         sql_cnx.close()
 
         responseData = {}
-        if news_rows is not None:
-            responseData["status"] = "ok"
-            if news_total_count is not None:
-                responseData["total_count"] = news_total_count
-            responseData["results"] = news_list
-        else:
-            responseData["status"] = "error"
-        
+        responseData["newsList"] = news_list
+        if news_total_count is not None:
+            responseData["total_count"] = news_total_count
+
         return responseData
 
     @staticmethod
@@ -310,13 +302,9 @@ class newsdata_helper:
         sql_cnx.close()
 
         responseData = {}
-        if news_rows is not None:
-            responseData["status"] = "ok"
-            if news_total_count is not None:
-                responseData["total_count"] = news_total_count
-            responseData["results"] = news_list
-        else:
-            responseData["status"] = "error"
+        responseData["newsList"] = news_list
+        if news_total_count is not None:
+            responseData["total_count"] = news_total_count
 
         return responseData
 
@@ -422,6 +410,11 @@ class newsdata_helper:
             responseData["results"] = news_list
         else:
             responseData["status"] = "error"
+
+        # responseData = {}
+        # responseData["newsList"] = news_list
+        # if news_total_count is not None:
+        #     responseData["total_count"] = news_total_count
 
         return responseData
 

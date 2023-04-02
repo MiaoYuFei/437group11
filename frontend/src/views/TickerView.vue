@@ -1,7 +1,7 @@
 <script lang="ts">
-import $ from "jquery";
 import NewsContainer from "@/components/NewsContainer.vue";
 import { handleApi, type ITicker, type INews } from "@/utilities";
+import $ from "jquery";
 import * as echarts from "echarts";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { shallowRef } from "vue";
@@ -53,8 +53,14 @@ export default {
     $() {
       return $;
     },
+    ChartType() {
+      return ChartType;
+    },
     ChartTimeSpan() {
       return ChartTimeSpan;
+    },
+    ticker() {
+      return this.$route.query.q;
     },
     newsTotalPage() {
       return Math.ceil(this.newsTotalCount / 10);
@@ -82,16 +88,6 @@ export default {
         return new Date().toISOString().split("T")[0];
       }
     },
-    priceChartTitle() {
-      if (this.priceStartDate === this.priceEndDate) {
-        return `${this.tickerInfo?.ticker} Price Chart (${this.priceStartDate})`;
-      } else {
-        return `${this.tickerInfo?.ticker} Price Chart (${this.priceStartDate} - ${this.priceEndDate})`;
-      }
-    },
-    ticker() {
-      return this.$route.query.q;
-    },
   },
   methods: {
     getPriceChartTimeSpanText(timeSpan: ChartTimeSpan) {
@@ -117,31 +113,13 @@ export default {
           const data = response.data.data;
           if (code === 200) {
             this.tickerInfo = data;
+            this.priceEndDate = data.last_trading_date;
             if (callback !== undefined) {
               callback();
             }
           }
         }
       );
-    },
-    onGetLastTradingDate(callback: Function | undefined = undefined) {
-      handleApi("post", "/api/stock/getlasttradingdate", {
-        ticker: this.ticker,
-      }).then((response) => {
-        const code = parseInt(response.data.code);
-        const data = response.data.data;
-        if (code === 200) {
-          this.priceEndDate = data.lastTradingDate;
-          if (callback !== undefined) {
-            callback(true);
-          }
-        } else {
-          this.priceEndDate = new Date().toISOString().split("T")[0];
-          if (callback !== undefined) {
-            callback(false);
-          }
-        }
-      });
     },
     onGetPrice(callback: Function | undefined = undefined) {
       handleApi("post", "/api/stock/getprice", {
@@ -160,51 +138,60 @@ export default {
         }
       });
     },
-    onGetTickerNews(callback: Function | undefined = undefined) {
+    onGetNews(callback: Function | undefined = undefined) {
       const apiData = {
+        requestType: "ticker",
         ticker: this.ticker,
         page: this.newsPageCurrent,
       };
-      handleApi("post", "/api/news/getnewsbyticker", apiData).then(
-        (response) => {
-          const code = parseInt(response.data.code);
-          const data = response.data.data;
-          if (code === 200) {
-            this.newsList = data.newsList;
-            if (data.total_count !== undefined) {
-              this.newsTotalCount = data.total_count;
-            }
-            if (callback !== undefined) {
-              callback(true);
-            }
-          } else {
-            this.newsError = true;
-            this.newsErrorMessage = data.reason;
-            if (callback !== undefined) {
-              callback(false);
-            }
+      handleApi("post", "/api/news/getnews", apiData).then((response) => {
+        const code = parseInt(response.data.code);
+        const data = response.data.data;
+        if (code === 200) {
+          this.newsList = data.newsList;
+          if (data.total_count !== undefined) {
+            this.newsTotalCount = data.total_count;
+          }
+          if (callback !== undefined) {
+            callback(true);
+          }
+        } else {
+          this.newsError = true;
+          this.newsErrorMessage = data.reason;
+          if (callback !== undefined) {
+            callback(false);
           }
         }
-      );
+      });
     },
-    onNewsSwitchToPage(page: number) {
+    onSwitchNewsPage(page: number) {
       this.newsError = false;
       this.newsPageCurrent = page;
       this.newsLoading = true;
-      this.onGetTickerNews(() => {
+      this.onGetNews(() => {
         this.newsLoading = false;
       });
     },
-    onSwitchPriceChartType() {
-      if ($("#btnPriceChartBasic").prop("checked") === true) {
-        this.priceChartType = ChartType.Basic;
-        this.drawPriceChartBasic(this.priceData);
+    onSwitchPriceChartType(chartType: ChartType) {
+      this.priceChartType = chartType;
+      if (chartType === ChartType.Basic) {
+        this.drawPriceChart(ChartType.Basic, this.priceData);
       } else {
-        this.priceChartType = ChartType.Advanced;
-        this.drawPriceChartAdvanced(this.priceData);
+        this.drawPriceChart(ChartType.Advanced, this.priceData);
       }
     },
-    drawPriceChartBasic(
+    onSwitchPriceChartTimeSpan(chartTimeSpan: ChartTimeSpan) {
+      this.priceChartTimeSpan = chartTimeSpan;
+      this.onGetPrice(() => {
+        if (this.priceChartType === ChartType.Basic) {
+          this.drawPriceChart(ChartType.Basic, this.priceData);
+        } else {
+          this.drawPriceChart(ChartType.Advanced, this.priceData);
+        }
+      });
+    },
+    drawPriceChart(
+      chartType: ChartType,
       data: {
         timestamp: number;
         open: number;
@@ -221,7 +208,10 @@ export default {
       );
       const chartOption: echarts.EChartsOption = {
         title: {
-          text: this.priceChartTitle,
+          text:
+            this.priceStartDate === this.priceEndDate
+              ? `${this.tickerInfo?.ticker} Price Chart (${this.priceStartDate})`
+              : `${this.tickerInfo?.ticker} Price Chart (${this.priceStartDate} - ${this.priceEndDate})`,
           textStyle: {
             fontWeight: "bold",
           },
@@ -232,12 +222,6 @@ export default {
           axisPointer: {
             type: "cross",
           },
-          formatter: (params: any) => {
-            const item = params[0];
-            const timestamp = item.axisValueLabel;
-            const price = item.data[1];
-            return `<strong>${timestamp}</strong><p>price: ${this.tickerInfo?.currency_name} ${price}</p>`;
-          },
         },
         xAxis: {
           type: "time",
@@ -246,73 +230,19 @@ export default {
         yAxis: {
           type: "value",
           scale: true,
-          axisLabel: {
-            margin: 20,
-          },
           name: this.tickerInfo?.currency_name,
           nameTextStyle: {
-            padding: [0, 60, 0, 0],
             align: "center",
           },
-        },
-        series: {
-          type: "line",
-          data: data.map((item) => [item.timestamp, item.close]),
         },
       };
-      this.priceChartObj.setOption(chartOption);
-      $(window)
-        .off("resize.echarts")
-        .on("resize.echarts", () => {
-          this.priceChartObj?.resize();
-        });
-    },
-    drawPriceChartAdvanced(
-      data: {
-        timestamp: number;
-        open: number;
-        close: number;
-        low: number;
-        high: number;
-      }[]
-    ) {
-      if (this.priceChartObj !== null) {
-        this.priceChartObj.dispose();
-      }
-      this.priceChartObj = echarts.init(
-        this.$refs.chart_stockprice as HTMLDivElement
-      );
-      const chartOption: echarts.EChartsOption = {
-        title: {
-          text: this.priceChartTitle,
-          textStyle: {
-            fontWeight: "bold",
-          },
-          left: "center",
-        },
-        tooltip: {
-          trigger: "axis",
-          axisPointer: {
-            type: "cross",
-          },
-        },
-        xAxis: {
-          type: "time",
-          scale: true,
-        },
-        yAxis: {
-          type: "value",
-          scale: true,
-          axisLabel: {
-            margin: 20,
-          },
-          name: this.tickerInfo?.currency_name,
-          nameTextStyle: {
-            padding: [0, 60, 0, 0],
-            align: "center",
-          },
-        },
-        series: {
+      if (chartType === ChartType.Basic) {
+        chartOption.series = {
+          type: "line",
+          data: data.map((item) => [item.timestamp, item.close]),
+        };
+      } else if (chartType === ChartType.Advanced) {
+        chartOption.series = {
           type: "candlestick",
           data: data.map((item) => [
             item.timestamp,
@@ -327,24 +257,14 @@ export default {
             borderColor: "green",
             borderColor0: "red",
           },
-        },
-      };
+        };
+      }
       this.priceChartObj.setOption(chartOption);
       $(window)
         .off("resize.echarts")
         .on("resize.echarts", () => {
           this.priceChartObj?.resize();
         });
-    },
-    onSetPriceChartTimeSpan(timeSpan: ChartTimeSpan) {
-      this.priceChartTimeSpan = timeSpan;
-      this.onGetPrice(() => {
-        if (this.priceChartType === ChartType.Basic) {
-          this.drawPriceChartBasic(this.priceData);
-        } else {
-          this.drawPriceChartAdvanced(this.priceData);
-        }
-      });
     },
   },
   watch: {
@@ -357,7 +277,7 @@ export default {
               from.query !== undefined &&
               to.query.q !== from.query.q))
         ) {
-          this.onNewsSwitchToPage(1);
+          this.onSwitchNewsPage(1);
         }
       },
       immediate: true,
@@ -368,15 +288,13 @@ export default {
   },
   mounted() {
     this.onGetTickerInfo(() => {
-      this.pageLoading = false;
-    });
-    this.onGetLastTradingDate(() => {
       this.onGetPrice(() => {
         $(() => {
-          this.drawPriceChartBasic(this.priceData);
+          this.drawPriceChart(ChartType.Basic, this.priceData);
         });
         this.priceChartLoading = false;
       });
+      this.pageLoading = false;
     });
   },
   components: {
@@ -598,7 +516,7 @@ export default {
                     value="pricechartbasic"
                     autocomplete="off"
                     checked
-                    @click="onSwitchPriceChartType"
+                    @click="onSwitchPriceChartType(ChartType.Basic)"
                   />
                   <label
                     class="btn btn-outline-primary"
@@ -612,7 +530,7 @@ export default {
                     id="btnPriceChartAdvanced"
                     value="pricechartadvanced"
                     autocomplete="off"
-                    @click="onSwitchPriceChartType"
+                    @click="onSwitchPriceChartType(ChartType.Advanced)"
                   />
                   <label
                     class="btn btn-outline-primary"
@@ -637,7 +555,7 @@ export default {
                         :class="{
                           active: priceChartTimeSpan === ChartTimeSpan.OneDay,
                         }"
-                        @click="onSetPriceChartTimeSpan(ChartTimeSpan.OneDay)"
+                        @click="onSwitchPriceChartTimeSpan(ChartTimeSpan.OneDay)"
                         href="#"
                       >
                         {{ getPriceChartTimeSpanText(ChartTimeSpan.OneDay) }}</a
@@ -649,7 +567,7 @@ export default {
                         :class="{
                           active: priceChartTimeSpan === ChartTimeSpan.OneMonth,
                         }"
-                        @click="onSetPriceChartTimeSpan(ChartTimeSpan.OneMonth)"
+                        @click="onSwitchPriceChartTimeSpan(ChartTimeSpan.OneMonth)"
                         href="#"
                         >{{
                           getPriceChartTimeSpanText(ChartTimeSpan.OneMonth)
@@ -664,7 +582,7 @@ export default {
                             priceChartTimeSpan === ChartTimeSpan.ThreeMonths,
                         }"
                         @click="
-                          onSetPriceChartTimeSpan(ChartTimeSpan.ThreeMonths)
+                          onSwitchPriceChartTimeSpan(ChartTimeSpan.ThreeMonths)
                         "
                         href="#"
                         >{{
@@ -678,7 +596,7 @@ export default {
                         :class="{
                           active: priceChartTimeSpan === ChartTimeSpan.OneYear,
                         }"
-                        @click="onSetPriceChartTimeSpan(ChartTimeSpan.OneYear)"
+                        @click="onSwitchPriceChartTimeSpan(ChartTimeSpan.OneYear)"
                         href="#"
                         >{{
                           getPriceChartTimeSpanText(ChartTimeSpan.OneYear)
@@ -729,9 +647,8 @@ export default {
                     :newsPageCurrent="newsPageCurrent"
                     :newsFirstPage="newsFirstPage"
                     :newsLastPage="newsLastPage"
-                    :newsLoading="newsLoading"
                     :userSignedIn="userStatus.signedIn"
-                    @newsSwitchToPage="onNewsSwitchToPage"
+                    @newsSwitchToPage="onSwitchNewsPage"
                   />
                 </div>
               </div>

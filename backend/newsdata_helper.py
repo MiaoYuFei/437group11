@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
 import datetime
-import os
 
-from utilities import get_string_base64_encoded, get_sql_connection
-
-script_path = os.path.realpath(os.path.dirname(__file__))
+from utilities import get_sql_connection, get_string_base64_encoded, process_news_response
 
 api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
 
@@ -53,51 +50,9 @@ class newsdata_helper:
         news_rows = sql_cursor.fetchall()
         news_columns = [column[0] for column in sql_cursor.description]
         news_list = [dict(zip(news_columns, news_row)) for news_row in news_rows]
-        for news in news_list:
-            news["article"] = {
-                "title": news["article_title"],
-                "description": news["article_description"],
-                "keywords": news["article_keywords"],
-                "datetime": news["article_datetime"],
-                "url": news["article_url"],
-            }
-            del news["article_title"]
-            del news["article_description"]
-            del news["article_keywords"]
-            del news["article_datetime"]
-            del news["article_url"]
-            news["cover_image"] = {
-                "url": news["cover_image_url"],
-            }
-            del news["cover_image_url"]
-            news["publisher"] = {
-                "name": news["publisher_name"],
-                "homepage": {
-                    "url": news["publisher_homepage_url"],
-                },
-                "logo": {
-                    "url": news["publisher_logo_url"],
-                },
-            }
-            del news["publisher_name"]
-            del news["publisher_homepage_url"]
-            del news["publisher_logo_url"]
-            if news["tickers"] is not None:
-                news["tickers"] = news["tickers"].split(",")
-            else:
-                news["tickers"] = []
-            if news["categories"] is not None:
-                news["categories"] = news["categories"].split(",")
-            else:
-                news["categories"] = []
-            if "liked" in news:
-                news["liked"] = news["liked"] == 1
-            if "collected" in news:
-                news["collected"] = news["collected"] == 1
-        sql_cnx.commit()
         sql_cursor.close()
         sql_cnx.close()
-
+        process_news_response(news_list)
         responseData = {}
         responseData["newsList"] = news_list
         if news_total_count is not None:
@@ -153,52 +108,9 @@ class newsdata_helper:
         news_rows = sql_cursor.fetchall()
         news_columns = [column[0] for column in sql_cursor.description]
         news_list = [dict(zip(news_columns, news_row)) for news_row in news_rows]
-        for news in news_list:
-            news["article"] = {
-                "title": news["article_title"],
-                "description": news["article_description"],
-                "keywords": news["article_keywords"],
-                "datetime": news["article_datetime"],
-                "url": news["article_url"],
-            }
-            del news["article_title"]
-            del news["article_description"]
-            del news["article_keywords"]
-            del news["article_datetime"]
-            del news["article_url"]
-            news["cover_image"] = {
-                "url": news["cover_image_url"],
-            }
-            del news["cover_image_url"]
-            news["publisher"] = {
-                "name": news["publisher_name"],
-                "homepage": {
-                    "url": news["publisher_homepage_url"],
-                },
-                "logo": {
-                    "url": news["publisher_logo_url"],
-                },
-            }
-            del news["publisher_name"]
-            del news["publisher_homepage_url"]
-            del news["publisher_logo_url"]
-            if news["tickers"] is not None:
-                news["tickers"] = news["tickers"].split(",")
-                news["tickers"].insert(0, news["tickers"].pop(news["tickers"].index(ticker)))
-            else:
-                news["tickers"] = [ticker]
-            if news["categories"] is not None:
-                news["categories"] = news["categories"].split(",")
-            else:
-                news["categories"] = []
-            if "liked" in news:
-                news["liked"] = news["liked"] == 1
-            if "collected" in news:
-                news["collected"] = news["collected"] == 1
-        sql_cnx.commit()
         sql_cursor.close()
         sql_cnx.close()
-
+        process_news_response(news_list)
         responseData = {}
         responseData["newsList"] = news_list
         if news_total_count is not None:
@@ -254,53 +166,9 @@ class newsdata_helper:
         news_rows = sql_cursor.fetchall()
         news_columns = [column[0] for column in sql_cursor.description]
         news_list = [dict(zip(news_columns, news_row)) for news_row in news_rows]
-        for news in news_list:
-            news["article"] = {
-                "title": news["article_title"],
-                "description": news["article_description"],
-                "keywords": news["article_keywords"],
-                "datetime": news["article_datetime"],
-                "url": news["article_url"],
-            }
-            del news["article_title"]
-            del news["article_description"]
-            del news["article_keywords"]
-            del news["article_datetime"]
-            del news["article_url"]
-            news["cover_image"] = {
-                "url": news["cover_image_url"],
-            }
-            del news["cover_image_url"]
-            news["publisher"] = {
-                "name": news["publisher_name"],
-                "homepage": {
-                    "url": news["publisher_homepage_url"],
-                },
-                "logo": {
-                    "url": news["publisher_logo_url"],
-                },
-            }
-            del news["publisher_name"]
-            del news["publisher_homepage_url"]
-            del news["publisher_logo_url"]
-            if news["tickers"] is not None:
-                news["tickers"] = news["tickers"].split(",")
-            else:
-                news["tickers"] = []
-            if news["categories"] is not None:
-                news["categories"] = news["categories"].split(",")
-                news["categories"].insert(0, news["categories"].pop(news["categories"].index(category)))
-            else:
-                news["categories"] = []
-            if "liked" in news:
-                news["liked"] = news["liked"] == 1
-            if "collected" in news:
-                news["collected"] = news["collected"] == 1
-
-        sql_cnx.commit()
         sql_cursor.close()
         sql_cnx.close()
-
+        process_news_response(news_list)
         responseData = {}
         responseData["newsList"] = news_list
         if news_total_count is not None:
@@ -356,65 +224,13 @@ class newsdata_helper:
         news_rows = sql_cursor.fetchall()
         news_columns = [column[0] for column in sql_cursor.description]
         news_list = [dict(zip(news_columns, news_row)) for news_row in news_rows]
-        for news in news_list:
-            news["article"] = {
-                "title": news["article_title"],
-                "description": news["article_description"],
-                "keywords": news["article_keywords"],
-                "datetime": news["article_datetime"],
-                "url": news["article_url"],
-            }
-            del news["article_title"]
-            del news["article_description"]
-            del news["article_keywords"]
-            del news["article_datetime"]
-            del news["article_url"]
-            news["cover_image"] = {
-                "url": news["cover_image_url"],
-            }
-            del news["cover_image_url"]
-            news["publisher"] = {
-                "name": news["publisher_name"],
-                "homepage": {
-                    "url": news["publisher_homepage_url"],
-                },
-                "logo": {
-                    "url": news["publisher_logo_url"],
-                },
-            }
-            del news["publisher_name"]
-            del news["publisher_homepage_url"]
-            del news["publisher_logo_url"]
-            if news["tickers"] is not None:
-                news["tickers"] = news["tickers"].split(",")
-            else:
-                news["tickers"] = []
-            if news["categories"] is not None:
-                news["categories"] = news["categories"].split(",")
-            else:
-                news["categories"] = []
-            if "liked" in news:
-                news["liked"] = news["liked"] == 1
-            if "collected" in news:
-                news["collected"] = news["collected"] == 1
-
-        sql_cnx.commit()
         sql_cursor.close()
         sql_cnx.close()
-
+        process_news_response(news_list)
         responseData = {}
-        if news_rows is not None:
-            responseData["status"] = "ok"
-            if news_total_count is not None:
-                responseData["total_count"] = news_total_count
-            responseData["results"] = news_list
-        else:
-            responseData["status"] = "error"
-
-        # responseData = {}
-        # responseData["newsList"] = news_list
-        # if news_total_count is not None:
-        #     responseData["total_count"] = news_total_count
+        responseData["newsList"] = news_list
+        if news_total_count is not None:
+            responseData["total_count"] = news_total_count
 
         return responseData
 
@@ -457,14 +273,6 @@ class newsdata_helper:
         sql_cnx.commit()
         sql_cursor.close()
         sql_cnx.close()
-        
-        responseData = {}
-        if data_row is not None:
-            responseData["status"] = "ok"
-        else:
-            responseData["status"] = "error"
-        
-        return responseData
 
     @staticmethod
     def set_user_news_collect(news_id: str, user_id: str, collected: bool):
@@ -506,14 +314,6 @@ class newsdata_helper:
         sql_cnx.commit()
         sql_cursor.close()
         sql_cnx.close()
-        
-        responseData = {}
-        if data_row is not None:
-            responseData["status"] = "ok"
-        else:
-            responseData["status"] = "error"
-        
-        return responseData
 
     @staticmethod
     def get_user_news_recommendation(user_id: str, offset: int = 0):
@@ -560,58 +360,14 @@ class newsdata_helper:
             sql_cursor.execute(sql_query, [user_id, offset])
             data_rows = sql_cursor.fetchall()
             data_columns = [column[0] for column in sql_cursor.description]
-        sql_cnx.commit()
         sql_cursor.close()
         sql_cnx.close()
 
         if data_total_count != 0:
             news_list = [dict(zip(data_columns, news_row)) for news_row in data_rows]
+            process_news_response(news_list)
         else:
             news_list = []
-        for news in news_list:
-            news["article"] = {
-                "title": news["article_title"],
-                "description": news["article_description"],
-                "keywords": news["article_keywords"],
-                "datetime": news["article_datetime"],
-                "url": news["article_url"],
-            }
-            del news["article_title"]
-            del news["article_description"]
-            del news["article_keywords"]
-            del news["article_datetime"]
-            del news["article_url"]
-            news["cover_image"] = {
-                "url": news["cover_image_url"],
-            }
-            del news["cover_image_url"]
-            news["publisher"] = {
-                "name": news["publisher_name"],
-                "homepage": {
-                    "url": news["publisher_homepage_url"],
-                },
-                "logo": {
-                    "url": news["publisher_logo_url"],
-                },
-            }
-            del news["publisher_name"]
-            del news["publisher_homepage_url"]
-            del news["publisher_logo_url"]
-            if news["tickers"] is not None:
-                news["tickers"] = news["tickers"].split(",")
-            else:
-                news["tickers"] = []
-            if news["categories"] is not None:
-                news["categories"] = news["categories"].split(",")
-            else:
-                news["categories"] = []
-            if "liked" in news:
-                news["liked"] = news["liked"] == 1
-            if "collected" in news:
-                news["collected"] = news["collected"] == 1
-            if "collect_datetime" in news and news["collect_datetime"] is not None:
-                news["collect_datetime"] = news["collect_datetime"].strftime("%Y-%m-%dT%H:%M:%SZ")
-
         responseData = {}
         responseData["newsList"] = news_list
         if data_total_count is not None:

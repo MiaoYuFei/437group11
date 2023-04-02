@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 
-import os
-
 import requests
 
 from utilities import get_string_base64_encoded, get_sql_connection, call_api_get
-
-script_path = os.path.realpath(os.path.dirname(__file__))
 
 api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
 
@@ -32,7 +28,6 @@ class stockdata_helper:
         sql_cursor.execute("SELECT * FROM `ticker` WHERE `ticker`.`id` = %s", [ticker_encoded])
         ticker_row = sql_cursor.fetchone()
         ticker_columns = [column[0] for column in sql_cursor.description]
-        sql_cnx.commit()
         sql_cursor.close()
         sql_cnx.close()
         responseData = {}

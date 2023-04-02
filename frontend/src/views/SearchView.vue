@@ -30,12 +30,13 @@ export default {
     },
   },
   methods: {
-    onGetTopNews(callback: Function | undefined = undefined) {
+    onGetNews(callback: Function | undefined = undefined) {
       const apiData = {
+        requestType: "search",
         q: this.$route.query.q,
         page: this.newsPageCurrent,
       };
-      handleApi("post", "/api/news/searchnews", apiData).then((response) => {
+      handleApi("post", "/api/news/getnews", apiData).then((response) => {
         const code = parseInt(response.data.code);
         const data = response.data.data;
         if (code === 200) {
@@ -51,11 +52,11 @@ export default {
         }
       });
     },
-    onNewsSwitchToPage(page: number) {
+    onSwitchNewsPage(page: number) {
       this.newsError = false;
       this.newsPageCurrent = page;
       this.newsLoading = true;
-      this.onGetTopNews(() => {
+      this.onGetNews(() => {
         this.newsLoading = false;
       });
     },
@@ -70,7 +71,7 @@ export default {
               from.query !== undefined &&
               to.query.q !== from.query.q))
         ) {
-          this.onNewsSwitchToPage(1);
+          this.onSwitchNewsPage(1);
         }
       },
       immediate: true,
@@ -93,10 +94,9 @@ export default {
       <div
         class="spinner-border text-primary"
         role="status"
-        style="width: 4rem; height: 4rem"
-      >
-        <span class="visually-hidden">Loading...</span>
-      </div>
+        style="width: 4em; height: 4em"
+      ></div>
+      Searching news...
     </div>
     <div v-if="!newsLoading" class="container my-3">
       <div v-if="!newsError && newsList.length > 0">
@@ -116,9 +116,8 @@ export default {
         :newsPageCurrent="newsPageCurrent"
         :newsFirstPage="newsFirstPage"
         :newsLastPage="newsLastPage"
-        :newsLoading="newsLoading"
         :userSignedIn="userStatus.signedIn"
-        @newsSwitchToPage="onNewsSwitchToPage"
+        @newsSwitchToPage="onSwitchNewsPage"
       />
     </div>
   </div>

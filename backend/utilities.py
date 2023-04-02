@@ -141,5 +141,50 @@ def get_sic_category_name_from_sic_category_code(sic_category_code: str) -> str:
 def get_string_base64_encoded(string: str) -> str:
     return base64.b64encode(string.encode("utf-8")).decode("utf-8")
 
+@staticmethod
 def get_string_base64_decoded(string: str) -> str:
     return base64.b64decode(string.encode("utf-8")).decode("utf-8")
+
+@staticmethod
+def process_news_response(news_list: list):
+    for news in news_list:
+        news["article"] = {
+            "title": news["article_title"],
+            "description": news["article_description"],
+            "keywords": news["article_keywords"],
+            "datetime": news["article_datetime"],
+            "url": news["article_url"],
+        }
+        del news["article_title"]
+        del news["article_description"]
+        del news["article_keywords"]
+        del news["article_datetime"]
+        del news["article_url"]
+        news["cover_image"] = {
+            "url": news["cover_image_url"],
+        }
+        del news["cover_image_url"]
+        news["publisher"] = {
+            "name": news["publisher_name"],
+            "homepage": {
+                "url": news["publisher_homepage_url"],
+            },
+            "logo": {
+                "url": news["publisher_logo_url"],
+            },
+        }
+        del news["publisher_name"]
+        del news["publisher_homepage_url"]
+        del news["publisher_logo_url"]
+        if news["tickers"] is not None:
+            news["tickers"] = news["tickers"].split(",")
+        else:
+            news["tickers"] = []
+        if news["categories"] is not None:
+            news["categories"] = news["categories"].split(",")
+        else:
+            news["categories"] = []
+        if "liked" in news:
+            news["liked"] = news["liked"] == 1
+        if "collected" in news:
+            news["collected"] = news["collected"] == 1

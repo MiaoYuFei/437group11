@@ -30,23 +30,27 @@ export default {
     onLikeClick(item: any) {
       item.liked = !item.liked;
       const apiData = {
+        requestType: "like",
         newsId: item.id,
         liked: item.liked,
       };
-      handleApi("post", "/api/news/setnewslike", apiData).then((response) => {
-        const code = parseInt(response.data.code);
-        if (code === 200) {
-          // Currently do nothing
+      handleApi("post", "/api/news/setnewsuseraction", apiData).then(
+        (response) => {
+          const code = parseInt(response.data.code);
+          if (code === 200) {
+            // Currently do nothing
+          }
         }
-      });
+      );
     },
     onCollectClick(item: any) {
       item.collected = !item.collected;
       const apiData = {
+        requestType: "collect",
         newsId: item.id,
         collected: item.collected,
       };
-      handleApi("post", "/api/news/setnewscollect", apiData).then(
+      handleApi("post", "/api/news/setnewsuseraction", apiData).then(
         (response) => {
           const code = parseInt(response.data.code);
           if (code === 200) {

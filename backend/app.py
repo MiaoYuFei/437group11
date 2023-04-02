@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
-import json
 import datetime
-import urllib.parse
+from firebase_helper import firebase_helper
 from flask import Flask, Response, jsonify, make_response, request, session
 from flask_session import Session
-from utilities import verify_recaptcha, get_sic_category_code_from_sic_code
+import json
+import urllib.parse
+
 from newsdata_helper import newsdata_helper
 from stockdata_helper import stockdata_helper
-from firebase_helper import firebase_helper
+from utilities import verify_recaptcha, get_sic_category_code_from_sic_code
 
 fb = firebase_helper()
 
@@ -22,7 +23,7 @@ def set_session_user(data):
         "localId": data["localId"],
         "idToken": data["idToken"],
         "email": data["email"],
-        "expiry": datetime.datetime.now() +  + datetime.timedelta(0, int(data["expiresIn"]))
+        "expiry": datetime.datetime.utcnow() +  + datetime.timedelta(0, int(data["expiresIn"]))
     }
 
 def clear_session_user():
@@ -30,7 +31,14 @@ def clear_session_user():
     session.clear()
 
 def is_session_user_set():
-    return True if ("user" in session and session["user"] != None) else False
+    if "user" in session and session["user"] != None:
+        if "expiry" in session["user"] and session["user"]["expiry"] < datetime.datetime.utcnow():
+            clear_session_user()
+            return False
+        else:
+            return True
+    else:
+        return False
 
 @app.route("/api/user/signin", methods=["POST"])
 def signin() -> Response:
@@ -446,45 +454,11 @@ def proxyPolygon() -> Response:
         responseObj.headers[key] = value
     return responseObj
 
-@app.route("/api/news/searchnews", methods=["POST"])
-def searchNews() -> Response:
+@app.route("/api/news/setnewsuseraction", methods=["POST"])
+def setNewsUserAction() -> Response:
     requestData = {
-        "q": request.form["q"]
-    }
-    if "page" in request.form:
-        requestData["offset"] = (int(request.form["page"]) - 1) * 10
-    else:
-        requestData["offset"] = 0
-    responseData = {
-        "code": "200",
-        "data": {}
-    }
-
-    if is_session_user_set():
-        requestData["userId"] = session["user"]["localId"]
-    else:
-        requestData["userId"] = None
-
-    try:
-        result = newsdata_helper.search_news(requestData["q"], requestData["userId"], requestData["offset"])
-    except Exception as ex:
-        print(ex)
-        responseData["code"] = "403"
-        responseData["data"]["reason"] = "Access denied."
-        return make_response(jsonify(responseData), 200)
-
-    responseData["code"] = "200"
-    responseData["data"]["newsList"] = result["results"]
-    if "total_count" in result:
-        responseData["data"]["total_count"] = result["total_count"]
-
-    return make_response(jsonify(responseData), 200)
-
-@app.route("/api/news/setnewslike", methods=["POST"])
-def setNewsLike() -> Response:
-    requestData = {
-      "newsId": request.form["newsId"],
-      "liked": request.form["liked"].lower() == "true" or request.form["liked"] == "1",
+        "requestType": request.form["requestType"],
+        "newsId": request.form["newsId"],
     }
     responseData = {
         "code": "200",
@@ -497,36 +471,15 @@ def setNewsLike() -> Response:
         return make_response(jsonify(responseData), 200)
 
     requestData["userId"] = session["user"]["localId"]
+    if requestData["requestType"].lower() == "like":
+        requestData["liked"] = request.form["liked"].lower() == "true" or request.form["liked"] == "1"
+    elif requestData["requestType"].lower() == "collect":
+        requestData["collected"] = request.form["collected"].lower() == "true" or request.form["collected"] == "1"
     try:
-        newsdata_helper.set_user_news_like(requestData["newsId"], requestData["userId"], requestData["liked"])
-    except Exception as ex:
-        print(ex)
-        responseData["code"] = "403"
-        responseData["data"]["reason"] = "Access denied."
-        return make_response(jsonify(responseData), 200)
-    responseData["code"] = "200"
-
-    return make_response(jsonify(responseData), 200)
-
-@app.route("/api/news/setnewscollect", methods=["POST"])
-def setNewsCollect() -> Response:
-    requestData = {
-      "newsId": request.form["newsId"],
-      "collected": request.form["collected"].lower() == "true" or request.form["collected"] == "1",
-    }
-    responseData = {
-        "code": "200",
-        "data": {}
-    }
-
-    if not is_session_user_set():
-        responseData["code"] = "403"
-        responseData["data"]["reason"] = "Access denied."
-        return make_response(jsonify(responseData), 200)
-
-    requestData["userId"] = session["user"]["localId"]
-    try:
-        newsdata_helper.set_user_news_collect(requestData["newsId"], requestData["userId"], requestData["collected"])
+        if requestData["requestType"].lower() == "like":
+            newsdata_helper.set_user_news_like(requestData["newsId"], requestData["userId"], requestData["liked"])
+        elif requestData["requestType"].lower() == "collect":
+            newsdata_helper.set_user_news_collect(requestData["newsId"], requestData["userId"], requestData["collected"])
     except Exception as ex:
         print(ex)
         responseData["code"] = "403"
@@ -566,6 +519,8 @@ def getNews() -> Response:
     try:
         if requestData["requestType"] == "latest":
             result = newsdata_helper.get_news_latest(requestData["userId"], requestData["offset"])
+        elif requestData["requestType"] == "search":
+            result = newsdata_helper.search_news(request.form["q"], requestData["userId"], requestData["offset"])
         elif requestData["requestType"] == "ticker":
             result = newsdata_helper.get_news_by_ticker(request.form["ticker"], requestData["userId"], requestData["offset"])
         elif requestData["requestType"] == "category":

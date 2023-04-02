@@ -3,6 +3,12 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { handleApi } from "@/utilities";
 
 export default {
+  props: {
+    userStatus: {
+      type: Object,
+      required: true,
+    },
+  },
   data() {
     return {
       errorMessage: "unknown errror",

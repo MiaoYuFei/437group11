@@ -24,6 +24,10 @@ export default {
       type: Number,
       required: false,
     },
+    userSignedIn: {
+      type: Boolean,
+      required: true,
+    },
   },
   methods: {
     parseDatetime,
@@ -110,7 +114,7 @@ export default {
                   >
                 </div>
                 <span class="ps-2">{{
-                  parseDatetime(news.article.datetime as unknown as string)
+                  parseDatetime(news.article.datetime as string)
                 }}</span>
               </span>
               <div class="mb-1">
@@ -145,38 +149,56 @@ export default {
                   </li>
                 </ul>
               </div>
-              <div>
-                <div class="d-inline me-1">
-                  <a href="#" @click="onLikeClick(news)">
-                    <img
-                      v-show="news.liked"
-                      src="/src/assets/icon/like.png"
-                      alt="Unlike"
-                      style="height: 2em"
-                    />
-                    <img
-                      v-show="!news.liked"
-                      src="/src/assets/icon/no_like.png"
-                      alt="Like"
-                      style="height: 2em"
-                    />
-                  </a>
+              <div v-if="userSignedIn">
+                <div>
+                  <div class="d-inline me-1">
+                    <a href="#" @click="onLikeClick(news)">
+                      <img
+                        v-show="news.liked === true"
+                        src="/src/assets/icon/like.png"
+                        alt="Unlike"
+                        style="height: 2em"
+                        title="Unlike"
+                      />
+                      <img
+                        v-show="news.liked !== true"
+                        src="/src/assets/icon/no_like.png"
+                        alt="Like"
+                        style="height: 2em"
+                        title="Like"
+                      />
+                    </a>
+                  </div>
+                  <div class="d-inline">
+                    <a href="#" @click="onCollectClick(news)">
+                      <img
+                        v-show="news.collected === true"
+                        src="/src/assets/icon/collect.png"
+                        alt="Uncollect"
+                        style="height: 2em"
+                        title="Uncollect"
+                      />
+                      <img
+                        v-show="news.collected !== true"
+                        src="/src/assets/icon/no_collect.png"
+                        alt="Collect"
+                        style="height: 2em"
+                        title="Collect"
+                      />
+                    </a>
+                  </div>
                 </div>
-                <div class="d-inline">
-                  <a href="#" @click="onCollectClick(news)">
-                    <img
-                      v-show="news.collected"
-                      src="/src/assets/icon/collect.png"
-                      alt="Uncollect"
-                      style="height: 2em"
-                    />
-                    <img
-                      v-show="!news.collected"
-                      src="/src/assets/icon/no_collect.png"
-                      alt="Collect"
-                      style="height: 2em"
-                    />
-                  </a>
+                <div
+                  v-if="
+                    news.collect_datetime !== undefined &&
+                    news.collect_datetime !== null &&
+                    news.collect_datetime !== ''
+                  "
+                  class="mt-1"
+                >
+                  Collect time:&nbsp;<span>{{
+                    parseDatetime(news.collect_datetime as string)
+                  }}</span>
                 </div>
               </div>
             </div>

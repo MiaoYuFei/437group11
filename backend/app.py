@@ -337,6 +337,39 @@ def updatePassword() -> Response:
 
     return make_response(jsonify(responseData), 200)
 
+@app.route("/api/stock/gettickerinfo", methods=["POST"])
+def getTickerInfo() -> Response:
+    requestData = {
+        "ticker": request.form["ticker"]
+    }
+    responseData = {
+        "code": "200",
+        "data": {}
+    }
+
+    try:
+        result = stockdata_helper.get_tickerinfo(requestData["ticker"])
+    except Exception as ex:
+        print(ex)
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+    if result["status"].lower() != "ok":
+        responseData["code"] = "404"
+        responseData["data"]["reason"] = "Ticker not found."
+        return make_response(jsonify(responseData), 200)
+    if "branding" in result["results"]:
+        if "icon_url" in result["results"]["branding"] and result["results"]["branding"]["icon_url"] is not None:
+            result["results"]["branding"]["icon_url"] = "/api/polygon/proxy?url=" + urllib.parse.quote_plus(result["results"]["branding"]["icon_url"])
+        if "logo_url" in result["results"]["branding"] and result["results"]["branding"]["logo_url"] is not None:
+            result["results"]["branding"]["logo_url"] = "/api/polygon/proxy?url=" + urllib.parse.quote_plus(result["results"]["branding"]["logo_url"])
+    result["results"]["category"] = get_sic_category_code_from_sic_code(result["results"]["sic_code"])
+
+    responseData["code"] = "200"
+    responseData["data"] = result["results"]
+
+    return make_response(jsonify(responseData), 200)
+
 @app.route("/api/stock/getprice", methods=["POST"])
 def getPrice() -> Response:
     requestData = {
@@ -374,8 +407,8 @@ def getPrice() -> Response:
     
     return make_response(jsonify(responseData), 200)
 
-@app.route("/api/stock/gettickerinfo", methods=["POST"])
-def getTickerInfo() -> Response:
+@app.route("/api/stock/getlasttradingdate", methods=["POST"])
+def getLastTradeDate() -> Response:
     requestData = {
         "ticker": request.form["ticker"]
     }
@@ -385,25 +418,23 @@ def getTickerInfo() -> Response:
     }
 
     try:
-        result = stockdata_helper.get_tickerinfo(requestData["ticker"])
+        result = stockdata_helper.get_last_trading_date(requestData["ticker"])
     except Exception as ex:
         print(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
+
     if result["status"].lower() != "ok":
-        responseData["code"] = "404"
-        responseData["data"]["reason"] = "Ticker not found."
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
-    if "branding" in result["results"]:
-        if "icon_url" in result["results"]["branding"] and result["results"]["branding"]["icon_url"] is not None:
-            result["results"]["branding"]["icon_url"] = "/api/polygon/proxy?url=" + urllib.parse.quote_plus(result["results"]["branding"]["icon_url"])
-        if "logo_url" in result["results"]["branding"] and result["results"]["branding"]["logo_url"] is not None:
-            result["results"]["branding"]["logo_url"] = "/api/polygon/proxy?url=" + urllib.parse.quote_plus(result["results"]["branding"]["logo_url"])
-    result["results"]["category"] = get_sic_category_code_from_sic_code(result["results"]["sic_code"])
+    
+    timestamp = int(result["results"]["t"] / 1000000000)
+    utc_datetime = datetime.datetime.utcfromtimestamp(timestamp)
 
     responseData["code"] = "200"
-    responseData["data"] = result["results"]
+    responseData["data"]["lastTradingDate"] = utc_datetime.strftime("%Y-%m-%d")
 
     return make_response(jsonify(responseData), 200)
 
@@ -443,8 +474,13 @@ def getNewsLatest() -> Response:
         "data": {}
     }
 
+    if is_session_user_set():
+        requestData["userId"] = session["user"]["localId"]
+    else:
+        requestData["userId"] = None
+
     try:
-        result = newsdata_helper.get_news_latest(requestData["offset"])
+        result = newsdata_helper.get_news_latest(requestData["userId"], requestData["offset"])
     except Exception as ex:
         print(ex)
         responseData["code"] = "403"
@@ -472,8 +508,13 @@ def getNewsByTicker() -> Response:
         "data": {}
     }
 
+    if is_session_user_set():
+        requestData["userId"] = session["user"]["localId"]
+    else:
+        requestData["userId"] = None
+
     try:
-        result = newsdata_helper.get_news_by_ticker(requestData["ticker"], requestData["offset"])
+        result = newsdata_helper.get_news_by_ticker(requestData["ticker"], requestData["userId"], requestData["offset"])
     except Exception as ex:
         print(ex)
         responseData["code"] = "403"
@@ -501,8 +542,13 @@ def getNewsByCategory() -> Response:
         "data": {}
     }
 
+    if is_session_user_set():
+        requestData["userId"] = session["user"]["localId"]
+    else:
+        requestData["userId"] = None
+
     try:
-        result = newsdata_helper.get_news_by_category(requestData["category"], requestData["offset"])
+        result = newsdata_helper.get_news_by_category(requestData["category"], requestData["userId"], requestData["offset"])
     except Exception as ex:
         print(ex)
         responseData["code"] = "403"
@@ -530,8 +576,13 @@ def searchNews() -> Response:
         "data": {}
     }
 
+    if is_session_user_set():
+        requestData["userId"] = session["user"]["localId"]
+    else:
+        requestData["userId"] = None
+
     try:
-        result = newsdata_helper.search_news(requestData["q"], requestData["offset"])
+        result = newsdata_helper.search_news(requestData["q"], requestData["userId"], requestData["offset"])
     except Exception as ex:
         print(ex)
         responseData["code"] = "403"
@@ -542,6 +593,62 @@ def searchNews() -> Response:
     responseData["data"]["newsList"] = result["results"]
     if "total_count" in result:
         responseData["data"]["total_count"] = result["total_count"]
+
+    return make_response(jsonify(responseData), 200)
+
+@app.route("/api/news/setnewslike", methods=["POST"])
+def setNewsLike() -> Response:
+    requestData = {
+      "newsId": request.form["newsId"],
+      "liked": request.form["liked"].lower() == "true" or request.form["liked"] == "1",
+    }
+    responseData = {
+        "code": "200",
+        "data": {}
+    }
+
+    if not is_session_user_set():
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
+    requestData["userId"] = session["user"]["localId"]
+    try:
+        newsdata_helper.set_user_news_like(requestData["newsId"], requestData["userId"], requestData["liked"])
+    except Exception as ex:
+        print(ex)
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+    responseData["code"] = "200"
+
+    return make_response(jsonify(responseData), 200)
+
+@app.route("/api/news/setnewscollect", methods=["POST"])
+def setNewsCollect() -> Response:
+    requestData = {
+      "newsId": request.form["newsId"],
+      "collected": request.form["collected"].lower() == "true" or request.form["collected"] == "1",
+    }
+    responseData = {
+        "code": "200",
+        "data": {}
+    }
+
+    if not is_session_user_set():
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
+    requestData["userId"] = session["user"]["localId"]
+    try:
+        newsdata_helper.set_user_news_collect(requestData["newsId"], requestData["userId"], requestData["collected"])
+    except Exception as ex:
+        print(ex)
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+    responseData["code"] = "200"
 
     return make_response(jsonify(responseData), 200)
 
@@ -557,6 +664,23 @@ def getNewsRecommendation() -> Response:
         "data": {}
     }
 
+    if not is_session_user_set():
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
+    requestData["userId"] = session["user"]["localId"]
+    try:
+        result = newsdata_helper.get_user_news_recommendation(requestData["userId"], requestData["offset"])
+    except Exception as ex:
+        print(ex)
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
+    responseData["code"] = "200"
+    responseData["data"] = result
+
     return make_response(jsonify(responseData), 200)
 
 @app.route("/api/news/getnewscollection", methods=["POST"])
@@ -571,90 +695,22 @@ def getNewsCollection() -> Response:
         "data": {}
     }
 
-    return make_response(jsonify(responseData), 200)
-
-@app.route("/api/news/setnewslike", methods=["POST"])
-def setNewsLike() -> Response:
-    requestData = {
-      "newsId": request.form["newsId"],
-      "liked": request.form["liked"].lower() == "true" or request.form["liked"] == "1",
-    }
-    responseData = {
-        "code": "200",
-        "data": {}
-    }
-
-    if is_session_user_set():
-        requestData["userId"] = session["user"]["idToken"]
-        try:
-            newsdata_helper.set_user_news_like(requestData["newsId"], requestData["userId"], requestData["liked"])
-        except Exception as ex:
-            print(ex)
-            responseData["code"] = "403"
-            responseData["data"]["reason"] = "Access denied."
-            return make_response(jsonify(responseData), 200)
-        responseData["code"] = "200"
-        return make_response(jsonify(responseData), 200)
-    else:
+    if not is_session_user_set():
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
 
-@app.route("/api/news/setnewscollect", methods=["POST"])
-def setNewsCollect() -> Response:
-    requestData = {
-      "newsId": request.form["newsId"],
-      "collected": request.form["collected"].lower() == "true" or request.form["collected"] == "1",
-    }
-    responseData = {
-        "code": "200",
-        "data": {}
-    }
-
-    if is_session_user_set():
-        requestData["userId"] = session["user"]["idToken"]
-        try:
-            newsdata_helper.set_user_news_collect(requestData["newsId"], requestData["userId"], requestData["collected"])
-        except Exception as ex:
-            print(ex)
-            responseData["code"] = "403"
-            responseData["data"]["reason"] = "Access denied."
-            return make_response(jsonify(responseData), 200)
-        responseData["code"] = "200"
-        return make_response(jsonify(responseData), 200)
-    else:
-        responseData["code"] = "403"
-        responseData["data"]["reason"] = "Access denied."
-        return make_response(jsonify(responseData), 200)
-
-@app.route("/api/stock/getlasttradingdate", methods=["POST"])
-def getLastTradeDate() -> Response:
-    requestData = {
-        "ticker": request.form["ticker"]
-    }
-    responseData = {
-        "code": "200",
-        "data": {}
-    }
-
+    requestData["userId"] = session["user"]["localId"]
     try:
-        result = stockdata_helper.get_last_trading_date(requestData["ticker"])
+        result = newsdata_helper.get_user_news_collection(requestData["userId"], requestData["offset"])
     except Exception as ex:
         print(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
 
-    if result["status"].lower() != "ok":
-        responseData["code"] = "403"
-        responseData["data"]["reason"] = "Access denied."
-        return make_response(jsonify(responseData), 200)
-    
-    timestamp = int(result["results"]["t"] / 1000000000)
-    utc_datetime = datetime.datetime.utcfromtimestamp(timestamp)
-
     responseData["code"] = "200"
-    responseData["data"]["lastTradingDate"] = utc_datetime.strftime("%Y-%m-%d")
+    responseData["data"] = result
 
     return make_response(jsonify(responseData), 200)
 

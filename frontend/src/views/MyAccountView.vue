@@ -5,6 +5,12 @@ import { getFormData, handleApi } from "@/utilities";
 import { VueRecaptcha } from "vue-recaptcha";
 
 export default {
+  props: {
+    userStatus: {
+      type: Object,
+      required: true,
+    },
+  },
   name: "UserSettings",
   data() {
     return {

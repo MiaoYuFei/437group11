@@ -158,18 +158,6 @@ export interface INews {
   categories: string[];
 }
 
-export enum ChartType {
-  Basic,
-  Advanced,
-}
-
-export enum ChartTimeSpan {
-  OneDay,
-  OneMonth,
-  ThreeMonths,
-  OneYear,
-}
-
 export {
   getFormData,
   handleApi,

@@ -4,6 +4,12 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { disableForm, enableForm, handleApi } from "@/utilities";
 
 export default {
+  props: {
+    userStatus: {
+      type: Object,
+      required: true,
+    },
+  },
   data() {
     return {
       formLoading: false,

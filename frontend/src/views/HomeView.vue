@@ -3,6 +3,12 @@ import NewsContainer from "@/components/NewsContainer.vue";
 import { handleApi, type INews } from "@/utilities";
 
 export default {
+  props: {
+    userStatus: {
+      type: Object,
+      required: true,
+    },
+  },
   data() {
     return {
       newsList: [] as INews[],
@@ -104,6 +110,7 @@ export default {
         :newsData="newsList"
         :newsPageCurrent="newsPageCurrent"
         :newsLoading="newsLoading"
+        :userSignedIn="userStatus.signedIn"
         class="mb-3"
       />
       <div

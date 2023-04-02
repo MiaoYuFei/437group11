@@ -1,18 +1,30 @@
 <script lang="ts">
 import $ from "jquery";
 import NewsContainer from "@/components/NewsContainer.vue";
-import {
-  handleApi,
-  type ITicker,
-  type INews,
-  ChartType,
-  ChartTimeSpan,
-} from "@/utilities";
+import { handleApi, type ITicker, type INews } from "@/utilities";
 import * as echarts from "echarts";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { shallowRef } from "vue";
 
+enum ChartType {
+  Basic,
+  Advanced,
+}
+
+enum ChartTimeSpan {
+  OneDay,
+  OneMonth,
+  ThreeMonths,
+  OneYear,
+}
+
 export default {
+  props: {
+    userStatus: {
+      type: Object,
+      required: true,
+    },
+  },
   data() {
     return {
       tickerInfo: null as ITicker | null,
@@ -718,6 +730,7 @@ export default {
                     :newsFirstPage="newsFirstPage"
                     :newsLastPage="newsLastPage"
                     :newsLoading="newsLoading"
+                    :userSignedIn="userStatus.signedIn"
                     @newsSwitchToPage="onNewsSwitchToPage"
                   />
                 </div>

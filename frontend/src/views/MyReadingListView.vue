@@ -9,12 +9,15 @@ enum NewsSource {
 }
 
 export default {
+  props: {
+    userStatus: {
+      type: Object,
+      required: true,
+    },
+  },
   data() {
     return {
       newsList: [] as INews[],
-      email: "",
-      signedIn: false,
-      emailVerified: false,
       newsLoading: true,
       newsPageCurrent: 1,
       newsTotalCount: 0,
@@ -24,6 +27,9 @@ export default {
     };
   },
   computed: {
+    NewsSource() {
+      return NewsSource;
+    },
     newsTotalPage() {
       return Math.ceil(this.newsTotalCount / 10);
     },
@@ -45,7 +51,6 @@ export default {
       } else if (this.newsSource === NewsSource.Recommendations) {
         apiEndpoint = "/api/news/getnewsrecommendation";
       }
-      apiEndpoint = "/api/news/getnewslatest"; // TODO: Remove this line after testing
       handleApi("post", apiEndpoint, apiData).then((response) => {
         const code = parseInt(response.data.code);
         const data = response.data.data;
@@ -77,10 +82,8 @@ export default {
     onSetNewsSource() {
       const source = $("input[name='btnNewsSource']:checked").val() as string;
       if (source === "recommendations") {
-        this.newsSource = NewsSource.Recommendations;
         this.$router.push({ query: { source: "recommendations" } });
       } else if (source === "mycollections") {
-        this.newsSource = NewsSource.Collections;
         this.$router.push({ query: { source: "mycollections" } });
       }
     },
@@ -93,26 +96,26 @@ export default {
           to.query.source === null ||
           to.query.source === ""
         ) {
-          if (this.newsSource === NewsSource.Recommendations) {
-            this.$router.push({ query: { source: "recommendations" } });
-          } else if (this.newsSource === NewsSource.Collections) {
-            this.$router.push({ query: { source: "mycollections" } });
-          }
+          this.$router.push({ query: { source: "recommendations" } });
+          return;
         }
         if (from !== undefined && to.query.source === from.query.source) {
           return;
         }
         if (to.query.source === "recommendations") {
           this.newsSource = NewsSource.Recommendations;
-          this.onNewsSwitchToPage(1);
-          $("#btnMyCollections").prop("checked", false);
-          $("#btnRecommendations").prop("checked", true);
         } else if (to.query.source === "mycollections") {
           this.newsSource = NewsSource.Collections;
-          this.onNewsSwitchToPage(1);
-          $("#btnRecommendations").prop("checked", false);
-          $("#btnMyCollections").prop("checked", true);
         }
+      },
+      immediate: true,
+    },
+    newsSource: {
+      handler: function (to: NewsSource, from: NewsSource) {
+        if (to === from) {
+          return;
+        }
+        this.onNewsSwitchToPage(1);
       },
       immediate: true,
     },
@@ -152,7 +155,7 @@ export default {
           id="btnRecommendations"
           value="recommendations"
           autocomplete="off"
-          checked
+          :checked="newsSource === NewsSource.Recommendations"
           @click="onSetNewsSource"
         />
         <label class="btn btn-outline-primary" for="btnRecommendations"
@@ -165,6 +168,7 @@ export default {
           id="btnMyCollections"
           value="mycollections"
           autocomplete="off"
+          :checked="newsSource === NewsSource.Collections"
           @click="onSetNewsSource"
         />
         <label class="btn btn-outline-primary" for="btnMyCollections"
@@ -187,6 +191,7 @@ export default {
           :newsFirstPage="newsFirstPage"
           :newsLastPage="newsLastPage"
           :newsLoading="newsLoading"
+          :userSignedIn="userStatus.signedIn"
           @newsSwitchToPage="onNewsSwitchToPage"
         />
       </div>

@@ -5,54 +5,20 @@ import { getFormData, handleApi } from "@/utilities";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 export default {
+  props: {
+    userStatus: {
+      type: Object,
+      required: true,
+    },
+  },
   data: () => {
     return {
-      useremail: "",
-      username: "",
-      signedIn: false,
-      emailVerified: false,
       searchText: "",
     };
   },
   methods: {
-    onUserStatus: function (callback: Function | undefined = undefined) {
-      handleApi("post", "/api/user/status", []).then(
-        (response) => {
-          const code = parseInt(response.data.code);
-          const data = response.data.data;
-          if (code === 200) {
-            this.useremail = data.email;
-            this.username = data.name;
-            this.signedIn = true;
-            this.emailVerified =
-              (response.data.data.emailVerified as string).toLowerCase() ===
-              "true"
-                ? true
-                : false;
-            if (callback !== undefined) {
-              callback(true);
-            }
-          } else {
-            this.signedIn = false;
-            this.emailVerified = false;
-            if (callback !== undefined) {
-              callback(false);
-            }
-          }
-        },
-        () => {
-          this.signedIn = false;
-          this.emailVerified = false;
-          if (callback !== undefined) {
-            callback(false);
-          }
-        }
-      );
-    },
     onUserSignout: function () {
       handleApi("post", "/api/user/signout", []).then(() => {
-        this.useremail = "";
-        this.signedIn = false;
         this.$router.push("/");
       });
     },
@@ -68,7 +34,7 @@ export default {
     },
   },
   watch: {
-    $route(to: any, from: any) {
+    $route(to: any) {
       if (to?.path === "/search") {
         this.searchText = to.query.q as string;
       }
@@ -76,21 +42,6 @@ export default {
         $(this.$refs.sidebarToggle as HTMLButtonElement).removeClass("d-none");
       } else {
         $(this.$refs.sidebarToggle as HTMLButtonElement).addClass("d-none");
-      }
-      const protectedPages = ["/myreadinglist", "/myaccount"];
-      if (protectedPages.includes(to?.path)) {
-        this.onUserStatus((signedIn: boolean) => {
-          if (!signedIn) {
-            this.$router.push("/signin");
-          } else {
-            if (!this.emailVerified) {
-              this.$router.push("/verifyemail");
-            }
-          }
-        });
-      }
-      if (to?.path !== from?.path) {
-        this.onUserStatus();
       }
     },
   },
@@ -143,7 +94,7 @@ export default {
               <span>Home</span>
             </RouterLink>
           </li>
-          <li v-if="signedIn" class="nav-item">
+          <li v-if="userStatus.signedIn" class="nav-item">
             <RouterLink class="nav-link" to="/myreadinglist">
               <span>My Reading List</span>
             </RouterLink>
@@ -241,7 +192,7 @@ export default {
           </button>
         </form>
         <div>
-          <ul v-if="!signedIn" class="navbar-nav mb-2 mb-lg-0">
+          <ul v-if="!userStatus.signedIn" class="navbar-nav mb-2 mb-lg-0">
             <li class="nav-item">
               <RouterLink class="nav-link" to="/signin">
                 <span>Sign in</span>
@@ -253,7 +204,7 @@ export default {
               </RouterLink>
             </li>
           </ul>
-          <ul v-if="signedIn" class="navbar-nav mb-2 mb-lg-0">
+          <ul v-if="userStatus.signedIn" class="navbar-nav mb-2 mb-lg-0">
             <li class="nav-item dropdown">
               <a
                 class="nav-link dropdown-toggle"
@@ -262,7 +213,7 @@ export default {
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
-                {{ username }}
+                {{ userStatus.name }}
               </a>
               <ul
                 class="dropdown-menu dropdown-menu-end dropdown-menu-dark m-0"

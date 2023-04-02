@@ -10,6 +10,12 @@ import {
 } from "@/utilities";
 
 export default {
+  props: {
+    userStatus: {
+      type: Object,
+      required: true,
+    },
+  },
   data() {
     return {
       formPasswordLoading: false,

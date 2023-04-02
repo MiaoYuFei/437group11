@@ -273,6 +273,11 @@ class newsdata_helper:
         sql_cnx.commit()
         sql_cursor.close()
         sql_cnx.close()
+        newsdata_helper.set_user_news_like_firebase(news_id, user_id, liked)
+
+    @staticmethod
+    def set_user_news_like_firebase(news_id: str, user_id: str, liked: bool):
+        print("set_user_news_like_firebase")
 
     @staticmethod
     def set_user_news_collect(news_id: str, user_id: str, collected: bool):

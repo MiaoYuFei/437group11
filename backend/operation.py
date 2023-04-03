@@ -29,7 +29,6 @@ from IPython.display import display
 from concurrent.futures import ThreadPoolExecutor
 import datetime
 import pytz
-from dotenv import load_dotenv
 
 # local imports
 import data_poly.poly_getdata as poly_getdata
@@ -44,7 +43,98 @@ warnings.filterwarnings(
     category=UserWarning
 )
 
+from dotenv import load_dotenv
+load_dotenv(dotenv_path="/home/peterzerg/repos/quant/.ENV")
+api_key = os.environ.get("POLYGON_APIKEY_MASTER")
+
+fb = firebase_helper()
+db = fb.get_db()
+
+#project global vars
+industry_cols= ['agriculture', 'mining', 'construction', 'manufacturing', 'transportation','wholesale', 'retail', 'finance', 'services', 'public_administration']
+object_names = ['ticker_hash_dict','hash_sic_dict','news_data_dict','knn_dict','user_ticker_pref_dict','ticker_info_dict','industry_news_dict','industry_news_compiled_dict',
+                'news_datetime_dict','industry_news_hash_dict','preference_scores_user_rank']
+
+#read local
+# Loop over the object names
+for name in tqdm(object_names):
+    # Load the object by name
+    with open(f'{name}.pickle', 'rb') as f:
+        globals()[name] = pickle.load(f)
         
+#functions
+
+#frequent updates:
+async def frequent_update():
+    global news_data_dict, industry_news_dict, user_ticker_pref_dict, industry_news_compiled_dict, news_datetime_dict, industry_news_hash_dict, preference_scores_user_rank
+    #gen updated news
+    news_data_dict = await run_news_update()
+    #gen industry news
+    industry_news_dict = gen_10_industries_df()
+    #gen user_ticker_pref
+    user_ticker_pref_dict = user_base_pref_gen()
+    industry_news_compiled_dict, news_datetime_dict = get_industry_news()
+    industry_news_hash_dict = industry_news_to_hash()
+    #gen user_news_rank
+    preference_scores_user_rank = get_user_news_rank()
+    #uploads
+    await upload_industry_data()
+    await upload_user_ticker_pref()
+    await upload_preference_scores_user_rank()
+    upload_time_tracker()
+    
+async def upload_industry_data():
+    global db, industry_news_dict
+    await cloud_upload(db, industry_news_dict, "industry_data")
+    total_news_dict = flatten_dict(industry_news_dict)
+    await cloud_upload(db, total_news_dict, "recent_news")
+    
+async def upload_user_ticker_pref():
+    global db, user_ticker_pref_dict
+    await cloud_upload(db, user_ticker_pref_dict, "user_ticker_pref")
+    
+async def upload_preference_scores_user_rank():
+    global db, preference_scores_user_rank
+    await cloud_upload(db, preference_scores_user_rank, "preference_scores_user_rank")
+    
+def upload_time_tracker(full_update=True):
+    global db
+    if full_update:
+        cloud_upload_single(db, "#update_time", "data_update", {"time":datetime.datetime.now()})
+        cloud_upload_single(db, "#update_time", "user_pref_update", {"time":datetime.datetime.now()})
+    else:
+        cloud_upload_single(db, "#update_time", "user_pref_update", {"time":datetime.datetime.now()})
+
+def upload_ticker_info():
+    global ticker_info_dict, db
+    cloud_upload_seq(db, "ticker_info", ticker_info_dict)
+    
+def update_and_upload_ticker_hash(): #infreq
+    global db
+    ticker_hash_dict = ticker_map_dict_gen()
+    cloud_upload_single(db, "tickers", "ticker_hash", ticker_hash_dict)
+    
+async def upload_new_user_pref():
+    global news_data_dict, industry_news_dict, user_ticker_pref_dict, industry_news_compiled_dict, news_datetime_dict, industry_news_hash_dict, preference_scores_user_rank
+    user_ticker_pref_dict = user_base_pref_gen()
+    industry_news_compiled_dict, news_datetime_dict = get_industry_news()
+    industry_news_hash_dict = industry_news_to_hash()
+    preference_scores_user_rank = get_user_news_rank()
+    #upload data
+    await upload_user_ticker_pref()
+    await upload_preference_scores_user_rank()
+    upload_time_tracker(full_update=False)
+    
+def flatten_dict(d):
+    flattened = {}
+    for key in d:
+        if isinstance(d[key], dict):
+            for sub_key in d[key]:
+                flattened[f"{sub_key}"] = d[key][sub_key]
+        else:
+            flattened[key] = d[key]
+    return flattened
+
 #upload functions
 def cloud_upload_single(db, collection_name, doc_name, data_dict):
     #upload data to db
@@ -136,7 +226,7 @@ def delete_collection(db, collection_path, batch_size=500):
         batch.commit() # Commit the batch
         if not has_docs: # If no documents were found, break out of the loop
             break
-
+            
 #sic matching and ticker map cloud set
 
 def cloud_upload_ticker_map(db):
@@ -192,6 +282,7 @@ def sic_match(input):
         return sic_codes[str(input)[0:2]]
     except KeyError:
         raise ValueError("Invalid input. Please enter a two-character string matching a valid SIC code.")
+        
         
 #generate ticker info dict
 
@@ -319,6 +410,7 @@ def knn_gen(target_data, hash_sic_dict, ticker_hash_dict):
         knn_dict[second_item][first_item] += 1
     return knn_dict
 
+
 def ticker_map_dict_gen():
     # Define a function to create the hashid
     def create_hashid(row):
@@ -333,8 +425,9 @@ def ticker_map_dict_gen():
     tickers =  poly_helper.get_data_from_single_url(url)
     # Apply the function to each row to create a hashid column
     tickers['hashid'] = tickers.apply(create_hashid, axis=1)
-    ticker_map_dict = tickers[['ticker', 'hashid']].set_index('ticker').to_dict()['hashid']
-    return ticker_map_dict
+    ticker_hash_dict = tickers[['ticker', 'hashid']].set_index('ticker').to_dict()['hashid']
+    return ticker_hash_dict
+
 
 def user_base_pref_gen():
     global db, hash_sic_dict
@@ -355,6 +448,7 @@ def user_base_pref_gen():
         # Store the pref_dict in user_ticker_pref
         user_ticker_pref_dict[user_id] = pref_dict
     return user_ticker_pref_dict
+
 
 def get_industry_news():
     global db, industry_news_dict
@@ -454,106 +548,23 @@ async def run_news_update():
     news_data_dict = update_news_data_dict(news_data_dict, recent_news_dict)
     return news_data_dict
 
-def show_n_item_in_dict(mydict,n=1):
-    if n>0:
-        return {k: v for idx, (k, v) in enumerate(mydict.items()) if idx < 1}
-    elif n<0:
-        return {k: news_data_dict[k] for k in list(news_data_dict)[-1:]}
-    else:
-        print("n can't be 0")
-        
 def get_key_by_value(d, value):
     for k, v in d.items():
         if v == value:
             return k
     return None
 
+#run this every x mins
+await frequent_update()
 
-#frequent updates:
-async def frequent_update():
-    global news_data_dict, industry_news_dict, user_ticker_pref_dict, industry_news_compiled_dict, news_datetime_dict, industry_news_hash_dict, preference_scores_user_rank
-    #gen updated news
-    news_data_dict = await run_news_update()
-    #gen industry news
-    industry_news_dict = gen_10_industries_df()
-    #gen user_ticker_pref
-    user_ticker_pref_dict = user_base_pref_gen()
-    industry_news_compiled_dict, news_datetime_dict = get_industry_news()
-    industry_news_hash_dict = industry_news_to_hash()
-    #gen user_news_rank
-    preference_scores_user_rank = get_user_news_rank()
-    #uploads
-    await upload_industry_data()
-    await upload_user_ticker_pref()
-    await upload_preference_scores_user_rank()
-    upload_time_tracker()
-    
-async def upload_industry_data():
-    global db, industry_news_dict
-    await cloud_upload(db, industry_news_dict, "industry_data")
-    total_news_dict = flatten_dict(industry_news_dict)
-    await cloud_upload(db, total_news_dict, "recent_news")
-    
-async def upload_user_ticker_pref():
-    global db, user_ticker_pref_dict
-    await cloud_upload(db, user_ticker_pref_dict, "user_ticker_pref")
-    
-async def upload_preference_scores_user_rank():
-    global db, preference_scores_user_rank
-    await cloud_upload(db, preference_scores_user_rank, "preference_scores_user_rank")
-    
-def upload_time_tracker(full_update=True):
-    global db
-    if full_update:
-        cloud_upload_single(db, "#update_time", "data_update", {"time":datetime.datetime.now()})
-    else:
-        cloud_upload_single(db, "#update_time", "user_pref_update", {"time":datetime.datetime.now()})
+#run this when a user change industry pref
+#await upload_new_user_pref()
 
-def upload_ticker_info(db):
-    global ticker_info_dict
-    cloud_upload_seq(db, "ticker_info", ticker_info_dict)
-    
-async def upload_new_user_pref():
-    global news_data_dict, industry_news_dict, user_ticker_pref_dict, industry_news_compiled_dict, news_datetime_dict, industry_news_hash_dict, preference_scores_user_rank
-    user_ticker_pref_dict = user_base_pref_gen()
-    industry_news_compiled_dict, news_datetime_dict = get_industry_news()
-    industry_news_hash_dict = industry_news_to_hash()
-    preference_scores_user_rank = get_user_news_rank()
-    #upload data
-    await upload_user_ticker_pref()
-    await upload_preference_scores_user_rank()
-    upload_time_tracker(full_update=False)
-
-            
-async def main():
-    #read local
-    # Loop over the object names
-    load_dotenv(dotenv_path="/home/peterzerg/repos/quant/.ENV")
-    api_key = os.environ.get("POLYGON_APIKEY_MASTER")
-    fb = firebase_helper()
-    db = fb.get_db()
-
-    #project global vars
-    industry_cols= ['agriculture', 'mining', 'construction', 'manufacturing', 'transportation','wholesale', 'retail', 'finance', 'services', 'public_administration']
-    object_names = ['ticker_hash_dict','hash_sic_dict','news_data_dict','knn_dict','user_ticker_pref_dict','ticker_info_dict','industry_news_dict','industry_news_compiled_dict',
-                    'news_datetime_dict','industry_news_hash_dict','preference_scores_user_rank']
-
-    for name in tqdm(object_names):
-        # Load the object by name
-        with open(f'{name}.pickle', 'rb') as f:
-            globals()[name] = pickle.load(f)
-            
-    await frequent_update()
-    
-    #save local
-    # Loop over the object names
-    for name in tqdm(object_names):
-        # Load the object by name
-        obj = globals()[name]
-        # Save the object as a pickle file using the name
-        with open(f'{name}.pickle', 'wb') as f:
-            pickle.dump(obj, f)
-    
-            
-if __name__ == "__main__":
-    main()
+#save local
+# Loop over the object names
+for name in tqdm(object_names):
+    # Load the object by name
+    obj = globals()[name]
+    # Save the object as a pickle file using the name
+    with open(f'{name}.pickle', 'wb') as f:
+        pickle.dump(obj, f)

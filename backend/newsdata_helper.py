@@ -37,8 +37,8 @@ class newsdata_helper:
                 "SELECT n.*, \
                 GROUP_CONCAT(t.`ticker` SEPARATOR ',') AS tickers, \
                 GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories, \
-                nlc.`liked`, \
-                nlc.`collected` \
+                MAX(nlc.`liked`) as liked, \
+                MAX(nlc.`collected`) as collected \
                 FROM `news` n \
                 LEFT JOIN `news_tickers` nt ON `n`.`id` = `nt`.`news_id` \
                 INNER JOIN `ticker` t ON nt.`ticker_id` = `t`.`id` \
@@ -93,8 +93,8 @@ class newsdata_helper:
             "SELECT n.*, \
             GROUP_CONCAT(DISTINCT t2.`category` SEPARATOR ',') AS categories, \
             GROUP_CONCAT(t2.`ticker` SEPARATOR ',') AS tickers, \
-            nlc.`liked`, \
-            nlc.`collected` \
+            MAX(nlc.`liked`) as liked, \
+            MAX(nlc.`collected`) as collected \
             FROM `ticker` t1 \
             INNER JOIN `news_tickers` nt1 ON nt1.`ticker_id` = t1.`id` \
             INNER JOIN `news` n ON n.`id` = nt1.`news_id` \
@@ -151,8 +151,8 @@ class newsdata_helper:
             "SELECT n.*, \
             GROUP_CONCAT(DISTINCT t2.`category` SEPARATOR ',') AS categories, \
             GROUP_CONCAT(DISTINCT t2.`ticker` SEPARATOR ',') AS tickers, \
-            nlc.`liked`, \
-            nlc.`collected` \
+            MAX(nlc.`liked`) as liked, \
+            MAX(nlc.`collected`) as collected \
             FROM `ticker` t1 \
             INNER JOIN `news_tickers` nt1 ON nt1.`ticker_id` = t1.`id` \
             INNER JOIN `news` n ON n.`id` = nt1.`news_id` \
@@ -210,8 +210,8 @@ class newsdata_helper:
                 "SELECT n.*, \
                 GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories, \
                 GROUP_CONCAT(DISTINCT t.`ticker` SEPARATOR ',') AS tickers, \
-                nlc.`liked`, \
-                nlc.`collected` \
+                MAX(nlc.`liked`) as liked, \
+                MAX(nlc.`collected`) as collected \
                 FROM `news` n \
                 INNER JOIN `news_tickers` nt ON n.`id` = nt.`news_id` \
                 INNER JOIN `ticker` t ON nt.`ticker_id` = t.`id` \
@@ -389,8 +389,8 @@ class newsdata_helper:
                 "SELECT n.*, \
                 GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories, \
                 GROUP_CONCAT(DISTINCT t.`ticker` SEPARATOR ',') AS tickers, \
-                nlc.`liked`, \
-                1 as collected, \
+                MAX(nlc.`liked`) as liked, \
+                MAX(nlc.`collected`) as collected \
                 nlc.`collect_datetime` \
                 FROM `news_likecollect` nlc \
                 INNER JOIN `news` n ON n.`id` = nlc.`news_id` \

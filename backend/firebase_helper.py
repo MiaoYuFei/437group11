@@ -4,7 +4,6 @@ import os, json
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
-from firebase_admin import auth
 import urllib
 from utilities import call_api_post
 
@@ -14,12 +13,7 @@ cred = credentials.Certificate(script_path + "/configs/stocknews-firebase-projec
 conf = json.load(open(script_path + "/configs/stocknews-firebase-app.json"))
 
 app = firebase_admin.initialize_app(cred)
-auth = auth
 db = firestore.client()
-
-@staticmethod
-def get_conf():
-    return conf
 
 @staticmethod
 def get_app():
@@ -28,10 +22,6 @@ def get_app():
 @staticmethod
 def get_db():
     return db
-
-@staticmethod
-def get_auth():
-    return auth
 
 @staticmethod
 def sign_up_with_email_and_password(email: str, password: str):

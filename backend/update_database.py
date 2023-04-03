@@ -1,17 +1,24 @@
+#!/usr/bin/env python3
+
+import base64
+from datetime import datetime
+import schedule
+import signal
 import threading
+from tqdm import tqdm
 import time
 from urllib.parse import parse_qs, urlparse
-from utilities import call_api_get
-from utilities import get_sic_category_code_from_sic_code
-from utilities import get_sql_connection
 from background_worker import background_worker
-from tqdm import tqdm
-from datetime import datetime
-import base64
+from utilities import call_api_get, get_sic_category_code_from_sic_code, get_sql_connection
 
 api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
 
 utc_datetime_format = "%Y-%m-%dT%H:%M:%SZ"
+
+worker_update_tickers_running = False
+worker_update_news_running = False
+bw_update_tickers = None
+bw_update_news = None
 
 def transform_api_ticker_details_to_sql(ticker_details: dict) -> list:
     sql_values = []
@@ -114,12 +121,25 @@ def worker_update_tickers(stop_event):
         sql_cursor.close()
         sql_conn.close()
         sql_values_list.clear()
+    global worker_update_tickers_running
+    worker_update_tickers_running = False
 
 def worker_update_news(stop_event):
+    sql_conn = get_sql_connection()
+    sql_cursor = sql_conn.cursor()
+    sql_query = \
+        "SELECT n.`article_datetime` \
+        FROM `news` n \
+        ORDER BY n.`article_datetime` DESC \
+        LIMIT 1"
+    sql_cursor.execute(sql_query)
+    last_article_datetime = sql_cursor.fetchone()[0]
+    start_datetime_string = last_article_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
+    end_datetime_string = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
     api_cursor = None
     last_page = False
     while not stop_event.is_set() and not last_page:
-        api_result_news = get_news_polygon(api_cursor, "2023-01-01T00:00:00Z", "2023-03-31T00:00:00Z")
+        api_result_news = get_news_polygon(api_cursor, start_datetime_string, end_datetime_string)
         if "results" not in api_result_news:
             print(api_result_news)
             raise Exception("Error getting news")
@@ -131,8 +151,6 @@ def worker_update_news(stop_event):
 
         sql_values_list = []
         sql_values_tickers_list = []
-        sql_conn = get_sql_connection()
-        sql_cursor = sql_conn.cursor()
         tqdm_object = tqdm(api_result_news["results"])
         for news_item in tqdm_object:
             id = news_item["id"]
@@ -174,11 +192,51 @@ def worker_update_news(stop_event):
                 (`news_id`, `ticker_id`) \
             VALUES (%s, %s)"
         sql_cursor.executemany(sql_query, sql_values_tickers_list)
-
         sql_conn.commit()
-        sql_cursor.close()
-        sql_conn.close()
         sql_values_list.clear()
+    sql_cursor.close()
+    sql_conn.close()
+    global worker_update_news_running
+    worker_update_news_running = False
 
-bw = background_worker([worker_update_news])
-bw.start()
+def run_worker_update_news():
+    global worker_update_news_running
+    if worker_update_news_running:
+        return
+    worker_update_news_running = True
+    global bw_update_news
+    if bw_update_news is not None:
+        bw_update_news.stop()
+    bw_update_news = background_worker([worker_update_news])
+    bw_update_news.start()
+
+def run_worker_update_tickers():
+    global worker_update_tickers_running
+    if worker_update_tickers_running:
+        return
+    worker_update_tickers_running = True
+    global bw_update_tickers
+    if bw_update_tickers is not None:
+        bw_update_tickers.stop()
+    bw_update_tickers = background_worker([worker_update_tickers])
+    bw_update_tickers.start()
+
+def cleanup():
+    global bw_update_news
+    if bw_update_news is not None:
+        bw_update_news.stop()
+    global bw_update_tickers
+    if bw_update_tickers is not None:
+        bw_update_tickers.stop()
+    exit(0)
+
+schedule.clear()
+job_run_worker_update_news = schedule.every().day.do(run_worker_update_news)
+job_run_worker_update_tickers = schedule.every().day.do(run_worker_update_tickers)
+
+signal.signal(signal.SIGINT, cleanup)
+signal.signal(signal.SIGTERM, cleanup)
+
+while True:
+    schedule.run_pending()
+    time.sleep(600)

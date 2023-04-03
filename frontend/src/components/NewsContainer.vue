@@ -1,5 +1,6 @@
 <script lang="ts">
 import { handleApi, parseDatetime, type INews } from "@/utilities";
+import { Modal } from "bootstrap";
 
 export default {
   props: {
@@ -28,6 +29,12 @@ export default {
       required: false,
     },
   },
+  data: () => {
+    return {
+      liking: false,
+      modalLikingObj: {} as Modal,
+    };
+  },
   methods: {
     parseDatetime,
     onLikeClick(item: any) {
@@ -37,7 +44,10 @@ export default {
         newsId: item.id,
         liked: item.liked,
       };
-      handleApi("post", "/api/news/setnewsuseraction", apiData);
+      this.liking = true;
+      handleApi("post", "/api/news/setnewsuseraction", apiData).then(() => {
+        this.liking = false;
+      });
     },
     onCollectClick(item: any) {
       item.collected = !item.collected;
@@ -50,6 +60,18 @@ export default {
     },
     onNewsSwitchPage(page: number) {
       this.$emit("newsSwitchToPage", page);
+    },
+  },
+  mounted() {
+    this.modalLikingObj = new Modal(this.$refs.modalLiking as HTMLElement);
+  },
+  watch: {
+    liking: function (newVal) {
+      if (newVal) {
+        this.modalLikingObj.show();
+      } else {
+        this.modalLikingObj.hide();
+      }
     },
   },
 };
@@ -260,6 +282,26 @@ export default {
         </li>
       </ul>
     </nav>
+    <div
+      class="modal fade"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+      tabindex="-1"
+      aria-labelledby="modalLikingLabel"
+      aria-hidden="true"
+      ref="modalLiking"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="modalLikingLabel">Warning</h1>
+          </div>
+          <div class="modal-body">
+            Liking/Unliking the news, please wait some time...
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 <style scoped>

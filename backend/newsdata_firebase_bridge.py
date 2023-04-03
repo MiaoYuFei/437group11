@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import time
 import firebase_helper
 from utilities import get_sql_connection
 
@@ -20,7 +19,6 @@ class newsdata_firebase_bridge:
         sql_cursor.close()
         sql_cnx.close()
         data_list = [x[0] for x in data_rows]
-        milliseconds1 = int(round(time.time() * 1000))
         doc_ticker_hash = firebase_helper.get_db().collection("tickers").document("ticker_hash").get()
         doc_ref_user_ticker_pref = firebase_helper.get_db().collection("user_ticker_pref").document(user_id)
         for ticker in data_list:
@@ -34,14 +32,16 @@ class newsdata_firebase_bridge:
                 else:
                     doc_user_ticker_pref_dict[ticker_hash] -= 1
             doc_ref_user_ticker_pref.update(doc_user_ticker_pref_dict)
-        milliseconds2 = int(round(time.time() * 1000))
-        print("time: " + str(milliseconds2 - milliseconds1) + "ms")
 
     @staticmethod
     def get_user_news_recommendation_firebase(user_id: str, offset: int = 0) -> dict:
-        print("get_user_news_recommendation_firebase")
+        doc_preference_scores_user_rank = firebase_helper.get_db().collection("preference_scores_user_rank").document(user_id).get()
+        doc_preference_scores_user_rank_dict = doc_preference_scores_user_rank.to_dict()
+        doc_preference_scores_user_rank_list_sorted = sorted(doc_preference_scores_user_rank_dict.items(), key=lambda item: item[1], reverse=True)
+        doc_preference_scores_user_rank_list_sorted = doc_preference_scores_user_rank_list_sorted[offset:offset+10]
+        newsIdList = [x[0] for x in doc_preference_scores_user_rank_list_sorted]
 
         return {
-            "newsIdList": [],
-            "totalCount": 0
+            "newsIdList": newsIdList,
+            "totalCount": len(doc_preference_scores_user_rank_dict)
         }

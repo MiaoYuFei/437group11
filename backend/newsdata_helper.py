@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
 import datetime
-import time
-import firebase_helper
-import newsdata_firebase_bridge
+from newsdata_firebase_bridge import newsdata_firebase_bridge
 from utilities import get_sql_connection, get_string_base64_encoded, process_news_response
 
 api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
@@ -238,20 +236,20 @@ class newsdata_helper:
         return responseData
 
     @staticmethod
-    def set_user_news_like(news_id: str, user_id: str, liked: bool):
+    def set_user_news_like(newsId: str, userId: str, liked: bool):
         sql_cnx = get_sql_connection()
         sql_cursor = sql_cnx.cursor()
         sql_query = \
             "SELECT * \
             FROM `news_likecollect` \
             WHERE `news_id` = %s AND `user_id` = %s;"
-        sql_cursor.execute(sql_query, [news_id, user_id])
+        sql_cursor.execute(sql_query, [newsId, userId])
         data_row = sql_cursor.fetchone()
         if data_row is None:
             sql_query = \
                 "INSERT INTO `news_likecollect` (`news_id`, `user_id`, `liked`, `collected`) \
                 VALUES (%s, %s, %s, %s);"
-            sql_cursor.execute(sql_query, [news_id, user_id, 1 if liked else 0, 0])
+            sql_cursor.execute(sql_query, [newsId, userId, 1 if liked else 0, 0])
         else:
             data_columns = [column[0] for column in sql_cursor.description]
             data_dict = dict(zip(data_columns, data_row))
@@ -276,24 +274,24 @@ class newsdata_helper:
         sql_cnx.commit()
         sql_cursor.close()
         sql_cnx.close()
-        newsdata_firebase_bridge.set_user_news_like_firebase(news_id, user_id, liked)
+        newsdata_firebase_bridge.set_user_news_like_firebase(newsId, userId, liked)
 
     @staticmethod
-    def set_user_news_collect(news_id: str, user_id: str, collected: bool):
+    def set_user_news_collect(newsId: str, userId: str, collected: bool):
         sql_cnx = get_sql_connection()
         sql_cursor = sql_cnx.cursor()
         sql_query = \
             "SELECT * \
             FROM `news_likecollect` \
             WHERE `news_id` = %s AND `user_id` = %s;"
-        sql_cursor.execute(sql_query, [news_id, user_id])
+        sql_cursor.execute(sql_query, [newsId, userId])
         data_row = sql_cursor.fetchone()
         collect_datetime = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         if data_row is None:
             sql_query = \
                 "INSERT INTO `news_likecollect` (`news_id`, `user_id`, `liked`, `collected`, `collect_datetime`) \
                 VALUES (%s, %s, %s, %s, %s);"
-            sql_cursor.execute(sql_query, [news_id, user_id, 0, 1 if collected else 0, collect_datetime])
+            sql_cursor.execute(sql_query, [newsId, userId, 0, 1 if collected else 0, collect_datetime])
         else:
             data_columns = [column[0] for column in sql_cursor.description]
             data_dict = dict(zip(data_columns, data_row))
@@ -320,19 +318,46 @@ class newsdata_helper:
         sql_cnx.close()
 
     @staticmethod
-    def get_user_news_recommendation(user_id: str, offset: int = 0) -> dict:
-        result = newsdata_firebase_bridge.get_user_news_recommendation_firebase(user_id, offset)
+    def get_user_news_recommendation(userId: str, offset: int = 0) -> dict:
+        result = newsdata_firebase_bridge.get_user_news_recommendation_firebase(userId, offset)
         news_id_list = result["newsIdList"]
         data_total_count = result["totalCount"]
-
         news_list = []
-
+        sql_cnx = get_sql_connection()
+        sql_cursor = sql_cnx.cursor()
         for news_id in news_id_list:
-            news_item = {
-                "newsId": news_id,
-            }
+            if userId == None:
+                sql_query = \
+                    "SELECT n.*, \
+                    GROUP_CONCAT(t.`ticker` SEPARATOR ',') AS tickers, \
+                    GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories \
+                    FROM `news` n \
+                    LEFT JOIN `news_tickers` nt ON `n`.`id` = `nt`.`news_id` \
+                    INNER JOIN `ticker` t ON nt.`ticker_id` = `t`.`id` \
+                    GROUP BY n.`id` \
+                    HAVING n.`id` = %s;"
+                sql_cursor.execute(sql_query, [news_id])
+            else:
+                sql_query = \
+                    "SELECT n.*, \
+                    GROUP_CONCAT(t.`ticker` SEPARATOR ',') AS tickers, \
+                    GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories, \
+                    nlc.`liked`, \
+                    nlc.`collected` \
+                    FROM `news` n \
+                    LEFT JOIN `news_tickers` nt ON `n`.`id` = `nt`.`news_id` \
+                    INNER JOIN `ticker` t ON nt.`ticker_id` = `t`.`id` \
+                    LEFT JOIN `news_likecollect` nlc ON n.`id` = nlc.`news_id` AND nlc.`user_id` = %s \
+                    GROUP BY n.`id` \
+                    HAVING n.`id` = %s;"
+                sql_cursor.execute(sql_query, [userId, news_id])
+            data_row = sql_cursor.fetchone()
+            if data_row is None:
+                continue
+            data_columns = [i[0] for i in sql_cursor.description]
+            news_item = dict(zip(data_columns, data_row))
             news_list.append(news_item)
-
+        process_news_response(news_list)
         responseData = {}
         responseData["newsList"] = news_list
         if data_total_count is not None:
@@ -360,7 +385,7 @@ class newsdata_helper:
                 GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories, \
                 GROUP_CONCAT(DISTINCT t.`ticker` SEPARATOR ',') AS tickers, \
                 MAX(nlc.`liked`) as liked, \
-                MAX(nlc.`collected`) as collected \
+                MAX(nlc.`collected`) as collected, \
                 nlc.`collect_datetime` \
                 FROM `news_likecollect` nlc \
                 INNER JOIN `news` n ON n.`id` = nlc.`news_id` \

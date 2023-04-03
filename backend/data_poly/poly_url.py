@@ -100,7 +100,7 @@ class PolyUrlFactory:
             return url
 
         @staticmethod
-        def tickers(self, asset_type: str = "CS", market: str = "stocks", active: str = "true", sort: str = "ticker",
+        def tickers(self, asset_type: str = None, market: str = "stocks", active: str = "true", sort: str = "ticker",
                     sort_asc: bool = True, limit: int = 1000) -> str:
             """Query all ticker symbols which are supported by Polygon.io. This API currently includes Stocks/Equities, Crypto, and Forex."""
             data_path = "reference"
@@ -108,7 +108,8 @@ class PolyUrlFactory:
             req_url = f"{version}/{data_path}/tickers?"
             # options
             sort_order = "asc" if sort_asc else "desc"
-            optional_url = f"type={asset_type}&market={market}&active={active}&order={sort_order}&limit={str(limit)}&sort={sort}"
+            asset_type_str = "" if asset_type is None else f"type={asset_type}"
+            optional_url = f"{asset_type_str}&market={market}&active={active}&order={sort_order}&limit={str(limit)}&sort={sort}"
             url = f"{self.BASE_URL}{req_url}{optional_url}&{self.api_url}"
             return url
 

@@ -78,12 +78,12 @@ def update_account_info(localId: str, idToken: str, displayName: str):
     return call_api_post(endpoint, data)
 
 @staticmethod
-def update_preferences(localId: str, algriculture: bool, mining: bool, construction: bool, manufacuring: bool, transportation: bool, wholesale: bool, retail: bool, finance: bool, services: bool, public_administration: bool):
+def update_preferences(localId: str, agriculture: bool, mining: bool, construction: bool, manufacturing: bool, transportation: bool, wholesale: bool, retail: bool, finance: bool, services: bool, public_administration: bool):
     db.collection("user_preferences").document(localId).set({
-        "agriculture": algriculture,
+        "agriculture": agriculture,
         "mining": mining,
         "construction": construction,
-        "manufacturing": manufacuring,
+        "manufacturing": manufacturing,
         "transportation": transportation,
         "wholesale": wholesale,
         "retail": retail,

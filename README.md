@@ -260,13 +260,13 @@ Get the user preferences, which are ten boolean values.
 
 - data:
 
-  - algriculture: boolean.
+  - agriculture: boolean.
 
   - mining: boolean.
 
   - construction: boolean.
 
-  - manufacuring: boolean.
+  - manufacturing: boolean.
 
   - transportation: boolean.
 

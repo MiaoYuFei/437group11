@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import datetime
+import time
 import firebase_helper
+import newsdata_firebase_bridge
 from utilities import get_sql_connection, get_string_base64_encoded, process_news_response
 
 api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
@@ -138,6 +140,7 @@ class newsdata_helper:
             "SELECT n.*, \
             GROUP_CONCAT(DISTINCT t2.`category` SEPARATOR ',') AS categories, \
             GROUP_CONCAT(DISTINCT t2.`ticker` SEPARATOR ',') AS tickers \
+            FROM `ticker` t1 \
             INNER JOIN `news_tickers` nt1 ON nt1.`ticker_id` = t1.`id` \
             INNER JOIN `news` n ON n.`id` = nt1.`news_id` \
             INNER JOIN `news_tickers` nt2 ON nt2.`news_id` = n.`id` \
@@ -273,31 +276,7 @@ class newsdata_helper:
         sql_cnx.commit()
         sql_cursor.close()
         sql_cnx.close()
-        newsdata_helper.set_user_news_like_firebase(news_id, user_id, liked)
-
-    @staticmethod
-    def set_user_news_like_firebase(news_id: str, user_id: str, liked: bool):
-        sql_cnx = get_sql_connection()
-        sql_cursor = sql_cnx.cursor()
-        sql_query = \
-            "SELECT t.`ticker` \
-            FROM `news_tickers` nt \
-            INNER JOIN `ticker` t ON t.`id` = nt.`ticker_id` \
-            WHERE nt.`news_id` = %s;"
-        sql_cursor.execute(sql_query, [news_id])
-        data_rows = sql_cursor.fetchall()
-        sql_cursor.close()
-        sql_cnx.close()
-        data_list = [x[0] for x in data_rows]
-        doc_ticker_hash = firebase_helper.get_db().collection("tickers").document("ticker_hash").get()
-        doc_user_ticker_pref = firebase_helper.get_db().collection("user_ticker_pref").document(user_id).get()
-        for ticker in data_list:
-            ticker_hash = doc_ticker_hash.get(ticker)
-            if ticker_hash is None:
-                continue
-            print("user_id: " + user_id + " ticker_hash: " + ticker_hash)
-            pref = doc_user_ticker_pref.get(ticker_hash)
-            print(pref)
+        newsdata_firebase_bridge.set_user_news_like_firebase(news_id, user_id, liked)
 
     @staticmethod
     def set_user_news_collect(news_id: str, user_id: str, collected: bool):
@@ -342,7 +321,7 @@ class newsdata_helper:
 
     @staticmethod
     def get_user_news_recommendation(user_id: str, offset: int = 0) -> dict:
-        result = newsdata_helper.get_user_news_recommendation_firebase(user_id, offset)
+        result = newsdata_firebase_bridge.get_user_news_recommendation_firebase(user_id, offset)
         news_id_list = result["newsIdList"]
         data_total_count = result["totalCount"]
 
@@ -360,15 +339,6 @@ class newsdata_helper:
             responseData["totalCount"] = data_total_count
 
         return responseData
-
-    @staticmethod
-    def get_user_news_recommendation_firebase(user_id: str, offset: int = 0) -> dict:
-        print("get_user_news_recommendation_firebase")
-
-        return {
-            "newsIdList": [],
-            "totalCount": 0
-        }
 
     @staticmethod
     def get_user_news_collection(user_id: str, offset: int = 0) -> dict:

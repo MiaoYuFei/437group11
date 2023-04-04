@@ -4,12 +4,15 @@ import datetime
 from flask import Flask, Response, jsonify, make_response, request, session
 from flask_session import Session
 import json
+import logging
 import urllib.parse
 
 import firebase_helper
 from newsdata_helper import newsdata_helper
 from stockdata_helper import stockdata_helper
 from utilities import get_sic_category_code_from_sic_code, verify_recaptcha
+
+logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
 app = Flask("stocknews")
 app.config["SESSION_PERMANENT"] = False
@@ -244,6 +247,7 @@ def updateAccountInfo() -> Response:
         firebase_helper.update_account_info(localId, idToken, displayName)
     except Exception as ex:
         print(ex)
+        logging.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -298,6 +302,7 @@ def getPreferences() -> Response:
         responseData["data"]["preferences"] = preferences
     except Exception as ex:
         print(ex)
+        logging.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -329,6 +334,7 @@ def updatePassword() -> Response:
         firebase_helper.update_password(email, currentPassword, newPassword)
     except RuntimeError as ex:
         print(ex)
+        logging.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -357,6 +363,7 @@ def getTickerInfo() -> Response:
         result1 = stockdata_helper.get_tickerinfo(requestData["ticker"])
     except Exception as ex:
         print(ex)
+        logging.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -442,6 +449,7 @@ def proxyPolygon() -> Response:
         result = stockdata_helper.proxy_polygon_resource(requestData["url"])
     except Exception as ex:
         print(ex)
+        logging.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -480,6 +488,7 @@ def setNewsUserAction() -> Response:
             newsdata_helper.set_user_news_collect(requestData["newsId"], requestData["userId"], requestData["collected"])
     except Exception as ex:
         print(ex)
+        logging.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -529,6 +538,7 @@ def getNews() -> Response:
             result = newsdata_helper.get_user_news_collection(requestData["userId"], requestData["offset"])
     except Exception as ex:
         print(ex)
+        logging.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)

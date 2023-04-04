@@ -1,6 +1,7 @@
 .ipynb_checkpoints
 __pycache__
 flask_session
+app.log
 
 .idea
 Pipfile

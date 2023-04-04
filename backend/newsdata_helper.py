@@ -393,7 +393,7 @@ class newsdata_helper:
                 INNER JOIN `ticker` t ON t.`id` = nt.`ticker_id` \
                 WHERE nlc.`user_id` = %s AND nlc.`collected` = 1 \
                 GROUP BY n.`id` \
-                ORDER BY nlc.`collect_datetime` DESC \
+                ORDER BY collect_datetime DESC \
                 LIMIT 10 OFFSET %s;"
             sql_cursor.execute(sql_query, [user_id, offset])
             data_rows = sql_cursor.fetchall()

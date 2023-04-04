@@ -12,7 +12,13 @@ from newsdata_helper import newsdata_helper
 from stockdata_helper import stockdata_helper
 from utilities import get_sic_category_code_from_sic_code, verify_recaptcha
 
-logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename="app.log",
+    filemode="w+",
+    format="[%(asctime)s] %(name)s %(funcName)s %(levelname)s: %(message)s",
+    datefmt='%Y-%m-%d %H:%M:%S')
+logger = logging.getLogger(__name__)
 
 app = Flask("stocknews")
 app.config["SESSION_PERMANENT"] = False
@@ -81,7 +87,7 @@ def register() -> Response:
         "data": {}
     }
 
-    if not verify_recaptcha(recaptcha_response, request.environ.get('HTTP_X_REAL_IP', request.remote_addr)):
+    if not verify_recaptcha(recaptcha_response, request.environ.get("HTTP_X_REAL_IP", request.remote_addr)):
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Invalid reCAPTCHA response."
         return make_response(jsonify(responseData), 200)
@@ -246,8 +252,7 @@ def updateAccountInfo() -> Response:
     try:
         firebase_helper.update_account_info(localId, idToken, displayName)
     except Exception as ex:
-        print(ex)
-        logging.error(ex)
+        logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -278,7 +283,7 @@ def updatePreferences() -> Response:
     try:
         firebase_helper.update_preferences(localId, agriculture, mining, construction, manufacturing, transportation, wholesale, retail, finance, services, public_administration)
     except Exception as ex:
-        print(ex)
+        logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -301,8 +306,7 @@ def getPreferences() -> Response:
         preferences = firebase_helper.get_preferences(session["user"]["localId"])
         responseData["data"]["preferences"] = preferences
     except Exception as ex:
-        print(ex)
-        logging.error(ex)
+        logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -320,7 +324,7 @@ def updatePassword() -> Response:
         "data": {}
     }
 
-    if not verify_recaptcha(recaptcha_response, request.environ.get('HTTP_X_REAL_IP', request.remote_addr)):
+    if not verify_recaptcha(recaptcha_response, request.environ.get("HTTP_X_REAL_IP", request.remote_addr)):
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Invalid reCAPTCHA response."
         return make_response(jsonify(responseData), 200)
@@ -334,7 +338,7 @@ def updatePassword() -> Response:
         firebase_helper.update_password(email, currentPassword, newPassword)
     except RuntimeError as ex:
         print(ex)
-        logging.error(ex)
+        logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -362,8 +366,7 @@ def getTickerInfo() -> Response:
     try:
         result1 = stockdata_helper.get_tickerinfo(requestData["ticker"])
     except Exception as ex:
-        print(ex)
-        logging.error(ex)
+        logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -377,7 +380,7 @@ def getTickerInfo() -> Response:
     try:
         result2 = stockdata_helper.get_last_trading_date(requestData["ticker"])
     except Exception as ex:
-        print(ex)
+        logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -414,7 +417,7 @@ def getPrice() -> Response:
     try:
         result = stockdata_helper.get_aggregates(requestData["ticker"], requestData["start_date"], requestData["end_date"], requestData["mode"])
     except Exception as ex:
-        print(ex)
+        logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -428,11 +431,12 @@ def getPrice() -> Response:
         responseData["code"] = "404"
         responseData["data"]["reason"] = "No data found."
         return make_response(jsonify(responseData), 200)
+
     responseData["code"] = "200"
     responseData["data"]["price"] = []
     for item in result["results"]:
         responseData["data"]["price"].append({"open": item["o"], "close": item["c"], "low": item["l"], "high": item["h"], "timestamp": item["t"]})
-    
+
     return make_response(jsonify(responseData), 200)
 
 @app.route("/api/polygon/proxy", methods=["GET"])
@@ -448,8 +452,7 @@ def proxyPolygon() -> Response:
     try:
         result = stockdata_helper.proxy_polygon_resource(requestData["url"])
     except Exception as ex:
-        print(ex)
-        logging.error(ex)
+        logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -487,8 +490,7 @@ def setNewsUserAction() -> Response:
         elif requestData["requestType"].lower() == "collect":
             newsdata_helper.set_user_news_collect(requestData["newsId"], requestData["userId"], requestData["collected"])
     except Exception as ex:
-        print(ex)
-        logging.error(ex)
+        logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -537,8 +539,7 @@ def getNews() -> Response:
         elif requestData["requestType"] == "collection":
             result = newsdata_helper.get_user_news_collection(requestData["userId"], requestData["offset"])
     except Exception as ex:
-        print(ex)
-        logging.error(ex)
+        logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -549,4 +550,5 @@ def getNews() -> Response:
     return make_response(jsonify(responseData), 200)
 
 if __name__ == "__main__":
+    logger.debug("Development server started.")
     app.run(port=8081, use_reloader=True)

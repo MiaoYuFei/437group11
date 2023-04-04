@@ -129,6 +129,9 @@ export default {
                 }}</span>
               </span>
               <div class="mb-1">
+                <span class="text-muted" style="font-size: 0.9em"
+                  >Tickers:</span
+                >
                 <ul class="list-group list-group-horizontal flex-wrap">
                   <li
                     class="list-group-item border-0 p-0 me-2"
@@ -145,6 +148,9 @@ export default {
                 </ul>
               </div>
               <div class="mb-1">
+                <span class="text-muted" style="font-size: 0.9em"
+                  >Industries:</span
+                >
                 <ul class="list-group list-group-horizontal flex-wrap">
                   <li
                     class="list-group-item border-0 p-0 me-2"
@@ -294,7 +300,7 @@ export default {
       <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
-            <h1 class="modal-title fs-5" id="modalLikingLabel">Warning</h1>
+            <h1 class="modal-title fs-5" id="modalLikingLabel">Info</h1>
           </div>
           <div class="modal-body">
             Liking/Unliking the news, please wait some time...

@@ -129,10 +129,18 @@ export default {
                 }}</span>
               </span>
               <div class="mb-1">
-                <span class="text-muted" style="font-size: 0.9em"
-                  >Tickers:</span
-                >
                 <ul class="list-group list-group-horizontal flex-wrap">
+                  <li class="list-group-item border-0 p-0 m-0 me-2">
+                    <span class="text-muted" style="font-size: 0.9em"
+                      >Tickers:</span
+                    >
+                  </li>
+                  <li
+                    v-if="news.tickers.length <= 0"
+                    class="list-group-item border-0 p-0 m-0 me-2"
+                  >
+                    <span class="text-muted" style="font-size: 0.9em">N/A</span>
+                  </li>
                   <li
                     class="list-group-item border-0 p-0 me-2"
                     v-for="(ticker, index) of news.tickers"
@@ -148,10 +156,18 @@ export default {
                 </ul>
               </div>
               <div class="mb-1">
-                <span class="text-muted" style="font-size: 0.9em"
-                  >Industries:</span
-                >
                 <ul class="list-group list-group-horizontal flex-wrap">
+                  <li class="list-group-item border-0 p-0 m-0 me-2">
+                    <span class="text-muted" style="font-size: 0.9em"
+                      >Industries:</span
+                    >
+                  </li>
+                  <li
+                    v-if="news.categories.length <= 0"
+                    class="list-group-item border-0 p-0 m-0 me-2"
+                  >
+                    <span class="text-muted" style="font-size: 0.9em">N/A</span>
+                  </li>
                   <li
                     class="list-group-item border-0 p-0 me-2"
                     v-for="(category, index) of news.categories"

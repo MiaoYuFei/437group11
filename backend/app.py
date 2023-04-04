@@ -15,7 +15,7 @@ from utilities import get_sic_category_code_from_sic_code, verify_recaptcha
 logging.basicConfig(
     level=logging.DEBUG,
     filename="app.log",
-    filemode="w+",
+    filemode="a",
     format="[%(asctime)s] %(name)s %(funcName)s %(levelname)s: %(message)s",
     datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)

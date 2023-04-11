@@ -3,6 +3,7 @@ __pycache__
 flask_session
 app.log
 
+pickle/*
 .idea
 Pipfile
 Pipfile.lock

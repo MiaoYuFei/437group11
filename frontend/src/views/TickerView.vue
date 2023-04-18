@@ -34,6 +34,8 @@ export default {
       newsLoading: true,
       newsPageCurrent: 1,
       newsTotalCount: 0,
+      tickerError: false,
+      tickerErrorMessage: "",
       newsError: false,
       newsErrorMessage: "",
       priceData: [] as {
@@ -116,7 +118,11 @@ export default {
             this.tickerInfo = data;
             this.priceEndDate = data.last_trading_date;
             if (callback !== undefined) {
-              callback();
+              callback(true);
+            }
+          } else {
+            if (callback !== undefined) {
+              callback(false);
             }
           }
         }
@@ -212,12 +218,12 @@ export default {
           text:
             this.priceStartDate === this.priceEndDate
               ? `${this.tickerInfo?.ticker} Price Chart (${new Date(
-                  this.priceStartDate + "T00:00:00Z"
+                  this.priceStartDate + "T23:59:59Z"
                 ).toLocaleDateString()})`
               : `${this.tickerInfo?.ticker} Price Chart (${new Date(
                   this.priceStartDate + "T00:00:00Z"
                 ).toLocaleDateString()} - ${new Date(
-                  this.priceEndDate + "T00:00:00Z"
+                  this.priceEndDate + "T23:59:59Z"
                 ).toLocaleDateString()})`,
           textStyle: {
             fontWeight: "bold",
@@ -295,14 +301,19 @@ export default {
     document.title = "Ticker - " + (this as any).$projectName;
   },
   mounted() {
-    this.onGetTickerInfo(() => {
+    this.onGetTickerInfo((result: boolean) => {
+      this.pageLoading = false;
+      if (!result) {
+        this.tickerError = true;
+        this.tickerErrorMessage =
+          "The upstream Polygon API is down and we are not able to fetch data. This is not what we can control.";
+      }
       this.onGetPrice(() => {
         $(() => {
           this.drawPriceChart(ChartType.Basic, this.priceData);
         });
         this.priceChartLoading = false;
       });
-      this.pageLoading = false;
     });
   },
   components: {
@@ -319,6 +330,14 @@ export default {
       message="Loading ticker details..."
     />
     <div v-show="!pageLoading" class="container">
+      <div v-if="tickerError" class="card my-3">
+        <div class="card-header"><h5>Error</h5></div>
+        <div class="card-body">
+          <p class="card-text" style="text-align: justify">
+            {{ tickerErrorMessage }}
+          </p>
+        </div>
+      </div>
       <div v-if="tickerInfo" class="my-3 row gap-3">
         <div class="col-12">
           <div class="card">

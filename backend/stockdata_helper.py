@@ -4,7 +4,7 @@ import requests
 
 from utilities import call_api_get, get_string_base64_encoded, get_sql_connection
 
-api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
+api_key = "GvMNwf24VUyug10vZZvP0P7a5nh9fJt0"
 
 class stockdata_helper:
 
@@ -13,6 +13,18 @@ class stockdata_helper:
         endpoint = "https://api.polygon.io/v2/aggs/ticker/{0}/range/1/{1}/{2}/{3}".format(ticker, mode, start_date, end_date)
         requestData = {"apiKey": api_key, "adjusted": "true", "sort": "desc", "limit": "1000"}
         return call_api_get(endpoint, requestData)
+
+    @staticmethod
+    def check_trading_date(ticker: str, date: str):
+        endpoint = "https://api.polygon.io/v2/aggs/ticker/{0}/range/1/day/{1}/{2}".format(ticker, date, date)
+        requestData = {"apiKey": api_key, "adjusted": "true", "sort": "desc", "limit": "1"}
+        apiResponse = call_api_get(endpoint, requestData)
+        if apiResponse["status"].lower() == "not_authorized":
+            return False
+        if apiResponse["resultsCount"] == 0:
+            return False
+        else:
+            return True
 
     @staticmethod
     def get_last_trading_date(ticker: str):

@@ -95,7 +95,7 @@ def register() -> Response:
     try:
         result = firebase_helper.sign_up_with_email_and_password(email, password)
     except RuntimeError as ex:
-        print(ex)
+        logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -105,7 +105,7 @@ def register() -> Response:
             responseData["code"] = "403"
             responseData["data"]["reason"] = "This email has already registered."
         else:
-            print(ex)
+            logger.error(ex)
             responseData["code"] = "403"
             responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -113,7 +113,7 @@ def register() -> Response:
     try:
         firebase_helper.update_account_info(result["localId"], result["idToken"], name)
     except Exception:
-        print(ex)
+        logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -162,7 +162,7 @@ def verifyEmail() -> Response:
             try:
                 result = firebase_helper.get_account_info(session["user"]["idToken"])
             except Exception as ex:
-                print(ex)
+                logger.error(ex)
                 responseData["code"] = "403"
                 responseData["data"]["reason"] = "Access denied."
                 return make_response(jsonify(responseData), 200)
@@ -170,7 +170,7 @@ def verifyEmail() -> Response:
                 try:
                     firebase_helper.send_email_verification_email(session["user"]["idToken"], session["user"]["email"])
                 except Exception as ex:
-                    print(ex)
+                    logger.error(ex)
                     responseData["code"] = "403"
                     responseData["data"]["reason"] = "Access denied."
                     return make_response(jsonify(responseData), 200)
@@ -194,7 +194,7 @@ def verifyEmail() -> Response:
                 responseData["code"] = "403"
                 responseData["data"]["reason"] = "Firebase refused email sign in: Quota (5/day) exceeded."
             else:
-                print(ex)
+                logger.error(ex)
                 responseData["code"] = "403"
                 responseData["data"]["reason"] = "Access denied."
             return make_response(jsonify(responseData), 200)
@@ -314,6 +314,32 @@ def getPreferences() -> Response:
     responseData["code"] = "200"
     return make_response(jsonify(responseData), 200)
 
+@app.route("/api/user/checkpreferencesset", methods=["POST"])
+def checkPreferencesSet() -> Response:
+    responseData = { 
+        "code": "500",
+        "data": {}
+    }
+
+    if not is_session_user_set():
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+    try:
+        result = firebase_helper.is_preferences_set(session["user"]["localId"])
+        if result:
+            responseData["code"] = "200"
+            return make_response(jsonify(responseData), 200)
+        else:
+            responseData["code"] = "404"
+            responseData["data"]["reason"] = "User preferences not set."
+            return make_response(jsonify(responseData), 200)
+    except Exception as ex:
+        logger.error(ex)
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
 @app.route("/api/user/updatepassword", methods=["POST"])
 def updatePassword() -> Response:
     currentPassword = request.form["currentPassword"]
@@ -337,7 +363,7 @@ def updatePassword() -> Response:
     try:
         firebase_helper.update_password(email, currentPassword, newPassword)
     except RuntimeError as ex:
-        print(ex)
+        logger.error(ex)
         logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
@@ -364,30 +390,32 @@ def getTickerInfo() -> Response:
     }
 
     try:
-        result1 = stockdata_helper.get_tickerinfo(requestData["ticker"])
+        result = stockdata_helper.get_tickerinfo(requestData["ticker"])
     except Exception as ex:
         logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
-    if result1["status"].lower() != "ok":
+    if result["status"].lower() != "ok":
         responseData["code"] = "404"
         responseData["data"]["reason"] = "Ticker not found."
         return make_response(jsonify(responseData), 200)
 
-    result = result1["results"]
+    result = result["results"]
 
-    try:
-        result2 = stockdata_helper.get_last_trading_date(requestData["ticker"])
-    except Exception as ex:
-        logger.error(ex)
-        responseData["code"] = "403"
-        responseData["data"]["reason"] = "Access denied."
-        return make_response(jsonify(responseData), 200)
-
-    result["last_trading_date"] = datetime.datetime.utcfromtimestamp(
-        int(result2["results"]["t"] / 1000000000)
-        ).strftime("%Y-%m-%d")
+    result["last_trading_date"] = None
+    cur_date = datetime.date.today()
+    count = 0
+    while count < 30:
+        count += 1
+        if cur_date.weekday() == 5 or cur_date.weekday() == 6:
+            cur_date = cur_date - datetime.timedelta(days=1)
+            continue
+        cur_date_string = cur_date.strftime("%Y-%m-%d")
+        if stockdata_helper.check_trading_date(requestData["ticker"], cur_date_string):
+            result["last_trading_date"] = cur_date_string
+            break
+        cur_date = cur_date - datetime.timedelta(days=1)
 
     if "branding" in result:
         if "icon_url" in result["branding"] and result["branding"]["icon_url"] is not None:
@@ -417,12 +445,13 @@ def getPrice() -> Response:
     try:
         result = stockdata_helper.get_aggregates(requestData["ticker"], requestData["start_date"], requestData["end_date"], requestData["mode"])
     except Exception as ex:
+        print("here")
         logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
-    
-    if result["status"].lower() != "ok":
+
+    if result["status"].lower() != "ok" and result["status"].lower() != "delayed":
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
         return make_response(jsonify(responseData), 200)
@@ -536,6 +565,10 @@ def getNews() -> Response:
             result = newsdata_helper.get_news_by_category(request.form["category"], requestData["userId"], requestData["offset"])
         elif requestData["requestType"] == "recommendation":
             result = newsdata_helper.get_user_news_recommendation(requestData["userId"], requestData["offset"])
+            if result is None:
+                responseData["code"] = "404"
+                responseData["data"]["reason"] = "No recommendation right now. Please use the system for a while to get recommendations. You can explore latest news on the home page."
+                return make_response(jsonify(responseData), 200)
         elif requestData["requestType"] == "collection":
             result = newsdata_helper.get_user_news_collection(requestData["userId"], requestData["offset"])
     except Exception as ex:

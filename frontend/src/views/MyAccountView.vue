@@ -14,9 +14,6 @@ export default {
   name: "UserSettings",
   data() {
     return {
-      // userId: "",
-      // userDisplayName: "",
-      // userEmail: "",
       formProfileInEdit: false,
       formProfileGetLoading: false,
       formProfileSetLoading: false,
@@ -127,7 +124,7 @@ export default {
           const data = response.data.data;
           if (code == 200) {
             this.formPreferencesAlertMessage =
-              "Preferences updated successfully.";
+              "Preferences updated successfully. You can goto your recommendations page to see the changes.";
           } else {
             this.formPreferencesAlertMessage = data.reason;
           }
@@ -144,7 +141,8 @@ export default {
     },
     onGetPreferences() {
       if (this.$route.query.showSetPreferences === "true") {
-        this.formPreferencesAlertMessage = "Please select your preferences.";
+        this.formPreferencesAlertMessage =
+          "Please select at least one industry to continue.";
         this.formPreferencesGetLoading = false;
         $(this.$refs.formPreferencesAlert as Element)
           .css("display", "flex")

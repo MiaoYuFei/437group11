@@ -2,16 +2,18 @@
 
 import base64
 from datetime import datetime
+import re
 import schedule
 import signal
 import threading
 from tqdm import tqdm
 import time
+import unicodedata
 from urllib.parse import parse_qs, urlparse
 from background_worker import background_worker
 from utilities import call_api_get, get_sic_category_code_from_sic_code, get_sql_connection
 
-api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
+api_key = "GvMNwf24VUyug10vZZvP0P7a5nh9fJt0"
 
 utc_datetime_format = "%Y-%m-%dT%H:%M:%SZ"
 
@@ -20,6 +22,14 @@ worker_update_news_running = False
 bw_update_tickers = None
 bw_update_news = None
 
+@staticmethod
+def clean_string(s):
+    s = s.strip()
+    s = unicodedata.normalize("NFKD", s)
+    s = re.sub(r"[^\x00-\x7F]+", "", s)
+    return s
+
+@staticmethod
 def transform_api_ticker_details_to_sql(ticker_details: dict) -> list:
     sql_values = []
     sql_values.append(base64.b64encode(ticker_details["ticker"].encode('utf-8')).decode('utf-8'))
@@ -161,8 +171,8 @@ def worker_update_news(stop_event):
                 continue
             sql_values = [
                 news_item["id"],
-                None if "title" not in news_item else news_item["title"],
-                None if "description" not in news_item else news_item["description"],
+                None if "title" not in news_item else clean_string(news_item["title"]),
+                None if "description" not in news_item else clean_string(news_item["description"]),
                 None if "keywords" not in news_item else ",".join(news_item["keywords"]),
                 datetime.strptime(news_item["published_utc"], utc_datetime_format).strftime("%Y-%m-%d %H:%M:%S"),
                 news_item["article_url"],
@@ -221,7 +231,7 @@ def run_worker_update_tickers():
     bw_update_tickers = background_worker([worker_update_tickers])
     bw_update_tickers.start()
 
-def cleanup():
+def cleanup(arg1, arg2):
     global bw_update_news
     if bw_update_news is not None:
         bw_update_news.stop()
@@ -240,3 +250,5 @@ signal.signal(signal.SIGTERM, cleanup)
 while True:
     schedule.run_pending()
     time.sleep(600)
+# run_worker_update_news()
+# run_worker_update_tickers()

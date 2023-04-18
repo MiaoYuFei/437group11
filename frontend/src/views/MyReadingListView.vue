@@ -69,6 +69,22 @@ export default {
         }
       });
     },
+    onCheckPreferencesSet(callback: Function | undefined = undefined) {
+      handleApi("post", "/api/user/checkpreferencesset", {}).then(
+        (response) => {
+          const code = parseInt(response.data.code);
+          if (code == 200) {
+            if (callback !== undefined) {
+              callback(true);
+            }
+          } else {
+            if (callback !== undefined) {
+              callback(false);
+            }
+          }
+        }
+      );
+    },
     onSwitchNewsPage(page: number) {
       this.newsError = false;
       this.newsPageCurrent = page;
@@ -100,11 +116,18 @@ export default {
         if (from !== undefined && to.query.source === from.query.source) {
           return;
         }
-        if (to.query.source === "recommendations") {
-          this.newsSource = NewsSource.Recommendation;
-        } else if (to.query.source === "mycollections") {
-          this.newsSource = NewsSource.Collection;
-        }
+        this.onCheckPreferencesSet((result: boolean) => {
+          if (!result) {
+            this.$router.push("/myaccount?showSetPreferences=true#preferences");
+            return;
+          } else {
+            if (to.query.source === "recommendations") {
+              this.newsSource = NewsSource.Recommendation;
+            } else if (to.query.source === "mycollections") {
+              this.newsSource = NewsSource.Collection;
+            }
+          }
+        });
       },
       immediate: true,
     },
@@ -167,7 +190,7 @@ export default {
         <div class="card-header"><h5>Error</h5></div>
         <div class="card-body">
           <p class="card-text" style="text-align: justify">
-            Failed to get news. Please try again later. ({{ newsErrorMessage }})
+            {{ newsErrorMessage }}
           </p>
         </div>
       </div>
@@ -181,6 +204,17 @@ export default {
           :userSignedIn="userStatus.signedIn"
           @newsSwitchToPage="onSwitchNewsPage"
         />
+        <div
+          v-if="newsList.length === 0 && newsSource === NewsSource.Collection"
+          class="card"
+        >
+          <div class="card-header"><h5>Error</h5></div>
+          <div class="card-body">
+            <p class="card-text" style="text-align: justify">
+              You don&apos;t have any collections.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>

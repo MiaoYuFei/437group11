@@ -1,40 +1,39 @@
 #base imports
 import os
 import sys
-parent_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
-sys.path.append(parent_dir)
-poly_dir = os.path.abspath(os.path.join(os.getcwd(), 'data_poly'))
+
+script_path = os.path.realpath(os.path.dirname(__file__))
+poly_dir = os.path.abspath(os.path.join(script_path, 'data_poly'))
 sys.path.append(poly_dir)
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import itertools
-import concurrent.futures
+# import concurrent.futures
 
 # package imports
 import pandas as pd
 pd.options.mode.chained_assignment = None
 import numpy as np
 from tqdm import tqdm
-import pyarrow.feather as feather
+# import pyarrow.feather as feather
 import pickle
-from firebase_helper import *
-import math
+import firebase_helper
+# import math
 import asyncio
-from pandas.io.json import json_normalize
+from pandas import json_normalize
 import hashlib
-from google.cloud.firestore_v1 import Query
-import nest_asyncio
-nest_asyncio.apply()
-from IPython.display import display
+# from google.cloud.firestore_v1 import Query
+# import nest_asyncio
+# nest_asyncio.apply()
+# from IPython.display import display
 from concurrent.futures import ThreadPoolExecutor
 import datetime
 import pytz
 
 # local imports
-import data_poly.poly_getdata as poly_getdata
+# import data_poly.poly_getdata as poly_getdata
 import data_poly.poly_url as poly_url
 import data_poly.poly_helper as poly_helper
-
 
 # Suppress the UserWarning with a specific message
 warnings.filterwarnings(
@@ -43,12 +42,9 @@ warnings.filterwarnings(
     category=UserWarning
 )
 
-from dotenv import load_dotenv
-load_dotenv(dotenv_path="/home/peterzerg/repos/quant/.ENV")
-api_key = os.environ.get("POLYGON_APIKEY_MASTER")
+api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
 
-fb = firebase_helper()
-db = fb.get_db()
+db = firebase_helper.get_db()
 
 #project global vars
 industry_cols= ['agriculture', 'mining', 'construction', 'manufacturing', 'transportation','wholesale', 'retail', 'finance', 'services', 'public_administration']
@@ -59,14 +55,28 @@ object_names = ['ticker_hash_dict','hash_sic_dict','news_data_dict','knn_dict','
 # Loop over the object names
 for name in tqdm(object_names):
     # Load the object by name
-    with open(f'{name}.pickle', 'rb') as f:
-        globals()[name] = pickle.load(f)
-        
+    filename = script_path + f'/pickle/{name}.pickle'
+    if os.path.exists(filename):
+        with open(filename, 'rb') as f:
+            globals()[name] = pickle.load(f)
+    else:
+        if name == 'hash_sic_dict':
+            doc_ref = db.collection('tickers').document('hash_sic')
+            hash_sic_doc = doc_ref.get()
+            globals()[name] = hash_sic_doc.to_dict() if hash_sic_doc.exists else print(f"No such document: {doc_ref.id}")
+        if name == 'news_data_dict':
+            doc_ref = db.collection('news_data').document('news_data')
+            news_data_doc = doc_ref.get()
+            globals()[name] = news_data_doc.to_dict() if news_data_doc.exists else print(f"No such document: {doc_ref.id}")
+        else:
+            globals()[name] = None
+
 #functions
 
 #frequent updates:
 async def frequent_update():
     global news_data_dict, industry_news_dict, user_ticker_pref_dict, industry_news_compiled_dict, news_datetime_dict, industry_news_hash_dict, preference_scores_user_rank
+    update_and_upload_ticker_hash()
     #gen updated news
     news_data_dict = await run_news_update()
     #gen industry news
@@ -110,7 +120,7 @@ def upload_ticker_info():
     cloud_upload_seq(db, "ticker_info", ticker_info_dict)
     
 def update_and_upload_ticker_hash(): #infreq
-    global db
+    global db, ticker_hash_dict
     ticker_hash_dict = ticker_map_dict_gen()
     cloud_upload_single(db, "tickers", "ticker_hash", ticker_hash_dict)
     
@@ -195,19 +205,19 @@ async def cloud_upload(db, data_dict, collection_name, chunk_size=500, task_limi
     """
     sub_dicts = list(chunks(data_dict, chunk_size))
     
-    # Create a progress bar for displaying the progress
-    progress_bar = tqdm(total=len(sub_dicts), desc="Uploading")
-    display(progress_bar)
+    # # Create a progress bar for displaying the progress
+    # progress_bar = tqdm(total=len(sub_dicts), desc="Uploading")
+    # display(progress_bar)
 
     # Iterate through the sub_dicts
-    for sub_dict in sub_dicts:
+    for sub_dict in tqdm(sub_dicts, desc="Uploading"):
         batch = {}  # Create a batch to batch the writes
         for key, value in sub_dict.items():  # Iterate through the key-value pairs in the sub_dict
             batch[key] = value  # Add the key-value pair to the batch
         await write_batch(batch, collection_name, task_limit=task_limit)  # Run the write_batch coroutine asynchronously
-        progress_bar.update(1)  # Update the progress bar
+        # progress_bar.update(1)  # Update the progress bar
 
-    progress_bar.close()  # Close the progress bar when done
+    # progress_bar.close()  # Close the progress bar when done
         
         
 def delete_collection(db, collection_path, batch_size=500):
@@ -233,7 +243,7 @@ def cloud_upload_ticker_map(db):
     """
     upload and set ticker map (str->int) to cloud firestore 
     """
-    ticker_map_path = "/mnt/d/data/news/ticker_maping_dict.pkl"
+    ticker_map_path = script_path + "/pickle/ticker_maping_dict.pickle"
     ticker_map_dict = pickle.load(open(ticker_map_path, "rb"))
     #overwrite ticker mapping on db
     doc_ref = db.collection('ticker_map').document('dict')
@@ -323,7 +333,7 @@ def to_boolean_list(industries):
     global industry_cols
     return [col in industries for col in industry_cols]
 
-def clean_news(news_data=pd.read_feather("/mnt/d/data/news/local_us_equity_news")):
+def clean_news(news_data):
     """depreciated"""
     cols_to_process = ['tickers', 'keywords']
     for col in cols_to_process:
@@ -353,17 +363,17 @@ def apply_industries(news_data):
     news_data = news_data.applymap(convert_arrays_to_lists)
     return news_data
 
-def process_news_data():
-    global db
-    news_data = clean_news()
-    #get mapping dict
-    doc_ref = db.collection('tickers').document('hash_sic') # Get reference to the document
-    hash_sic_doc = doc_ref.get() # Retrieve the document data
-    hash_sic_dict = hash_sic_doc.to_dict() if hash_sic_doc.exists else print(f"No such document: {doc_ref.id}") # Check if the document exists
-    doc_ref = db.collection('tickers').document('ticker_hash') # Get reference to the document
-    ticker_hash_doc = doc_ref.get() # Retrieve the document data
-    ticker_hash_dict = ticker_hash_doc.to_dict() if ticker_hash_doc.exists else print(f"No such document: {doc_ref.id}") # Check if the document exists
-    return apply_industries(news_data, hash_sic_dict,ticker_hash_dict)
+# def process_news_data():
+#     global db
+#     news_data = clean_news()
+#     #get mapping dict
+#     doc_ref = db.collection('tickers').document('hash_sic') # Get reference to the document
+#     hash_sic_doc = doc_ref.get() # Retrieve the document data
+#     hash_sic_dict = hash_sic_doc.to_dict() if hash_sic_doc.exists else print(f"No such document: {doc_ref.id}") # Check if the document exists
+#     doc_ref = db.collection('tickers').document('ticker_hash') # Get reference to the document
+#     ticker_hash_doc = doc_ref.get() # Retrieve the document data
+#     ticker_hash_dict = ticker_hash_doc.to_dict() if ticker_hash_doc.exists else print(f"No such document: {doc_ref.id}") # Check if the document exists
+#     return apply_industries(news_data, hash_sic_dict,ticker_hash_dict)
 
 def news_data_to_dict(news_data):
     # Convert the DataFrame to a dictionary format
@@ -555,7 +565,7 @@ def get_key_by_value(d, value):
     return None
 
 #run this every x mins
-await frequent_update()
+asyncio.run(frequent_update())
 
 #run this when a user change industry pref
 #await upload_new_user_pref()
@@ -566,5 +576,5 @@ for name in tqdm(object_names):
     # Load the object by name
     obj = globals()[name]
     # Save the object as a pickle file using the name
-    with open(f'{name}.pickle', 'wb') as f:
+    with open(script_path + f'/pickle/{name}.pickle', 'wb') as f:
         pickle.dump(obj, f)

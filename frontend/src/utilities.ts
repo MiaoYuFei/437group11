@@ -19,9 +19,12 @@ function handleApi(
   data: any | undefined = undefined
 ): Promise<AxiosResponse<any, any>> {
   if (method === "get") {
-    const search =
+    let search =
       (action.substring(action.indexOf("/")).indexOf("?") < 0 ? "?" : "&") +
       $.param(data);
+    if (search === "?") {
+      search = "";
+    }
     return axios({
       method: "get",
       url: action + search,

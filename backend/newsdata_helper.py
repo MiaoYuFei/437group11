@@ -4,7 +4,9 @@ import datetime
 from newsdata_firebase_bridge import newsdata_firebase_bridge
 from utilities import get_sql_connection, get_string_base64_encoded, process_news_response
 
-api_key = "GNthmWT9qYGm57QwnIJ_orim_uN5mbc0"
+import firebase_helper
+
+api_key = "GvMNwf24VUyug10vZZvP0P7a5nh9fJt0"
 
 class newsdata_helper:
 
@@ -319,45 +321,68 @@ class newsdata_helper:
 
     @staticmethod
     def get_user_news_recommendation(userId: str, offset: int = 0) -> dict:
-        result = newsdata_firebase_bridge.get_user_news_recommendation_firebase(userId, offset)
-        news_id_list = result["newsIdList"]
-        data_total_count = result["totalCount"]
-        news_list = []
+        if userId == None:
+            raise PermissionError("User ID is required")
+        preferences = firebase_helper.get_preferences(userId)
+        if preferences is None:
+            return None
         sql_cnx = get_sql_connection()
         sql_cursor = sql_cnx.cursor()
-        for news_id in news_id_list:
-            if userId == None:
-                sql_query = \
-                    "SELECT n.*, \
-                    GROUP_CONCAT(t.`ticker` SEPARATOR ',') AS tickers, \
-                    GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories \
-                    FROM `news` n \
-                    LEFT JOIN `news_tickers` nt ON `n`.`id` = `nt`.`news_id` \
-                    INNER JOIN `ticker` t ON nt.`ticker_id` = `t`.`id` \
-                    GROUP BY n.`id` \
-                    HAVING n.`id` = %s;"
-                sql_cursor.execute(sql_query, [news_id])
-            else:
-                sql_query = \
-                    "SELECT n.*, \
-                    GROUP_CONCAT(t.`ticker` SEPARATOR ',') AS tickers, \
-                    GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories, \
-                    MAX(nlc.`liked`) AS liked, \
-                    MAX(nlc.`collected`) AS collected \
-                    FROM `news` n \
-                    LEFT JOIN `news_tickers` nt ON `n`.`id` = `nt`.`news_id` \
-                    INNER JOIN `ticker` t ON nt.`ticker_id` = `t`.`id` \
-                    LEFT JOIN `news_likecollect` nlc ON n.`id` = nlc.`news_id` AND nlc.`user_id` = %s \
-                    GROUP BY n.`id` \
-                    HAVING n.`id` = %s;"
-                sql_cursor.execute(sql_query, [userId, news_id])
-            data_row = sql_cursor.fetchone()
-            if data_row is None:
-                continue
-            data_columns = [i[0] for i in sql_cursor.description]
-            news_item = dict(zip(data_columns, data_row))
-            news_list.append(news_item)
-        process_news_response(news_list)
+
+        category_list = [key for key, value in preferences.items() if value is True]
+        category_count = len(category_list)
+        if category_count == 0:
+            return None
+    
+        if offset == 0:
+            sql_query = \
+                "SELECT COUNT(DISTINCT n.`id`) \
+                FROM `ticker` t \
+                INNER JOIN `news_tickers` nt ON nt.`ticker_id` = t.`id` \
+                INNER JOIN `news` n ON n.id = nt.`news_id`"
+            for i in range(category_count):
+                if i == 0:
+                    sql_query += " WHERE "
+                sql_query += "t.`category` = %s"
+                if i != category_count - 1:
+                    sql_query += " OR "
+            sql_cursor.execute(sql_query, category_list)
+            data_total_count = sql_cursor.fetchone()[0]
+        else:
+            data_total_count = None
+        sql_query = \
+            "SELECT n.*, \
+            GROUP_CONCAT(t.`ticker` SEPARATOR ',') AS tickers, \
+            GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories \
+            FROM `news` n \
+            LEFT JOIN `news_tickers` nt ON nt.`news_id` = n.`id` \
+            LEFT JOIN `ticker` t ON nt.`ticker_id` = t.`id` \
+            WHERE n.`id` IN ( \
+                SELECT nt.`news_id` \
+                FROM `ticker` t \
+                INNER JOIN `news_tickers` nt ON nt.`ticker_id` = t.`id`"
+        for i in range(category_count):
+            if i == 0:
+                sql_query += " WHERE "
+            sql_query += "t.`category` = %s "
+            if i != category_count - 1:
+                sql_query += "OR "
+        sql_query += \
+            ") \
+            GROUP BY n.`id` \
+            ORDER BY n.`article_datetime` DESC \
+            LIMIT 10 OFFSET %s"
+        sql_cursor.execute(sql_query, category_list + [offset])
+        data_rows = sql_cursor.fetchall()
+        data_columns = [i[0] for i in sql_cursor.description]
+        if data_total_count != 0:
+            news_list = [dict(zip(data_columns, news_row)) for news_row in data_rows]
+            process_news_response(news_list)
+        else:
+            news_list = []
+        sql_cnx.commit()
+        sql_cursor.close()
+        sql_cnx.close()
         responseData = {}
         responseData["newsList"] = news_list
         if data_total_count is not None:

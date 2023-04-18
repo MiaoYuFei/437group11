@@ -9,6 +9,10 @@ from utilities import call_api_post
 
 script_path = os.path.realpath(os.path.dirname(__file__))
 
+callback_url = "http://localhost:8080"
+if os.environ.get('PYTHON_ENV') == 'production':
+    callback_url = "https://cse437s.yufeim.com"
+
 cred = credentials.Certificate(script_path + "/configs/stocknews-firebase-project.json")
 conf = json.load(open(script_path + "/configs/stocknews-firebase-app.json"))
 
@@ -50,7 +54,7 @@ def send_email_verification_email(idToken: str, email: str):
 @staticmethod
 def send_email_sign_in_email(email: str):
     endpoint = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobConfirmationCode?key={0}".format(conf["apiKey"])
-    data = {"requestType": "EMAIL_SIGNIN", "email": email, "continueUrl": "http://localhost:8080/" + "emailsignin?" + urllib.parse.urlencode({"email": email})}
+    data = {"requestType": "EMAIL_SIGNIN", "email": email, "continueUrl": callback_url + "/emailsignin?" + urllib.parse.urlencode({"email": email})}
     return call_api_post(endpoint, data)
 
 @staticmethod
@@ -97,7 +101,9 @@ def update_preferences(localId: str, agriculture: bool, mining: bool, constructi
 def get_preferences(localId: str):
     doc = db.collection("user_preferences").document(localId).get()
     if doc.exists:
-        return doc.to_dict()
+        preferences = doc.to_dict()
+        preferences = {k: True if v.lower() == 'true' else False for k, v in preferences.items()}
+        return preferences
     else:
         return {
             'agriculture': False,
@@ -111,6 +117,15 @@ def get_preferences(localId: str):
             'services': False,
             'public_administration': False
         }
+
+@staticmethod
+def is_preferences_set(localId: str):
+    doc = db.collection("user_preferences").document(localId).get()
+    if not doc.exists:
+        return False
+    preferences = doc.to_dict()
+    preferences = {k: True if v.lower() == 'true' else False for k, v in preferences.items()}
+    return any(preferences.values())
 
 @staticmethod
 def update_password(email: str, currentPassword: str, newPassword: str):

@@ -10,7 +10,8 @@ from utilities import call_api_post
 script_path = os.path.realpath(os.path.dirname(__file__))
 
 callback_url = "http://localhost:8080"
-if os.environ.get('PYTHON_ENV') == 'production':
+env = os.environ.get("STOCKNEWS_ENV")
+if env != None and env.lower() == "production":
     callback_url = "https://cse437s.yufeim.com"
 
 cred = credentials.Certificate(script_path + "/configs/stocknews-firebase-project.json")
@@ -102,20 +103,20 @@ def get_preferences(localId: str):
     doc = db.collection("user_preferences").document(localId).get()
     if doc.exists:
         preferences = doc.to_dict()
-        preferences = {k: True if v.lower() == 'true' else False for k, v in preferences.items()}
+        preferences = {k: True if v.lower() == "true" else False for k, v in preferences.items()}
         return preferences
     else:
         return {
-            'agriculture': False,
-            'mining': False,
-            'construction': False,
-            'manufacturing': False,
-            'transportation': False,
-            'wholesale': False,
-            'retail': False,
-            'finance': False,
-            'services': False,
-            'public_administration': False
+            "agriculture": False,
+            "mining": False,
+            "construction": False,
+            "manufacturing": False,
+            "transportation": False,
+            "wholesale": False,
+            "retail": False,
+            "finance": False,
+            "services": False,
+            "public_administration": False
         }
 
 @staticmethod
@@ -142,7 +143,7 @@ def is_preferences_set(localId: str):
     if not doc.exists:
         return False
     preferences = doc.to_dict()
-    preferences = {k: True if v.lower() == 'true' else False for k, v in preferences.items()}
+    preferences = {k: True if v.lower() == "true" else False for k, v in preferences.items()}
     return any(preferences.values())
 
 @staticmethod

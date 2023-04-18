@@ -82,9 +82,34 @@ export default {
                   <strong>{{ news.article.title }}</strong>
                 </h5>
               </a>
-              <p class="card-text stocknews-article-description">
-                {{ news.article.description }}
-              </p>
+              <div v-if="!(news as any).showFullDescription">
+                <p
+                  v-if="news.article.description.length > 300"
+                  class="card-text stocknews-article-description"
+                >
+                  {{ news.article.description.slice(0, 300) + "..." }}
+                  <button
+                    class="btn btn-link p-0"
+                    @click="(news as any).showFullDescription = true"
+                  >
+                    View More
+                  </button>
+                </p>
+                <p v-else class="card-text stocknews-article-description">
+                  {{ news.article.description }}
+                </p>
+              </div>
+              <div v-else>
+                <p class="card-text stocknews-article-description">
+                  {{ news.article.description }}
+                  <button
+                    class="btn btn-link p-0"
+                    @click="(news as any).showFullDescription = false"
+                  >
+                    View Less
+                  </button>
+                </p>
+              </div>
               <span
                 class="d-flex align-items-center stocknews-article-publisher"
               >

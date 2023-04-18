@@ -353,10 +353,13 @@ class newsdata_helper:
         sql_query = \
             "SELECT n.*, \
             GROUP_CONCAT(t.`ticker` SEPARATOR ',') AS tickers, \
-            GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories \
+            GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories, \
+            MAX(nlc.`liked`) AS liked, \
+            MAX(nlc.`collected`) AS collected \
             FROM `news` n \
             LEFT JOIN `news_tickers` nt ON nt.`news_id` = n.`id` \
             LEFT JOIN `ticker` t ON nt.`ticker_id` = t.`id` \
+            LEFT JOIN `news_likecollect` nlc ON nlc.`news_id` = n.`id` AND nlc.`user_id` = %s \
             WHERE n.`id` IN ( \
                 SELECT nt.`news_id` \
                 FROM `ticker` t \
@@ -372,7 +375,7 @@ class newsdata_helper:
             GROUP BY n.`id` \
             ORDER BY n.`article_datetime` DESC \
             LIMIT 10 OFFSET %s"
-        sql_cursor.execute(sql_query, category_list + [offset])
+        sql_cursor.execute(sql_query, [userId] + category_list + [offset])
         data_rows = sql_cursor.fetchall()
         data_columns = [i[0] for i in sql_cursor.description]
         if data_total_count != 0:

@@ -187,7 +187,7 @@ export default {
         >
       </div>
       <div v-if="newsError" class="card">
-        <div class="card-header"><h5>Error</h5></div>
+        <div class="card-header"><h5>Info</h5></div>
         <div class="card-body">
           <p class="card-text" style="text-align: justify">
             {{ newsErrorMessage }}
@@ -208,7 +208,7 @@ export default {
           v-if="newsList.length === 0 && newsSource === NewsSource.Collection"
           class="card"
         >
-          <div class="card-header"><h5>Error</h5></div>
+          <div class="card-header"><h5>Info</h5></div>
           <div class="card-body">
             <p class="card-text" style="text-align: justify">
               You don&apos;t have any collections.

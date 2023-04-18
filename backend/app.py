@@ -598,8 +598,6 @@ def getPublisherInfo() -> Response:
         "data": {}
     }
 
-    result = []
-
     try:
         result = newsdata_helper.get_publisher_info(requestData["publisher"])
     except Exception as ex:
@@ -615,6 +613,63 @@ def getPublisherInfo() -> Response:
 
     responseData["code"] = "200"
     responseData["data"] = result
+
+    return make_response(jsonify(responseData), 200)
+
+@app.route("/api/user/gettourcompleted", methods=["POST"])
+def getTourCompleted() -> Response:
+    requestData = {
+        "tour": request.form["tour"]
+    }
+    responseData = {
+        "code": "200",
+        "data": {}
+    }
+
+    if not is_session_user_set():
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
+    try:
+        result = firebase_helper.get_tours_completed(session["user"]["localId"])
+    except Exception as ex:
+        logger.error(ex)
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
+    responseData["code"] = "200"
+    responseData["data"] = {
+        "tourCompleted": requestData["tour"] in result
+    }
+
+    return make_response(jsonify(responseData), 200)
+
+@app.route("/api/user/settourcompleted", methods=["POST"])
+def setTourCompleted() -> Response:
+    requestData = {
+        "tour": request.form["tour"]
+    }
+    responseData = {
+        "code": "200",
+        "data": {}
+    }
+
+    if not is_session_user_set():
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
+    try:
+        firebase_helper.set_tour_completed(session["user"]["localId"], requestData["tour"])
+    except Exception as ex:
+        logger.error(ex)
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
+    responseData["code"] = "200"
 
     return make_response(jsonify(responseData), 200)
 

@@ -119,6 +119,24 @@ def get_preferences(localId: str):
         }
 
 @staticmethod
+def get_tours_completed(localId: str):
+    doc = db.collection("user_tours_completed").document(localId).get()
+    if doc.exists:
+        return doc.to_dict()
+    else:
+        return {}
+
+@staticmethod
+def set_tour_completed(localId: str, tour: str):
+    doc = db.collection("user_tours_completed").document(localId).get()
+    if doc.exists:
+        tours = doc.to_dict()
+        tours[tour] = True
+        db.collection("user_tours_completed").document(localId).set(tours)
+    else:
+        db.collection("user_tours_completed").document(localId).set({tour: True})
+
+@staticmethod
 def is_preferences_set(localId: str):
     doc = db.collection("user_preferences").document(localId).get()
     if not doc.exists:

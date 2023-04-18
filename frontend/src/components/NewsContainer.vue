@@ -120,7 +120,7 @@ export default {
                   <span>From</span>
                   <img :src="news.publisher.logo.url" alt="publisher logo" />
                   <RouterLink
-                    class="fst-italic"
+                    class="fst-italic stocknews-article-publisher-name"
                     target="_blank"
                     :to="
                       '/publisher?q=' + encodeURIComponent(news.publisher.name)
@@ -141,7 +141,7 @@ export default {
                   </li>
                   <li
                     v-if="news.tickers.length <= 0"
-                    class="list-group-item border-0 p-0 m-0 me-2"
+                    class="list-group-item border-0 p-0 m-0 me-2 stocknews-ticker"
                   >
                     <span class="text-muted" style="font-size: 0.9em">N/A</span>
                   </li>
@@ -196,6 +196,7 @@ export default {
                         alt="Unlike"
                         style="height: 2em"
                         title="Unlike"
+                        class="stocknews-unlike-btn"
                       />
                       <img
                         v-show="news.liked !== true"
@@ -203,6 +204,7 @@ export default {
                         alt="Like"
                         style="height: 2em"
                         title="Like"
+                        class="stocknews-like-btn"
                       />
                     </a>
                   </div>
@@ -214,6 +216,7 @@ export default {
                         alt="Uncollect"
                         style="height: 2em"
                         title="Uncollect"
+                        class="stocknews-uncollect-btn"
                       />
                       <img
                         v-show="news.collected !== true"
@@ -221,6 +224,7 @@ export default {
                         alt="Collect"
                         style="height: 2em"
                         title="Collect"
+                        class="stocknews-collect-btn"
                       />
                     </a>
                   </div>

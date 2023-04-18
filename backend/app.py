@@ -571,10 +571,46 @@ def getNews() -> Response:
                 return make_response(jsonify(responseData), 200)
         elif requestData["requestType"] == "collection":
             result = newsdata_helper.get_user_news_collection(requestData["userId"], requestData["offset"])
+        elif requestData["requestType"] == "publisher":
+            result = newsdata_helper.get_news_by_publisher(request.form["publisher"], requestData["userId"], requestData["offset"])
+        else:
+            responseData["code"] = "404"
+            responseData["data"]["reason"] = "Request type not supported."
+            return make_response(jsonify(responseData), 200)
     except Exception as ex:
         logger.error(ex)
         responseData["code"] = "403"
         responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
+    responseData["code"] = "200"
+    responseData["data"] = result
+
+    return make_response(jsonify(responseData), 200)
+
+@app.route("/api/news/getpublisherinfo", methods=["POST"])
+def getPublisherInfo() -> Response:
+    requestData = {
+        "publisher": request.form["publisher"]
+    }
+    responseData = {
+        "code": "200",
+        "data": {}
+    }
+
+    result = []
+
+    try:
+        result = newsdata_helper.get_publisher_info(requestData["publisher"])
+    except Exception as ex:
+        logger.error(ex)
+        responseData["code"] = "403"
+        responseData["data"]["reason"] = "Access denied."
+        return make_response(jsonify(responseData), 200)
+
+    if result is None:
+        responseData["code"] = "404"
+        responseData["data"]["reason"] = "Publisher not found."
         return make_response(jsonify(responseData), 200)
 
     responseData["code"] = "200"

@@ -119,12 +119,13 @@ export default {
                 >
                   <span>From</span>
                   <img :src="news.publisher.logo.url" alt="publisher logo" />
-                  <a
+                  <RouterLink
                     class="fst-italic"
-                    :href="news.publisher.homepage.url"
                     target="_blank"
-                  >
-                    {{ news.publisher.name }}</a
+                    :to="
+                      '/publisher?q=' + encodeURIComponent(news.publisher.name)
+                    "
+                    >{{ news.publisher.name }}</RouterLink
                   >
                 </div>
                 <span class="ps-2">{{

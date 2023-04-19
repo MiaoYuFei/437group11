@@ -82,7 +82,9 @@ export default {
                   <strong>{{ news.article.title }}</strong>
                 </h5>
               </a>
-              <div v-if="!(news as any).showFullDescription">
+              <div
+                v-if="!(news as any).showFullDescription && news.article.description != null"
+              >
                 <p
                   v-if="news.article.description.length > 300"
                   class="card-text stocknews-article-description"

@@ -138,6 +138,12 @@ export interface ITicker {
   last_trading_date: string;
 }
 
+export interface IPublisher {
+  name: string;
+  homepage_url: string;
+  logo_url: string;
+}
+
 export interface INews {
   id: string;
   article: {

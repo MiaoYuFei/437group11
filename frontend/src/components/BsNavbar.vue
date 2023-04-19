@@ -19,7 +19,11 @@ export default {
   methods: {
     onUserSignout: function () {
       handleApi("post", "/api/user/signout", []).then(() => {
-        this.$router.push("/");
+        if (this.$route.path === "/") {
+          window.location.reload();
+        } else {
+          this.$router.push("/");
+        }
       });
     },
     search_click: function () {

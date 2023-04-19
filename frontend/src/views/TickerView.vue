@@ -281,22 +281,6 @@ export default {
         });
     },
   },
-  watch: {
-    $route: {
-      handler: function (to: any, from: any) {
-        if (
-          to.query !== undefined &&
-          (from === undefined ||
-            (from !== undefined &&
-              from.query !== undefined &&
-              to.query.q !== from.query.q))
-        ) {
-          this.onSwitchNewsPage(1);
-        }
-      },
-      immediate: true,
-    },
-  },
   created() {
     document.title = "Ticker - " + (this as any).$projectName;
   },
@@ -307,13 +291,15 @@ export default {
         this.tickerError = true;
         this.tickerErrorMessage =
           "The upstream Polygon API is down and we are not able to fetch data. This is not what we can control.";
-      }
-      this.onGetPrice(() => {
-        $(() => {
-          this.drawPriceChart(ChartType.Basic, this.priceData);
+      } else {
+        this.onGetPrice(() => {
+          $(() => {
+            this.drawPriceChart(ChartType.Basic, this.priceData);
+          });
+          this.priceChartLoading = false;
         });
-        this.priceChartLoading = false;
-      });
+        this.onSwitchNewsPage(1);
+      }
     });
   },
   components: {

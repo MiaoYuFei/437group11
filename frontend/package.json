@@ -1,7 +1,7 @@
 {
   "name": "stocknews",
   "private": true,
-  "version": "0.3.1",
+  "version": "0.4.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -26,7 +26,8 @@
     "qs": "^6.11.1",
     "vue": "^3.2.47",
     "vue-recaptcha": "^2.0.3",
-    "vue-router": "^4.1.6"
+    "vue-router": "^4.1.6",
+    "vue3-tour": "^0.3.4"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",

@@ -88,6 +88,7 @@ class newsdata_helper:
             INNER JOIN `ticker` t2 ON t2.`id` = nt2.`ticker_id` \
             WHERE t1.`id` = %s \
             GROUP BY n.`id` \
+            ORDER BY n.`article_datetime` DESC \
             LIMIT 10 OFFSET %s;"
             sql_cursor.execute(sql_query, [ticker_encoded, offset])
         else:
@@ -105,6 +106,7 @@ class newsdata_helper:
             LEFT JOIN `news_likecollect` nlc ON nlc.`news_id` = n.`id` AND nlc.`user_id` = %s \
             WHERE t1.`id` = %s \
             GROUP BY n.`id` \
+            ORDER BY n.`article_datetime` DESC \
             LIMIT 10 OFFSET %s;"
             sql_cursor.execute(sql_query, [userId, ticker_encoded, offset])
         news_rows = sql_cursor.fetchall()
@@ -147,6 +149,7 @@ class newsdata_helper:
             INNER JOIN `ticker` t2 ON t2.`id` = nt2.`ticker_id` \
             WHERE t1.`category` = %s \
             GROUP BY n.`id` \
+            ORDER BY n.`article_datetime` DESC \
             LIMIT 10 OFFSET %s;"
             sql_cursor.execute(sql_query, [category, offset])
         else:
@@ -164,6 +167,7 @@ class newsdata_helper:
             LEFT JOIN `news_likecollect` nlc ON nlc.`news_id` = n.`id` AND nlc.`user_id` = %s \
             WHERE t1.`category` = %s \
             GROUP BY n.`id` \
+            ORDER BY n.`article_datetime` DESC \
             LIMIT 10 OFFSET %s;"
             sql_cursor.execute(sql_query, [userId, category, offset])
         news_rows = sql_cursor.fetchall()
@@ -178,6 +182,81 @@ class newsdata_helper:
             responseData["totalCount"] = news_total_count
 
         return responseData
+
+    @staticmethod
+    def get_news_by_publisher(publisher: str, userId: str, offset: int = 0) -> dict:
+        sql_cnx = get_sql_connection()
+        sql_cursor = sql_cnx.cursor()
+        if offset == 0:
+            sql_query = \
+            "SELECT COUNT(DISTINCT n.`id`) \
+            FROM `news` n \
+            WHERE n.`publisher_name` = %s"
+            sql_cursor.execute(sql_query, [publisher])
+            news_total_count = sql_cursor.fetchone()[0]
+        else:
+            news_total_count = None
+        if userId == None:
+            sql_query = \
+            "SELECT n.*, \
+            GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories, \
+            GROUP_CONCAT(DISTINCT t.`ticker` SEPARATOR ',') AS tickers \
+            FROM `news` n \
+            LEFT JOIN `news_tickers` nt ON nt.`news_id` = n.`id` \
+            LEFT JOIN `ticker` t ON t.`id` = nt.`ticker_id` \
+            WHERE n.`publisher_name` = %s \
+            GROUP BY n.`id` \
+            ORDER BY n.`article_datetime` DESC \
+            LIMIT 10 OFFSET %s;"
+            sql_cursor.execute(sql_query, [publisher, offset])
+        else:
+            sql_query = \
+            "SELECT n.*, \
+            GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories, \
+            GROUP_CONCAT(DISTINCT t.`ticker` SEPARATOR ',') AS tickers, \
+            MAX(nlc.`liked`) AS liked, \
+            MAX(nlc.`collected`) AS collected \
+            FROM `news` n \
+            LEFT JOIN `news_tickers` nt ON nt.`news_id` = n.`id` \
+            LEFT JOIN `ticker` t ON t.`id` = nt.`ticker_id` \
+            LEFT JOIN `news_likecollect` nlc ON nlc.`news_id` = n.`id` AND nlc.`user_id` = %s \
+            WHERE n.`publisher_name` = %s \
+            GROUP BY n.`id` \
+            ORDER BY n.`article_datetime` DESC \
+            LIMIT 10 OFFSET %s;"
+            sql_cursor.execute(sql_query, [userId, publisher, offset])
+        news_rows = sql_cursor.fetchall()
+        news_columns = [column[0] for column in sql_cursor.description]
+        news_list = [dict(zip(news_columns, news_row)) for news_row in news_rows]
+        sql_cursor.close()
+        sql_cnx.close()
+        process_news_response(news_list)
+        responseData = {}
+        responseData["newsList"] = news_list
+        if news_total_count is not None:
+            responseData["totalCount"] = news_total_count
+
+        return responseData
+
+    @staticmethod
+    def get_publisher_info(publisher: str) -> dict:
+        sql_cnx = get_sql_connection()
+        sql_cursor = sql_cnx.cursor()
+        sql_query = \
+        "SELECT n.`publisher_name` AS `name`, n.`publisher_homepage_url` AS `homepage_url`, n.`publisher_logo_url` AS `logo_url` \
+        FROM `news` n \
+        WHERE n.`publisher_name` = %s \
+        LIMIT 1;"
+        sql_cursor.execute(sql_query, [publisher])
+        data_row = sql_cursor.fetchone()
+        if data_row == None:
+            return None
+        data_columns = [column[0] for column in sql_cursor.description]
+        publisher_info = dict(zip(data_columns, data_row))
+        sql_cursor.close()
+        sql_cnx.close()
+
+        return publisher_info
 
     @staticmethod
     def search_news(q: str, userId: str, offset: int = 0) -> dict:
@@ -353,10 +432,13 @@ class newsdata_helper:
         sql_query = \
             "SELECT n.*, \
             GROUP_CONCAT(t.`ticker` SEPARATOR ',') AS tickers, \
-            GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories \
+            GROUP_CONCAT(DISTINCT t.`category` SEPARATOR ',') AS categories, \
+            MAX(nlc.`liked`) AS liked, \
+            MAX(nlc.`collected`) AS collected \
             FROM `news` n \
             LEFT JOIN `news_tickers` nt ON nt.`news_id` = n.`id` \
             LEFT JOIN `ticker` t ON nt.`ticker_id` = t.`id` \
+            LEFT JOIN `news_likecollect` nlc ON nlc.`news_id` = n.`id` AND nlc.`user_id` = %s \
             WHERE n.`id` IN ( \
                 SELECT nt.`news_id` \
                 FROM `ticker` t \
@@ -372,7 +454,7 @@ class newsdata_helper:
             GROUP BY n.`id` \
             ORDER BY n.`article_datetime` DESC \
             LIMIT 10 OFFSET %s"
-        sql_cursor.execute(sql_query, category_list + [offset])
+        sql_cursor.execute(sql_query, [userId] + category_list + [offset])
         data_rows = sql_cursor.fetchall()
         data_columns = [i[0] for i in sql_cursor.description]
         if data_total_count != 0:

@@ -1,5 +1,8 @@
 # 437group11 - Stocknews
 
+[![Node.js CI](https://github.com/MiaoYuFei/437group11/actions/workflows/node.js.yml/badge.svg)](https://github.com/MiaoYuFei/437group11/actions/workflows/node.js.yml)
+[![Deploy to Amazon EC2](https://github.com/MiaoYuFei/437group11/actions/workflows/aws.yml/badge.svg)](https://github.com/MiaoYuFei/437group11/actions/workflows/aws.yml)
+
 ## URL
 
 [https://cse437s.yufeim.com/](https://cse437s.yufeim.com/)

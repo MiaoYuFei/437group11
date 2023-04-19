@@ -82,9 +82,36 @@ export default {
                   <strong>{{ news.article.title }}</strong>
                 </h5>
               </a>
-              <p class="card-text stocknews-article-description">
-                {{ news.article.description }}
-              </p>
+              <div v-if="news.article.description != null">
+                <div v-if="!(news as any).showFullDescription">
+                  <p
+                    v-if="news.article.description.length > 300"
+                    class="card-text stocknews-article-description"
+                  >
+                    {{ news.article.description.slice(0, 300) + "..." }}
+                    <button
+                      class="btn btn-link p-0"
+                      @click="(news as any).showFullDescription = true"
+                    >
+                      View More
+                    </button>
+                  </p>
+                  <p v-else class="card-text stocknews-article-description">
+                    {{ news.article.description }}
+                  </p>
+                </div>
+                <div v-else>
+                  <p class="card-text stocknews-article-description">
+                    {{ news.article.description }}
+                    <button
+                      class="btn btn-link p-0"
+                      @click="(news as any).showFullDescription = false"
+                    >
+                      View Less
+                    </button>
+                  </p>
+                </div>
+              </div>
               <span
                 class="d-flex align-items-center stocknews-article-publisher"
               >
@@ -94,12 +121,13 @@ export default {
                 >
                   <span>From</span>
                   <img :src="news.publisher.logo.url" alt="publisher logo" />
-                  <a
-                    class="fst-italic"
-                    :href="news.publisher.homepage.url"
+                  <RouterLink
+                    class="fst-italic stocknews-article-publisher-name"
                     target="_blank"
-                  >
-                    {{ news.publisher.name }}</a
+                    :to="
+                      '/publisher?q=' + encodeURIComponent(news.publisher.name)
+                    "
+                    >{{ news.publisher.name }}</RouterLink
                   >
                 </div>
                 <span class="ps-2">{{
@@ -115,7 +143,7 @@ export default {
                   </li>
                   <li
                     v-if="news.tickers.length <= 0"
-                    class="list-group-item border-0 p-0 m-0 me-2"
+                    class="list-group-item border-0 p-0 m-0 me-2 stocknews-ticker"
                   >
                     <span class="text-muted" style="font-size: 0.9em">N/A</span>
                   </li>
@@ -170,6 +198,7 @@ export default {
                         alt="Unlike"
                         style="height: 2em"
                         title="Unlike"
+                        class="stocknews-unlike-btn"
                       />
                       <img
                         v-show="news.liked !== true"
@@ -177,6 +206,7 @@ export default {
                         alt="Like"
                         style="height: 2em"
                         title="Like"
+                        class="stocknews-like-btn"
                       />
                     </a>
                   </div>
@@ -188,6 +218,7 @@ export default {
                         alt="Uncollect"
                         style="height: 2em"
                         title="Uncollect"
+                        class="stocknews-uncollect-btn"
                       />
                       <img
                         v-show="news.collected !== true"
@@ -195,6 +226,7 @@ export default {
                         alt="Collect"
                         style="height: 2em"
                         title="Collect"
+                        class="stocknews-collect-btn"
                       />
                     </a>
                   </div>

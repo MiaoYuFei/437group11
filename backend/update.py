@@ -137,6 +137,12 @@ def worker_update_tickers(stop_event):
 def worker_update_news(stop_event):
     sql_conn = get_sql_connection()
     sql_cursor = sql_conn.cursor()
+
+    sql_query = \
+        "DELETE FROM `news` n \
+        WHERE n.`article_datetime` < DATE_SUB(NOW(), INTERVAL 3 MONTH)"
+    sql_cursor.execute(sql_query)
+
     sql_query = \
         "SELECT n.`article_datetime` \
         FROM `news` n \
@@ -202,8 +208,8 @@ def worker_update_news(stop_event):
                 (`news_id`, `ticker_id`) \
             VALUES (%s, %s)"
         sql_cursor.executemany(sql_query, sql_values_tickers_list)
-        sql_conn.commit()
         sql_values_list.clear()
+    sql_conn.commit()
     sql_cursor.close()
     sql_conn.close()
     global worker_update_news_running

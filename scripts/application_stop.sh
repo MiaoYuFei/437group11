@@ -12,6 +12,13 @@ if test -f "$BACKEND_PID_FILE"; then
     $RM $BACKEND_PID_FILE
 fi
 
+UPDATE_PID_FILE="$RUN_PATH/update.pid"
+if test -f "$UPDATE_PID_FILE"; then
+    UPDATE_PID="$(<$UPDATE_PID_FILE)"
+    $KILL $UPDATE_PID
+    $RM $UPDATE_PID_FILE
+fi
+
 $RM $PID_PATH
 
 exit 0

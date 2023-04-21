@@ -14,4 +14,8 @@ sudo -u $WEB_USER STOCKNEWS_ENV=production $PYTHON_ENV_PATH/bin/gunicorn --daemo
 cd $APPLICATION_PATH$FRONTEND_PATH_SUFFIX/production
 sudo -u $WEB_USER SOCK=$RUN_PATH/frontend.sock $PM2 start --name $APPLICATION_NAME --interpreter node_modules/@babel/node/bin/babel-node.js index.js -o $LOG_PATH/frontend.log -e $LOG_PATH/frontend.log
 
+cd $APPLICATION_PATH$BACKEND_PATH_SUFFIX
+sudo -u $WEB_USER STOCKNEWS_ENV=production $PYTHON_ENV_PATH/bin/python update.py &
+sudo -u $WEB_USER echo $! > $RUN_PATH/update.pid
+
 exit 0

@@ -91,7 +91,10 @@ export default {
   </div>
   <div style="border-top: 1px solid var(--bs-border-color)">
     <div class="p-1" style="font-size: 0.8em">
-      <span class="text-muted mx-3">Copyright CSE437S group 11</span>
+      <span class="text-muted mx-3"
+        >Copyright CSE437S group 11. API provided by
+        <a href="https://polygon.io/" target="_blank">polygon.io</a>.</span
+      >
     </div>
   </div>
 </template>

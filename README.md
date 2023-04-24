@@ -1,5 +1,6 @@
 # 437group11 - Stocknews
 
+[![License: Apache-2](https://img.shields.io/badge/license-Apache2-brightgreen.svg)](https://opensource.org/license/apache-2-0/)
 [![Node.js CI](https://github.com/MiaoYuFei/437group11/actions/workflows/node.js.yml/badge.svg)](https://github.com/MiaoYuFei/437group11/actions/workflows/node.js.yml)
 [![Deploy to Amazon EC2](https://github.com/MiaoYuFei/437group11/actions/workflows/aws.yml/badge.svg)](https://github.com/MiaoYuFei/437group11/actions/workflows/aws.yml)
 
